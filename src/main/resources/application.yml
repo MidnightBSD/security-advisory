@@ -1,0 +1,112 @@
+spring:
+  profiles.default: default
+---
+spring:
+  profiles: default
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+  datasource:
+    url: jdbc:postgresql://db.midnightbsd.org/security-advisory
+    username: securityadv
+    password:
+    max-active: 10
+    initial-size: 5
+    max-idle: 5
+    min-idle: 1
+    test-while-idle: true
+    test-on-borrow: true
+    validation-query: SELECT 1
+  jpa:
+    database: POSTGRESQL
+    hibernate:
+      ddl-auto: none
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    generate-ddl: false
+    show-sql: false
+    properties:
+     dialect: org.hibernate.dialect.PostgreSQLDialect
+     hibernate:
+       temp:
+         use_jdbc_metadata_defaults: false
+       cache:
+         provider_class: org.hibernate.cache.EhCacheProvider
+         use_second_level_cache: true
+         use_query_cache: true
+         region:
+            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+            prefix: hibernate
+     javax:
+       persistence:
+         sharedCache:
+           mode: ALL
+  cache:
+    type: REDIS
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+
+endpoints:
+  hypermedia:
+    enabled: true
+
+eureka:
+  client:
+    serviceUrl:
+     defaultZone: http://eureka.justjournal.com:8761/eureka/
+
+flyway:
+  baseline-on-migrate: true
+  user: securityadv
+  password:
+  url: jdbc:postgresql://db.midnightbsd.org/security-advisory
+
+server:
+  tomcat:
+    remote_ip_header: x-forwarded-for
+    protocol_header: x-forwarded-proto
+
+nvdfeed:
+  baseUrl:  https://static.nvd.nist.gov/feeds/json/cve/1.0/
+
+search:
+  nvd-item-index: nvditem
+
+---
+spring:
+  profiles: test
+  datasource:
+    url: jdbc:postgresql://localhost/security-advisory_test
+    username: postgres
+    password:
+
+flyway:
+  baseline-on-migrate: true
+
+---
+spring:
+  profiles: prod
+  redis:
+    host: midnightbsd-redis.c6ifkh.0001.use1.cache.amazonaws.com
+    port: 6379
+    database: 0
+  datasource:
+    url: jdbc:postgresql://midnightbsd-app-store.c9or38nglwhm.us-east-1.rds.amazonaws.com/security-advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+    username: securityadv
+    password: 
+cloud:
+  aws:
+    credentials:
+      accessKey:
+      secretKey:
+    region:
+      static: US_EAST_1
+
+flyway:
+  url: jdbc:postgresql://midnightbsd-app-store.c9or38nglwhm.us-east-1.rds.amazonaws.com/security-advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+  
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
