@@ -30,7 +30,7 @@ public class Vendor {
     @Column(name = "name", nullable = false, length = 200)
     private String name;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "vendor")
     private List<Product> products;
 
 }

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
-    Advisory findOneByName(@Param("name") String name);
 
     Advisory findOneByCveId(@Param("cveId") String cveId);
 }

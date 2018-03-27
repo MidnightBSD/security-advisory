@@ -17,6 +17,7 @@ import javax.persistence.*;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 public class Product {
+    @Id
     @SequenceGenerator(name = "product_id_seq",
             sequenceName = "product_id_seq",
             allocationSize = 1)
