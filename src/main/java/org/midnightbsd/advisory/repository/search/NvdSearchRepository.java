@@ -10,5 +10,5 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
  */
 public interface NvdSearchRepository extends ElasticsearchRepository<NvdItem, Integer> {
 
-    Page<NvdItem> findByNameContainsOrDescriptionContainsAllIgnoreCase(String name, String description, Pageable page);
+    Page<NvdItem> findByCveIdContainsOrDescriptionContainsAllIgnoreCase(String name, String description, Pageable page);
 }

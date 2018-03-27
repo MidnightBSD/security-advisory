@@ -4,9 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.midnightbsd.advisory.model.Advisory;
-import org.midnightbsd.advisory.model.Architecture;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
-import org.midnightbsd.advisory.repository.ArchitectureRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -41,20 +39,20 @@ public class AdvisoryServiceTest {
         adv.setDescription("Foo");
         adv.setPublishedDate(Calendar.getInstance().getTime());
 
-        when(advisoryRepository.findOneByName("test")).thenReturn(adv);
+        when(advisoryRepository.findOneByCveId("CVE-0000-0000")).thenReturn(adv);
         when(advisoryRepository.findOne(1)).thenReturn(adv);
         when(advisoryRepository.findAll()).thenReturn(Collections.singletonList(adv));
     }
 
     @Test
     public void testGetName() {
-        Advisory arch = advisoryService.getByCveId("test");
-        assertNotNull(arch);
-        assertEquals(1, arch.getId());
-        assertEquals("CVE-0000-0000", arch.getCveId());
-        assertEquals("Foo", arch.getDescription());
+        Advisory adv = advisoryService.getByCveId("CVE-0000-0000");
+        assertNotNull(adv);
+        assertEquals(1, adv.getId());
+        assertEquals("CVE-0000-0000", adv.getCveId());
+        assertEquals("Foo", adv.getDescription());
 
-        verify(advisoryRepository, times(1)).findOneByName(anyString());
+        verify(advisoryRepository, times(1)).findOneByCveId(anyString());
     }
 
     @Test

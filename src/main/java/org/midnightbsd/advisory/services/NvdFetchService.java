@@ -1,12 +1,24 @@
 package org.midnightbsd.advisory.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.Charsets;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.midnightbsd.advisory.model.nvd.CveData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.zip.GZIPInputStream;
 
 /**
  * @author Lucas Holt
@@ -23,6 +35,9 @@ public class NvdFetchService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private static final int DELAY_ONE_MINUTE = 1000 * 60;
     private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
     private static final int ONE_WEEK = ONE_DAY * 7;
@@ -31,9 +46,12 @@ public class NvdFetchService {
     private NvdImportService nvdImportService;
 
 
-    @Scheduled(fixedDelay = ONE_WEEK, initialDelay = DELAY_ONE_MINUTE)
-    public void daily() {
+    @Scheduled(fixedDelay = ONE_DAY, initialDelay = DELAY_ONE_MINUTE)
+    public void daily() throws IOException {
         final CveData recent = getNVDData(RECENT_SUFFIX);
+
+       log.info( "Dumped: " + objectMapper.writeValueAsString(recent));
+
         nvdImportService.importNvd(recent);
     }
 
@@ -47,11 +65,47 @@ public class NvdFetchService {
 
              }
     }    */
+    public static byte[] decompress(byte[] contentBytes) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            IOUtils.copy(new GZIPInputStream(new ByteArrayInputStream(contentBytes)), out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return out.toByteArray();
+    }
 
 
-    public CveData getNVDData(String suffix) {
-        log.info("Fetching nvd data for " + suffix);
-        return restTemplate.getForObject(nvdfeedUrl + "/" + suffix, CveData.class);
+    public CveData getNVDData(String suffix) throws IOException {
+        String url = nvdfeedUrl + suffix;
+        log.info("Fetching nvd data for " + url);
+        //  https://static.nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-recent.json.gz
+
+        try {
+
+            HttpClient client = HttpClientBuilder.create().build();
+            HttpGet request = new HttpGet(url);
+
+
+            HttpResponse response = client.execute(request);
+
+            org.apache.http.HttpEntity entity = response.getEntity();
+            if (entity != null) {
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                entity.writeTo(baos);
+
+                byte[] responseBytes = baos.toByteArray();
+                String decompressed = new String(decompress(responseBytes), Charsets.UTF_8);
+
+                baos.close();
+
+                return objectMapper.readValue(decompressed, CveData.class);
+            }
+        } catch (IOException e) {
+            log.error("network call failed.", e);
+        }
+        return null;
     }
 
 }

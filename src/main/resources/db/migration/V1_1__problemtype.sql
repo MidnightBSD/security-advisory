@@ -1,0 +1,1 @@
+alter table advisory add COLUMN problem_type varchar(200);

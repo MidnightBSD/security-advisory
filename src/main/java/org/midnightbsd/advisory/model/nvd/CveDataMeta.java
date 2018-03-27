@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.model.nvd;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -7,11 +8,12 @@ import lombok.Data;
  * @author Lucas Holt
  */
 @Data
-public class DataMeta {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CveDataMeta {
 
     @JsonProperty("ID")
-    private String id;
+    private String ID;
 
     @JsonProperty("ASSIGNER")
-    private String assigner;
+    private String ASSIGNER;
 }

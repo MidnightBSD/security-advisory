@@ -47,6 +47,9 @@ public class Advisory {
     @Column(name = "severity", nullable = false)
     private String severity;
 
+    @Column(name="problem_type", length = 100)
+    private String problemType;
+
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(name = "advisory_package_fixed_map", joinColumns = @JoinColumn(name = "advisory_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "package_fixed_id", referencedColumnName = "id"))
@@ -57,4 +60,5 @@ public class Advisory {
     @JoinTable(name = "advisory_product_map", joinColumns = @JoinColumn(name = "advisory_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"))
     private Set<Product> products;
+
 }

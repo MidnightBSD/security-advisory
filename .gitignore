@@ -68,3 +68,4 @@ Temporary Items
 .idea
 security-advisory.iml
 target
+data/elasticsearch

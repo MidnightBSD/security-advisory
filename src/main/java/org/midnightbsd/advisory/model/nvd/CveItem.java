@@ -4,15 +4,23 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
-
 /**
  * @author Lucas Holt
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Description {
-    @JsonProperty("description_data")
-    private List<DescriptionData> descriptionData;
+public class CveItem {
 
+    @JsonProperty("cve")
+    private Cve cve;
+
+    // configurations
+
+    // impact
+
+    @JsonProperty("publishedDate")
+    private String publishedDate;
+
+    @JsonProperty("lastModifiedDate")
+    private String lastModifiedDate;
 }

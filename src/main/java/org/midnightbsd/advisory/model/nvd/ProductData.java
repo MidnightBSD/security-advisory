@@ -1,12 +1,12 @@
 package org.midnightbsd.advisory.model.nvd;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
 /**
  * @author Lucas Holt
  */
-@Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ProductData {
 
     @JsonProperty("product_name")
@@ -14,4 +14,20 @@ public class ProductData {
 
     @JsonProperty("version")
     private Version version;
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(final String productName) {
+        this.productName = productName;
+    }
+
+    public Version getVersion() {
+        return version;
+    }
+
+    public void setVersion(final Version version) {
+        this.version = version;
+    }
 }

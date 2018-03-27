@@ -36,7 +36,7 @@ public class SearchService {
 
     @Cacheable(key="#p0.concat('-').concat(#p1.getPageNumber())", value = "search")
     public Page<NvdItem> find(String term, Pageable page) {
-        return nvdSearchRepository.findByNameContainsOrDescriptionContainsAllIgnoreCase(term, term, page);
+        return nvdSearchRepository.findByCveIdContainsOrDescriptionContainsAllIgnoreCase(term, term, page);
     }
 
     @CacheEvict(value = "search", allEntries = true)

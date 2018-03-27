@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.model.nvd;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
@@ -9,6 +10,7 @@ import java.util.List;
  * @author Lucas Holt
  */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CveData {
 
     @JsonProperty("CVE_data_type")
@@ -24,8 +26,9 @@ public class CveData {
     private String numberOfCVE;
 
     @JsonProperty("CVE_data_timestamp")
-    private Data timestamp;
+    private String timestamp;
 
     @JsonProperty("CVE_Items")
-    private List<Cve> items;
+    private List<CveItem> cveItems;
+
 }
