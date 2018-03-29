@@ -18,7 +18,9 @@ import org.springframework.web.client.RestTemplate;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipException;
 
 /**
  * @author Lucas Holt
@@ -40,7 +42,8 @@ public class NvdFetchService {
 
     private static final int DELAY_ONE_MINUTE = 1000 * 60;
     private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
-    private static final int ONE_WEEK = ONE_DAY * 7;
+    private static final int ONE_MONTH = ONE_DAY * 30;
+    private static final int START_YEAR = 2002;
 
     @Autowired
     private NvdImportService nvdImportService;
@@ -50,21 +53,42 @@ public class NvdFetchService {
     public void daily() throws IOException {
         final CveData recent = getNVDData(RECENT_SUFFIX);
 
-       log.info( "Dumped: " + objectMapper.writeValueAsString(recent));
+     //  log.info( "Dumped: " + objectMapper.writeValueAsString(recent));
 
+        log.info("Begin import of recent data");
         nvdImportService.importNvd(recent);
+
+        log.info("Finished daily import");
     }
 
 
     /**
      * Pull previous weeks
      */
-  /*  @Scheduled(fixedDelay = ONE_WEEK, initialDelay = DELAY_ONE_MINUTE)
-    public void weekly() {
-             for (int i = 2002; i <= Calendar.getInstance().getTime().getYear(); i++) {
+    @Scheduled(fixedDelay = ONE_MONTH, initialDelay = DELAY_ONE_MINUTE)
+    public void weekly() throws IOException {
+        // https://static.nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-2018.json.gz
 
-             }
-    }    */
+        final int year = Calendar.getInstance().getTime().getYear() + 1900;
+
+        log.info("Fetching data from 2002 to " + year);
+
+        for (int i = year; i >= START_YEAR; i--) {
+            try {
+                final String suffix = "nvdcve-1.0-" + Integer.toString(i) + ".json.gz";
+                final CveData data = getNVDData(suffix);
+
+                log.info("Begin import of " + i + " data");
+                nvdImportService.importNvd(data);
+            } catch (final ZipException zipException) {
+                log.error("Invalid gz file", zipException);
+            }
+        }
+
+        log.info("Finished weekly import");
+    }
+
+
     public static byte[] decompress(byte[] contentBytes) {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {

@@ -19,7 +19,7 @@ public class SearchIndexer {
 
     @Scheduled(fixedDelay = 1000 * 60 * 30, initialDelay = 120000)
     public void loadNewEntries() {
-        log.info("Starting search indexer - Load all packages");
+        log.info("Starting search indexer - Load all nvd items");
         
         // TODO: add timestamp so we can limit reindexing
         /*log.info("Search indexer - Load new entries from the last 30 minutes");
@@ -28,17 +28,17 @@ public class SearchIndexer {
         cal.add(Calendar.MINUTE, -30);
 
         searchService.indexAllPackagesSince(cal.getTime());   */
-        searchService.indexAllPackages();
+        searchService.indexAllNvdItems();
     }
 
     /**
-     * Load all public blog entries at startup into elasticsearch
+     * Load all nvd items at startup into elasticsearch
      */
     @PostConstruct
     public void initialize() {
-        log.info("Starting search indexer - Load all packages");
+        log.info("Starting search indexer - Load all nvd");
 
-        searchService.indexAllPackages();
+       searchService.indexAllNvdItems();
     }
 
 }

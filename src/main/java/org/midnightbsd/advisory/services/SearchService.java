@@ -2,6 +2,7 @@ package org.midnightbsd.advisory.services;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.ElasticsearchException;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.search.Instance;
 import org.midnightbsd.advisory.model.search.NvdItem;
@@ -42,7 +43,7 @@ public class SearchService {
     @CacheEvict(value = "search", allEntries = true)
     @Transactional
     @Async
-    public void indexAllPackages() {
+    public void indexAllNvdItems() {
         try {
             Pageable pageable = new PageRequest(0, 100);
 
@@ -60,6 +61,8 @@ public class SearchService {
                 pageable = new PageRequest(i + 1, 100);
                 advisories = advisoryRepository.findAll(pageable);
             }
+        } catch (ElasticsearchException es) {
+            log.error(es.getDetailedMessage(), es);
         } catch (final Exception e) {
             log.error(e.getMessage(), e);
         }

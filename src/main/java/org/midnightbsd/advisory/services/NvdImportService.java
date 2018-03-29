@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.services;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
@@ -12,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * @author Lucas Holt
@@ -25,9 +26,8 @@ public class NvdImportService {
     @Autowired
     private AdvisoryService advisoryService;
 
-
-    //  @Autowired
-    // private SearchService searchService;
+    @Autowired
+    private SearchService searchService;
 
     @Autowired
     private VendorRepository vendorRepository;
@@ -42,18 +42,20 @@ public class NvdImportService {
         if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
             throw new IllegalArgumentException("cveData.getItems()");
 
+        ArrayList<Advisory> toSave = new ArrayList<>();
+
         for (CveItem cveItem : cveData.getCveItems()) {
             Cve cve = cveItem.getCve();
             Advisory advisory = new Advisory();
 
             if (cve.getCveDataMeta() == null) {
                 log.warn("invalid meta data");
-                //       continue;
+                continue;
             } else {
                 advisory.setCveId(cve.getCveDataMeta().getID());
             }
 
-            if (cve.getProblemType() != null) {
+            if (cve.getProblemType() != null && cve.getProblemType().getProblemTypeData() != null)  {
                 String problem = "";
                 for (ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
                     for (ProblemTypeDataDescription dd : ptd.getDescription()) {
@@ -62,6 +64,9 @@ public class NvdImportService {
                 }
                 advisory.setProblemType(problem);
             }
+
+            advisory.setPublishedDate(convertDate(cveItem.getPublishedDate()));
+            advisory.setLastModifiedDate(convertDate(cveItem.getLastModifiedDate()));
 
             if (cve.getDescription() != null && cve.getDescription().getDescriptionData() != null) {
 
@@ -101,7 +106,27 @@ public class NvdImportService {
             }
 
             advisory.setProducts(advProducts);
-            advisoryService.save(advisory);
+
+            toSave.add(advisory);
         }
+
+        log.info("Saving items in batch");
+        Lists.partition(toSave, 100).stream().peek(l -> advisoryService.batchSave(l));
+    }
+
+    private Date convertDate(String dt) {
+        if (dt == null || dt.isEmpty())
+            return null;
+
+        // 2018-02-20T21:29Z
+
+        try {
+            SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
+            return ISO8601DATEFORMAT.parse(dt);
+        } catch (Exception e) {
+            log.error("Could not convert " + dt, e);
+        }
+
+        return null;
     }
 }

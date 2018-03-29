@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +37,32 @@ public class AdvisoryService implements AppService<Advisory> {
     }
 
     @Transactional
+    public void batchSave(List<Advisory> advisories) {
+        ArrayList<Advisory> createList = new ArrayList<>();
+
+        for (Advisory advisory : advisories) {
+            final Advisory adv = repository.findOneByCveId(advisory.getCveId());
+            if (adv == null) {
+                createList.add(advisory);
+            }  else {
+                // TODO: last modified date detection
+                
+                adv.setDescription(advisory.getDescription());
+                adv.setLastModifiedDate(advisory.getLastModifiedDate());
+                adv.setPublishedDate(advisory.getPublishedDate());
+                adv.setSeverity(advisory.getSeverity());
+                adv.setProblemType(advisory.getProblemType());
+                // TODO: product updates
+                repository.save(adv);
+            }
+        }
+        repository.flush();
+
+        repository.save(createList);
+        repository.flush();
+    }
+
+    @Transactional
     public Advisory save(final Advisory advisory) {
         final Advisory adv = repository.findOneByCveId(advisory.getCveId());
         if (adv == null) {
@@ -47,13 +74,5 @@ public class AdvisoryService implements AppService<Advisory> {
 
         adv.setDescription(advisory.getDescription());
         return repository.saveAndFlush(adv);
-    }
-
-    public Advisory createIfNotExists(final String cveId) {
-        final Advisory arch = getByCveId(cveId);
-        if (arch != null)
-            return arch;
-
-        return save(Advisory.builder().cveId(cveId).build());
     }
 }
