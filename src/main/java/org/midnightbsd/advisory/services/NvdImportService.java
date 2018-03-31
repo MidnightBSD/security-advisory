@@ -27,9 +27,6 @@ public class NvdImportService {
     private AdvisoryService advisoryService;
 
     @Autowired
-    private SearchService searchService;
-
-    @Autowired
     private VendorRepository vendorRepository;
 
     @Autowired
@@ -42,11 +39,11 @@ public class NvdImportService {
         if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
             throw new IllegalArgumentException("cveData.getItems()");
 
-        ArrayList<Advisory> toSave = new ArrayList<>();
+        final List<Advisory> toSave = new ArrayList<>();
 
         for (CveItem cveItem : cveData.getCveItems()) {
-            Cve cve = cveItem.getCve();
-            Advisory advisory = new Advisory();
+            final Cve cve = cveItem.getCve();
+            final Advisory advisory = new Advisory();
 
             if (cve.getCveDataMeta() == null) {
                 log.warn("invalid meta data");
@@ -58,13 +55,13 @@ public class NvdImportService {
             }
 
             if (cve.getProblemType() != null && cve.getProblemType().getProblemTypeData() != null)  {
-                String problem = "";
-                for (ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
-                    for (ProblemTypeDataDescription dd : ptd.getDescription()) {
-                        problem += dd.getValue() + ",";
+                final StringBuilder sb = new StringBuilder();
+                for (final ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
+                    for (final ProblemTypeDataDescription dd : ptd.getDescription()) {
+                        sb.append(dd.getValue()).append(",");
                     }
                 }
-                advisory.setProblemType(problem);
+                advisory.setProblemType(sb.toString());
             }
 
             advisory.setPublishedDate(convertDate(cveItem.getPublishedDate()));
@@ -72,7 +69,7 @@ public class NvdImportService {
 
             if (cve.getDescription() != null && cve.getDescription().getDescriptionData() != null) {
 
-                for(DescriptionData descriptionData : cve.getDescription().getDescriptionData()) {
+                for(final DescriptionData descriptionData : cve.getDescription().getDescriptionData()) {
                    if (descriptionData.getLang().equalsIgnoreCase("en"))
                         advisory.setDescription(descriptionData.getValue());
                 }
@@ -90,7 +87,7 @@ public class NvdImportService {
             if (cve.getAffects() != null && cve.getAffects().getVendor() != null) {
                 log.info("Vendor count: " + cve.getAffects().getVendor().getVendorData().size());
                 
-                for (VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
+                for (final VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
                     Vendor v = vendorRepository.findOneByName(vendorData.getVendorName());
                     if (v == null) {
                         v = new Vendor();
@@ -99,8 +96,8 @@ public class NvdImportService {
                     }
 
                     log.info("Product count " +  vendorData.getProduct().getProductData().size());
-                    for (ProductData pd : vendorData.getProduct().getProductData()) {
-                        for (VersionData vd : pd.getVersion().getVersionData()) {
+                    for (final ProductData pd : vendorData.getProduct().getProductData()) {
+                        for (final VersionData vd : pd.getVersion().getVersionData()) {
                             Product product = productRepository.findByNameAndVersionAndVendor(pd.getProductName(), vd.getVersionValue(), v);
                             if (product == null) {
                                 product = new Product();
@@ -122,10 +119,10 @@ public class NvdImportService {
         }
 
         log.info("Saving items in batch");
-        Lists.partition(toSave, 100).stream().peek(l -> advisoryService.batchSave(l));
+        Lists.partition(toSave, 20).stream().peek(l -> advisoryService.batchSave(l));
     }
 
-    private Date convertDate(String dt) {
+    private Date convertDate(final String dt) {
         if (dt == null || dt.isEmpty())
             return null;
 

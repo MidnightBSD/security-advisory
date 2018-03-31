@@ -19,22 +19,29 @@ import java.util.List;
 @Service
 public class AdvisoryService implements AppService<Advisory> {
 
+    private final AdvisoryRepository repository;
+
+    private final SearchService searchService;
+
     @Autowired
-    private AdvisoryRepository repository;
+    public AdvisoryService(final AdvisoryRepository repository, final SearchService searchService) {
+        this.repository = repository;
+        this.searchService = searchService;
+    }
 
     public List<Advisory> list() {
         return repository.findAll();
     }
 
-    public List<Advisory> getByProduct(String productName) {
+    public List<Advisory> getByProduct(final String productName) {
         return repository.findByProductName(productName);
     }
 
-    public List<Advisory> getByVendor(String vendorName) {
+    public List<Advisory> getByVendor(final String vendorName) {
         return repository.findByVendorName(vendorName);
     }
 
-    public List<Advisory> getByVendorAndProduct(String vendorName, String productName) {
+    public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
         return repository.findByVendorNameAAndProductsIsLike(vendorName, productName);
     }
 
@@ -51,13 +58,13 @@ public class AdvisoryService implements AppService<Advisory> {
     }
 
     @Transactional
-    public void batchSave(List<Advisory> advisories) {
+    public void batchSave(final List<Advisory> advisories) {
         log.info("Advisory batch save of " + advisories.size());
         
-        ArrayList<Advisory> createList = new ArrayList<>();
+        final List<Advisory> createList = new ArrayList<>();
 
         for (final Advisory advisory : advisories) {
-            final Advisory adv = repository.findOneByCveId(advisory.getCveId());
+             Advisory adv = repository.findOneByCveId(advisory.getCveId());
             if (adv == null) {
                 createList.add(advisory);
             }  else {
@@ -75,12 +82,13 @@ public class AdvisoryService implements AppService<Advisory> {
                     adv.setProducts(advisory.getProducts());
                 }
 
-                repository.save(adv);
+                adv = repository.save(adv);
+                searchService.index(adv);
             }
         }
         repository.flush();
 
-        repository.save(createList);
+        repository.save(createList).stream().peek(searchService::index);
         repository.flush();
     }
 
@@ -91,7 +99,7 @@ public class AdvisoryService implements AppService<Advisory> {
             return repository.saveAndFlush(advisory);
         }
 
-        log.info("Updating " + adv.getCveId());
+        log.info("Updating {}", adv.getCveId());
         adv.setDescription(advisory.getDescription());
         adv.setLastModifiedDate(advisory.getLastModifiedDate());
         adv.setPublishedDate(advisory.getPublishedDate());
