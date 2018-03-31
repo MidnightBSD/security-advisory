@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * @author Lucas Holt
  */
+@Slf4j
 @Service
 public class AdvisoryService implements AppService<Advisory> {
 
@@ -50,21 +52,29 @@ public class AdvisoryService implements AppService<Advisory> {
 
     @Transactional
     public void batchSave(List<Advisory> advisories) {
+        log.info("Advisory batch save of " + advisories.size());
+        
         ArrayList<Advisory> createList = new ArrayList<>();
 
-        for (Advisory advisory : advisories) {
+        for (final Advisory advisory : advisories) {
             final Advisory adv = repository.findOneByCveId(advisory.getCveId());
             if (adv == null) {
                 createList.add(advisory);
             }  else {
                 // TODO: last modified date detection
-                
+
+                log.info("Updating " + adv.getCveId());
                 adv.setDescription(advisory.getDescription());
                 adv.setLastModifiedDate(advisory.getLastModifiedDate());
                 adv.setPublishedDate(advisory.getPublishedDate());
                 adv.setSeverity(advisory.getSeverity());
                 adv.setProblemType(advisory.getProblemType());
                 // TODO: product updates
+                if (advisory.getProducts() != null) {
+                    log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
+                    adv.setProducts(advisory.getProducts());
+                }
+
                 repository.save(adv);
             }
         }
@@ -81,10 +91,18 @@ public class AdvisoryService implements AppService<Advisory> {
             return repository.saveAndFlush(advisory);
         }
 
-        if (adv.getDescription().equals(advisory.getDescription()))
-            return adv;
-
+        log.info("Updating " + adv.getCveId());
         adv.setDescription(advisory.getDescription());
+        adv.setLastModifiedDate(advisory.getLastModifiedDate());
+        adv.setPublishedDate(advisory.getPublishedDate());
+        adv.setSeverity(advisory.getSeverity());
+        adv.setProblemType(advisory.getProblemType());
+        // TODO: product updates
+        if (advisory.getProducts() != null) {
+            log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
+            adv.setProducts(advisory.getProducts());
+        }
+
         return repository.saveAndFlush(adv);
     }
 }

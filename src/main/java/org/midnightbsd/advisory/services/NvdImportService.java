@@ -53,6 +53,8 @@ public class NvdImportService {
                 continue;
             } else {
                 advisory.setCveId(cve.getCveDataMeta().getID());
+
+                log.info("Processing " + advisory.getCveId());
             }
 
             if (cve.getProblemType() != null && cve.getProblemType().getProblemTypeData() != null)  {
@@ -76,9 +78,18 @@ public class NvdImportService {
                 }
             }
 
+            // determine severity
+            if (cveItem.getImpact() != null) {
+                if (cveItem.getImpact().getBaseMetricV2() != null) {
+                    advisory.setSeverity(cveItem.getImpact().getBaseMetricV2().getSeverity());
+                }
+            }
+
             Set<Product> advProducts = new HashSet<>();
 
             if (cve.getAffects() != null && cve.getAffects().getVendor() != null) {
+                log.info("Vendor count: " + cve.getAffects().getVendor().getVendorData().size());
+                
                 for (VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
                     Vendor v = vendorRepository.findOneByName(vendorData.getVendorName());
                     if (v == null) {
@@ -87,10 +98,10 @@ public class NvdImportService {
                         v = vendorRepository.saveAndFlush(v);
                     }
 
-
+                    log.info("Product count " +  vendorData.getProduct().getProductData().size());
                     for (ProductData pd : vendorData.getProduct().getProductData()) {
                         for (VersionData vd : pd.getVersion().getVersionData()) {
-                            Product product = productRepository.findByNameAndVersion(pd.getProductName(), vd.getVersionValue());
+                            Product product = productRepository.findByNameAndVersionAndVendor(pd.getProductName(), vd.getVersionValue(), v);
                             if (product == null) {
                                 product = new Product();
                                 product.setName(pd.getProductName());

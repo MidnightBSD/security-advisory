@@ -16,7 +16,7 @@ public class CveItem {
 
     // configurations
 
-    // impact
+    private Impact impact;
 
     @JsonProperty("publishedDate")
     private String publishedDate;

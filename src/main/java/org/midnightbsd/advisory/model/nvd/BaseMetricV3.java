@@ -1,19 +1,19 @@
 package org.midnightbsd.advisory.model.nvd;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 /**
  * @author Lucas Holt
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class VendorData {
+public class BaseMetricV3 {
 
-    @JsonProperty("vendor_name")
-    private String vendorName;
+    private CvssV3 cvssV3;
 
-    @JsonProperty("product")
-    private Product product;
+    private BigDecimal exploitabilityScore;
+    private BigDecimal impactScore;
 }

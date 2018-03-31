@@ -14,7 +14,7 @@ import java.util.Calendar;
  */
 @Slf4j
 @Service
-public class CronMonthly {
+public class CronWeekly {
     private static final int DELAY_ONE_MINUTE = 1000 * 60;
     private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
     private static final int ONE_WEEK = ONE_DAY * 7;
@@ -40,6 +40,11 @@ public class CronMonthly {
         for (int i = year; i >= START_YEAR; i--) {
             final String suffix = "nvdcve-1.0-" + Integer.toString(i) + ".json.gz";
             final CveData data = nvdFetchService.getNVDData(suffix);
+
+            if (data == null) {
+                log.warn("Data for " + i + " invalid");
+                continue;
+            }
 
             log.info("Begin import of " + i + " data");
             nvdImportService.importNvd(data);

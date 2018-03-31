@@ -92,7 +92,7 @@ spring:
     port: 6379
     database: 0
   datasource:
-    url: jdbc:postgresql://midnightbsd-app-store.c9or38nglwhm.us-east-1.rds.amazonaws.com/security-advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+    url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
     password: 
 cloud:
@@ -104,9 +104,9 @@ cloud:
       static: US_EAST_1
 
 flyway:
-  url: jdbc:postgresql://midnightbsd-app-store.c9or38nglwhm.us-east-1.rds.amazonaws.com/security-advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+  url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
   
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://appstore.midnightbsd.org:8761/eureka/

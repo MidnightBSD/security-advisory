@@ -1,7 +1,6 @@
 package org.midnightbsd.advisory.model.nvd;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -9,11 +8,9 @@ import lombok.Data;
  */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class VendorData {
+public class Impact {
 
-    @JsonProperty("vendor_name")
-    private String vendorName;
+    BaseMetricV3 baseMetricV3;
 
-    @JsonProperty("product")
-    private Product product;
+    BaseMetricV2 baseMetricV2;
 }
