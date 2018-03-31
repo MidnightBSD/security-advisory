@@ -1,0 +1,35 @@
+<div class="row">
+    <div class="col-xs-12">
+
+        <div ng-repeat="adv in advisories.content">
+            <h3>{{adv.cveId}}</h3>
+
+            <p>Severity: {{adv.severity}}</p>
+            <p>Problem Type: {{adv.problemType}}</p>
+
+            <p ng-bind-html="adv.description"></p>
+
+            <h3>Products affected</h3>
+            <div ng-repeat="inst in adv.products">
+                <b>{{inst.vendor.name}}</b>  {{inst.name}} {{inst.version}}
+            </div>
+
+            <h3>Fixed MidnightBSD mport packages (if applicable)</h3>
+            <div ng-repeat="inst in adv.fixedPackages">
+                   {{inst.name}} {{inst.version}}
+            </div>
+        </div>
+
+        <br>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-10 col-md-offset-1">
+        <pagination data-ng-change="load()"
+                    total-items="totals"
+                    items-per-page="pageSize"
+                    data-ng-model="page"
+                    class="pagination-sm"></pagination>
+    </div>
+</div>

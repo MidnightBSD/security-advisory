@@ -24,6 +24,18 @@ public class AdvisoryService implements AppService<Advisory> {
         return repository.findAll();
     }
 
+    public List<Advisory> getByProduct(String productName) {
+        return repository.findByProductName(productName);
+    }
+
+    public List<Advisory> getByVendor(String vendorName) {
+        return repository.findByVendorName(vendorName);
+    }
+
+    public List<Advisory> getByVendorAndProduct(String vendorName, String productName) {
+        return repository.findByVendorNameAAndProductsIsLike(vendorName, productName);
+    }
+
     public Page<Advisory> get(final Pageable page) {
         return repository.findAll(page);
     }

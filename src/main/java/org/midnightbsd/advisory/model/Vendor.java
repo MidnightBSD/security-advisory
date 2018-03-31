@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class Vendor {
     @Column(name = "name", nullable = false, length = 200)
     private String name;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "vendor")
     private List<Product> products;
 

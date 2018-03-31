@@ -9,6 +9,8 @@ import org.midnightbsd.advisory.services.AdvisoryService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.data.domain.*;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -58,9 +60,10 @@ public class AdvisoryControllerTest {
 
     @Test
     public void testList() {
-        final ResponseEntity<List<Advisory>> result = controller.list();
+        Pageable page = new PageRequest(0,10);
+        final ResponseEntity<Page<Advisory>> result = controller.list(page);
         assertNotNull(result);
-        assertEquals(1, result.getBody().size());
+        assertEquals(1, result.getBody().getTotalPages());
     }
 
     @Test

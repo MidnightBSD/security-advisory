@@ -1,0 +1,54 @@
+<h2>Search</h2>
+
+<div class="row">
+    <div class="col-md-offset-1 col-md-5">
+        <form class="form-search form-inline">
+            <div class="form-group">
+                <input type="text" value="" id="keyword" data-ng-model="keyword" class="form-control input-large"
+                       placeholder="Search">
+            </div>
+
+            <div class="form-group">
+                <button id="btnSearch" class="btn btn-primary" data-ng-click="search()"> Search &nbsp;
+                    <i class="fa fa-spinner fa-spin" data-ng-class="{'hidden':!processing}"></i></button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row top-padding" data-ng-hide="showResults">
+    <div class="col-md-7 col-md-offset-1">
+        <div data-ng-show="pageCount == 0" class="alert alert-warn" data-ng-cloak>
+            <b>Search Returned 0 results.</b>
+        </div>
+    </div>
+</div>
+
+<div data-ng-show="showResults">
+    <div class="row top-padding">
+        <div class="col-md-7 col-md-offset-1">
+
+            <div data-ng-repeat="item in searchResponse.content">
+                <h3>{{ item.cveId }}</h3>
+                <div>
+                    <p ng-bind-html="item.description"></p>
+
+                    <div ng-repeat="inst in item.instances">
+                        <b>{{inst.vendor}}</b> {{inst.product}} {{inst.version}}
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <pagination data-ng-change="realsearch()"
+                        total-items="totals"
+                        items-per-page="pageSize"
+                        data-ng-model="page"
+                        class="pagination-sm"></pagination>
+        </div>
+    </div>
+</div>

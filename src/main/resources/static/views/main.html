@@ -1,0 +1,49 @@
+<div class="row">
+    <!--
+    <div class="col-xs-6 col-md-4">
+        <h2>Find by Categories</h2>
+        <ul>
+            <li ng-repeat="cat in categories">
+                <a ng-href="#!/category/{{cat.id}}">{{cat.name}}</a>
+            </li>
+        </ul>
+
+        <h2>Find by OS</h2>
+        <ul>
+            <li ng-repeat="o in os">
+                {{o.version}}
+                <span ng-repeat="arch in architectures">
+                           <a ng-href="#!/os/{{o.version}}/arch/{{arch.name}}">{{arch.name}}</a> </span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-xs-6 col-md-4">
+        <h2>Find by License</h2>
+        <ul>
+            <li ng-repeat="lic in licenses">
+                <a ng-href="#!/license/{{lic.name}}">{{lic.name}}</a>
+            </li>
+        </ul>
+    </div>
+
+    -->
+
+    <div class="col-xs-6 col-md-4">
+        <h2>About the Advisory Site</h2>
+        <p>The MidnightBSD Advisory site helps you find existing and new vulnerabilities in installed software
+        on your system.</p>
+
+        <h3>Search For Vulnerabilities</h3>
+
+        <form name="bsearch" id="bsearch">
+            <fieldset>
+                <p>
+                    <input type="text" name="bquery" id="bquery" value="" data-ng-model="term">
+                    <button data-ng-click="search()" class="btn btn-primary">Find</button>
+                </p>
+            </fieldset>
+        </form>
+
+    </div>
+</div>
