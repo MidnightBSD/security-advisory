@@ -68,22 +68,44 @@ public class AdvisoryService implements AppService<Advisory> {
             if (adv == null) {
                 createList.add(advisory);
             }  else {
-                // TODO: last modified date detection
+                boolean update = false; // dirty check
 
                 log.info("Updating " + adv.getCveId());
-                adv.setDescription(advisory.getDescription());
-                adv.setLastModifiedDate(advisory.getLastModifiedDate());
-                adv.setPublishedDate(advisory.getPublishedDate());
-                adv.setSeverity(advisory.getSeverity());
-                adv.setProblemType(advisory.getProblemType());
-                // TODO: product updates
-                if (advisory.getProducts() != null) {
+
+                if (advisory.getDescription() != null && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
+                    adv.setDescription(advisory.getDescription());
+                    update = true;
+                }
+
+                if (advisory.getLastModifiedDate() != null && advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0) {
+                    adv.setLastModifiedDate(advisory.getLastModifiedDate());
+                    update = true;
+                }
+
+                if (advisory.getPublishedDate() != null && advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0) {
+                    adv.setPublishedDate(advisory.getPublishedDate());
+                    update = true;
+                }
+
+                if (advisory.getSeverity() != null && !advisory.getSeverity().equalsIgnoreCase(adv.getSeverity())) {
+                    adv.setSeverity(advisory.getSeverity());
+                    update = true;
+                }
+
+                if (advisory.getProblemType() != null && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
+                    adv.setProblemType(advisory.getProblemType());
+                    update = true;
+                }
+
+                if (update  && advisory.getProducts() != null) {
                     log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
                     adv.setProducts(advisory.getProducts());
                 }
 
-                adv = repository.save(adv);
-                searchService.index(adv);
+                if (update) {
+                    adv = repository.save(adv);
+                    searchService.index(adv);
+                }
             }
         }
         repository.flush();
