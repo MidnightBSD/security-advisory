@@ -39,8 +39,6 @@ public class NvdImportService {
         if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
             throw new IllegalArgumentException("cveData.getItems()");
 
-        final List<Advisory> toSave = new ArrayList<>();
-
         for (CveItem cveItem : cveData.getCveItems()) {
             final Cve cve = cveItem.getCve();
             final Advisory advisory = new Advisory();
@@ -114,12 +112,8 @@ public class NvdImportService {
             }
 
             advisory.setProducts(advProducts);
-
-            toSave.add(advisory);
+            advisoryService.save(advisory);
         }
-
-        log.info("Saving items in batch");
-        Lists.partition(toSave, 20).stream().peek(l -> advisoryService.batchSave(l));
     }
 
     private Date convertDate(final String dt) {
