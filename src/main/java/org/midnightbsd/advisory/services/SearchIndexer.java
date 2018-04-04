@@ -17,19 +17,13 @@ public class SearchIndexer {
     private SearchService searchService;
 
 
-    @Scheduled(fixedDelay = 1000 * 60 * 30, initialDelay = 120000)
+  /*  @Scheduled(fixedDelay = 1000 * 60 * 120, initialDelay = 120000)
     public void loadNewEntries() {
         log.info("Starting search indexer - Load all nvd items");
         
         // TODO: add timestamp so we can limit reindexing
-        /*log.info("Search indexer - Load new entries from the last 30 minutes");
-
-        final Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.MINUTE, -30);
-
-        searchService.indexAllPackagesSince(cal.getTime());   */
         searchService.indexAllNvdItems();
-    }
+    }    */
 
     /**
      * Load all nvd items at startup into elasticsearch
@@ -38,7 +32,7 @@ public class SearchIndexer {
     public void initialize() {
         log.info("Starting search indexer - Load all nvd");
 
-       searchService.indexAllNvdItems();
+   //    searchService.indexAllNvdItems();
     }
 
 }

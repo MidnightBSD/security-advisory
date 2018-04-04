@@ -16,6 +16,7 @@ import java.io.IOException;
 public class CronDaily {
     private static final int DELAY_ONE_MINUTE = 1000 * 60;
     private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
+    private static final int TEN_MINUTES = DELAY_ONE_MINUTE * 10;
     private static final String RECENT_SUFFIX = "nvdcve-1.0-recent.json.gz";
 
     @Autowired
@@ -24,7 +25,7 @@ public class CronDaily {
     @Autowired
     private NvdImportService nvdImportService;
 
-    @Scheduled(fixedDelay = ONE_DAY, initialDelay = DELAY_ONE_MINUTE)
+    @Scheduled(fixedDelay = ONE_DAY, initialDelay = TEN_MINUTES)
     public void daily() throws IOException {
         final CveData recent = nvdFetchService.getNVDData(RECENT_SUFFIX);
 

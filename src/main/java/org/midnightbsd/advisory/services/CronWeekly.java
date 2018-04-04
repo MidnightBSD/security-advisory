@@ -16,7 +16,8 @@ import java.util.Calendar;
 @Service
 public class CronWeekly {
     private static final int DELAY_ONE_MINUTE = 1000 * 60;
-    private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
+    private static final int ONE_HOUR = DELAY_ONE_MINUTE * 60;
+    private static final int ONE_DAY = ONE_HOUR * 24;
     private static final int ONE_WEEK = ONE_DAY * 7;
     private static final int START_YEAR = 2002;
 
@@ -29,7 +30,7 @@ public class CronWeekly {
     /**
      * Pull previous weeks
      */
-    @Scheduled(fixedDelay = ONE_WEEK, initialDelay = DELAY_ONE_MINUTE)
+  //  @Scheduled(fixedDelay = ONE_WEEK, initialDelay = ONE_HOUR)
     public void weekly() throws IOException {
         // https://static.nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-2018.json.gz
 
