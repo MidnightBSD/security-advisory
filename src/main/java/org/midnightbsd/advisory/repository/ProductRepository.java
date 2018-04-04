@@ -11,7 +11,6 @@ import java.util.List;
 /**
  * @author Lucas Holt
  */
-@Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findAllByOrderByVersionAsc();
 

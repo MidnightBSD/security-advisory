@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lucas Holt
  */
-@Repository
 public interface VendorRepository extends JpaRepository<Vendor, Integer> {
     Vendor findOneByName(@Param("name") String name);
 }

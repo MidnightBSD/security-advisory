@@ -12,7 +12,6 @@ import java.util.List;
 /**
  * @author Lucas Holt
  */
-@Repository
 public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
 
     Advisory findOneByCveId(@Param("cveId") String cveId);

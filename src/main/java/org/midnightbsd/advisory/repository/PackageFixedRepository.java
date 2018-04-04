@@ -11,7 +11,6 @@ import java.util.List;
 /**
  * @author Lucas Holt
  */
-@Repository
 public interface PackageFixedRepository extends JpaRepository<PackageFixed, Integer> {
     List<PackageFixed> findAllByOrderByVersionAsc();
 
