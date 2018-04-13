@@ -14,7 +14,8 @@ public class CveItem {
     @JsonProperty("cve")
     private Cve cve;
 
-    // configurations
+    @JsonProperty("configurations")
+    private Configurations configurations;
 
     private Impact impact;
 
