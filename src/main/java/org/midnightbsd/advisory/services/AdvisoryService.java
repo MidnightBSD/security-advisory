@@ -138,7 +138,8 @@ public class AdvisoryService implements AppService<Advisory> {
             update = true;
         }
 
-        if (advisory.getPublishedDate() != null && advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0) {
+        if (advisory.getPublishedDate() != null && (adv.getPublishedDate() == null ||
+                advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0)) {
             adv.setPublishedDate(advisory.getPublishedDate());
             update = true;
         }
