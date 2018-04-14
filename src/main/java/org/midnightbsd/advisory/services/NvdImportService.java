@@ -126,6 +126,7 @@ public class NvdImportService {
 
             // now save configurations
             if (cveItem.getConfigurations() != null && cveItem.getConfigurations().getNodes() != null) {
+                log.info("Now save configurations for " + advisory.getCveId());
                 for (Node node : cveItem.getConfigurations().getNodes()) {
                      if (node.getOperator() != null) {
                          ConfigNode configNode = new ConfigNode();
