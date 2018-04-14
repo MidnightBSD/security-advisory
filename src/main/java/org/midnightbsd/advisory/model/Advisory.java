@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -21,7 +22,11 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Advisory {
+public class Advisory implements Serializable {
+
+    @JsonIgnore
+    private static final long serialVersionUID = -2412883956384879806L;
+
     @Id
     @SequenceGenerator(name = "advisory_id_seq",
             sequenceName = "advisory_id_seq",
@@ -48,7 +53,7 @@ public class Advisory {
     @Column(name = "severity", nullable = false)
     private String severity;
 
-    @Column(name="problem_type", length = 100)
+    @Column(name = "problem_type", length = 100)
     private String problemType;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)

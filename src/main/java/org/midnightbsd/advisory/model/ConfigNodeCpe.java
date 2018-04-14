@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * @author Lucas Holt
@@ -18,7 +20,11 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConfigNodeCpe {
+public class ConfigNodeCpe implements Serializable {
+
+    @JsonIgnore
+    private static final long serialVersionUID = -26545549510501502L;
+    
     @Id
     @SequenceGenerator(name = "config_node_cpe_id_seq",
             sequenceName = "config_node_cpe_id_seq",

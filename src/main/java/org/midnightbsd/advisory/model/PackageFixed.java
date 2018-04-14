@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,6 +18,9 @@ import java.util.Set;
 @Getter
 @Setter
 public class PackageFixed implements Serializable {
+
+    @JsonIgnore
+    private static final long serialVersionUID = 8675269692519899125L;
 
     @Id
     @SequenceGenerator(name = "package_fixed_id_seq",

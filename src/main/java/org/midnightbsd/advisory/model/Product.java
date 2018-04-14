@@ -1,11 +1,13 @@
 package org.midnightbsd.advisory.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 /**
  * @author Lucas Holt
@@ -16,7 +18,11 @@ import javax.persistence.*;
 @Table(name = "product")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-public class Product {
+public class Product implements Serializable {
+
+    @JsonIgnore
+    private static final long serialVersionUID = 4079808577154801658L;
+
     @Id
     @SequenceGenerator(name = "product_id_seq",
             sequenceName = "product_id_seq",

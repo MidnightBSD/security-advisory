@@ -16,9 +16,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/search")
 public class SearchController {
-    @Autowired
-    private SearchService searchService;
     
+    private final SearchService searchService;
+
+    @Autowired
+    public SearchController(final SearchService searchService) {
+        this.searchService = searchService;
+    }
+
     @GetMapping
     public Page<NvdItem> find(@RequestParam("term") String term, Pageable page) {
         return searchService.find(term, page);

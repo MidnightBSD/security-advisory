@@ -18,8 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/vendor")
 public class VendorController {
 
+    private final VendorRepository vendorRepository;
+
     @Autowired
-    private VendorRepository vendorRepository;
+    public VendorController(final VendorRepository vendorRepository) {
+        this.vendorRepository = vendorRepository;
+    }
 
     @GetMapping
     public ResponseEntity<Page<Vendor>> list(Pageable page) {

@@ -20,8 +20,12 @@ import java.util.List;
 @RequestMapping("/api/advisory")
 public class AdvisoryController {
 
+    private final AdvisoryService advisoryService;
+
     @Autowired
-    private AdvisoryService advisoryService;
+    public AdvisoryController(final AdvisoryService advisoryService) {
+        this.advisoryService = advisoryService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<Advisory>> list(Pageable page) {

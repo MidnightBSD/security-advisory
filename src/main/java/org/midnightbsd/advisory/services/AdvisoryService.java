@@ -4,6 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheConfig;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,8 @@ import java.util.List;
 /**
  * @author Lucas Holt
  */
+@Transactional(readOnly = true)
+@CacheConfig(cacheNames = "advisory")
 @Slf4j
 @Service
 public class AdvisoryService implements AppService<Advisory> {
@@ -37,10 +42,12 @@ public class AdvisoryService implements AppService<Advisory> {
         return repository.findByProductName(productName);
     }
 
+    @Cacheable(unless = "#result == null", key = "#vendorName")
     public List<Advisory> getByVendor(final String vendorName) {
         return repository.findByVendorName(vendorName);
     }
 
+    @Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
     public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
         return repository.findByVendorNameAAndProductsIsLike(vendorName, productName);
     }
@@ -52,11 +59,12 @@ public class AdvisoryService implements AppService<Advisory> {
     public Advisory get(final int id) {
         return repository.findOne(id);
     }
-
+    
     public Advisory getByCveId(final String cveId) {
         return repository.findOneByCveId(cveId);
     }
 
+    @CacheEvict(allEntries = true)
     @Transactional
     public void batchSave(final List<Advisory> advisories) {
         log.info("Advisory batch save of " + advisories.size());
@@ -115,6 +123,7 @@ public class AdvisoryService implements AppService<Advisory> {
         repository.flush();
     }
 
+    @CacheEvict(allEntries = true)
     @Transactional
     public Advisory save(final Advisory advisory) {
         Advisory adv = repository.findOneByCveId(advisory.getCveId());

@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -20,7 +21,11 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConfigNode {
+public class ConfigNode implements Serializable {
+
+    @JsonIgnore
+    private static final long serialVersionUID = 215009105807116617L;
+
     @Id
     @SequenceGenerator(name = "config_node_id_seq",
             sequenceName = "config_node_id_seq",

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -18,7 +19,11 @@ import java.util.List;
 @Table(name = "vendor")
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-public class Vendor {
+public class Vendor implements Serializable {
+
+    @JsonIgnore
+    private static final long serialVersionUID = 4504423113963008931L;
+
     @Id
     @SequenceGenerator(name = "vendor_id_seq",
             sequenceName = "vendor_id_seq",
