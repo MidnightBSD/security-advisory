@@ -1,11 +1,12 @@
 package org.midnightbsd.advisory.services;
 
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.model.*;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.model.nvd.*;
+import org.midnightbsd.advisory.repository.ConfigNodeCpeRepository;
+import org.midnightbsd.advisory.repository.ConfigNodeRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.midnightbsd.advisory.repository.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * @author Lucas Holt
@@ -32,6 +36,12 @@ public class NvdImportService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ConfigNodeRepository configNodeRepository;
+
+    @Autowired
+    private ConfigNodeCpeRepository configNodeCpeRepository;
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void importNvd(final CveData cveData) {
         if (cveData == null)
@@ -41,7 +51,7 @@ public class NvdImportService {
 
         for (CveItem cveItem : cveData.getCveItems()) {
             final Cve cve = cveItem.getCve();
-            final Advisory advisory = new Advisory();
+            Advisory advisory = new Advisory();
 
             if (cve.getCveDataMeta() == null) {
                 log.warn("invalid meta data");
@@ -112,7 +122,65 @@ public class NvdImportService {
             }
 
             advisory.setProducts(advProducts);
-            advisoryService.save(advisory);
+            advisory = advisoryService.save(advisory);
+
+            // now save configurations
+            if (cveItem.getConfigurations() != null && cveItem.getConfigurations().getNodes() != null) {
+                for (Node node : cveItem.getConfigurations().getNodes()) {
+                     if (node.getOperator() != null) {
+                         ConfigNode configNode = new ConfigNode();
+                         configNode.setAdvisory(advisory);
+                         configNode.setOperator(node.getOperator());
+
+                         configNode = configNodeRepository.save(configNode); // save top level item
+
+                         if (node.getCpe() != null) {
+                             for (NodeCpe nodeCpe : node.getCpe()) {
+                                 ConfigNodeCpe cpe = new ConfigNodeCpe();
+
+                                 cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
+                                 cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
+                                 cpe.setVulnerable(nodeCpe.getVulnerable());
+                                 cpe.setConfigNode(configNode);
+
+                                 configNodeCpeRepository.save(cpe);
+                             }
+
+                         }
+
+                         if (node.getChildren() != null) {
+                             for (Node childNode : node.getChildren()) {
+                                 if (childNode.getOperator() != null) {
+                                     ConfigNode cn = new ConfigNode();
+                                     cn.setAdvisory(advisory);
+                                     cn.setOperator(node.getOperator());
+                                     cn.setParentId(configNode.getId());
+                                     configNodeRepository.save(cn);
+
+                                     if (childNode.getCpe() != null) {
+                                         for (NodeCpe nodeCpe : childNode.getCpe()) {
+                                             ConfigNodeCpe cpe = new ConfigNodeCpe();
+
+                                             cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
+                                             cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
+                                             cpe.setVulnerable(nodeCpe.getVulnerable());
+                                             cpe.setConfigNode(cn);
+
+                                             configNodeCpeRepository.save(cpe);
+                                         }
+                                     }
+
+                                    // currently do not support child child nodes.
+                                 }
+                             }
+                         }
+
+                     }
+                }
+
+                configNodeRepository.flush();
+                configNodeCpeRepository.flush();
+            }
         }
     }
 

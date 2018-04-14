@@ -132,7 +132,8 @@ public class AdvisoryService implements AppService<Advisory> {
             update = true;
         }
 
-        if (advisory.getLastModifiedDate() != null && advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0) {
+        if (advisory.getLastModifiedDate() != null && (adv.getLastModifiedDate() == null ||
+                advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0)) {
             adv.setLastModifiedDate(advisory.getLastModifiedDate());
             update = true;
         }

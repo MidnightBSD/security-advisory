@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,5 +61,9 @@ public class Advisory {
     @JoinTable(name = "advisory_product_map", joinColumns = @JoinColumn(name = "advisory_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "product_id", referencedColumnName = "id"))
     private Set<Product> products;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "advisory")
+    private Set<ConfigNode> configNodes;
 
 }
