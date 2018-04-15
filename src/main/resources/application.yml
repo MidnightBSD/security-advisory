@@ -25,7 +25,6 @@ spring:
     generate-ddl: false
     show-sql: false
     properties:
-     dialect: org.hibernate.dialect.PostgreSQLDialect
      hibernate:
        temp:
          use_jdbc_metadata_defaults: false
@@ -90,7 +89,7 @@ spring:
   redis:
     host: midnightbsd-redis.c6ifkh.0001.use1.cache.amazonaws.com
     port: 6379
-    database: 0
+    database: 1
   datasource:
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
