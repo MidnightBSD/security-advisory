@@ -2,7 +2,7 @@
     <div class="col-xs-6 col-md-4">
         <h2>Find by Vendor</h2>
         <ul>
-            <li ng-repeat="vendor in vendors.content">
+            <li ng-repeat="vendor in vendors">
                 <a ng-href="#!/advisory/{{vendor.name}}">{{vendor.name}}</a>
             </li>
         </ul>
@@ -12,6 +12,9 @@
         <h2>About the Advisory Site</h2>
         <p>The MidnightBSD Advisory site helps you find existing and new vulnerabilities in installed software
         on your system.</p>
+
+        <p>The database includes all vulnerabilities available in the NIST NVD. Other projects may use the API to
+               check their systems as well.</p>
 
         <h3>Search For Vulnerabilities</h3>
 
