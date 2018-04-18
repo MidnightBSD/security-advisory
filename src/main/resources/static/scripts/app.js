@@ -17,7 +17,7 @@ angular.module('wwwApp',
                         templateUrl: 'views/main.html',
                         controller: 'MainCtrl'
                     })
-                    .when('/advisory/:id', {
+                    .when('/advisory/:vendor', {
                         templateUrl: 'views/advisory.html',
                         controller: 'AdvisoryCtrl'
                     })

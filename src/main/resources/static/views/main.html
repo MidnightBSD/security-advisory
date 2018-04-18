@@ -1,33 +1,12 @@
 <div class="row">
-    <!--
     <div class="col-xs-6 col-md-4">
-        <h2>Find by Categories</h2>
+        <h2>Find by Vendor</h2>
         <ul>
-            <li ng-repeat="cat in categories">
-                <a ng-href="#!/category/{{cat.id}}">{{cat.name}}</a>
-            </li>
-        </ul>
-
-        <h2>Find by OS</h2>
-        <ul>
-            <li ng-repeat="o in os">
-                {{o.version}}
-                <span ng-repeat="arch in architectures">
-                           <a ng-href="#!/os/{{o.version}}/arch/{{arch.name}}">{{arch.name}}</a> </span>
+            <li ng-repeat="vendor in vendors.content">
+                <a ng-href="#!/advisory/{{vendor.name}}">{{vendor.name}}</a>
             </li>
         </ul>
     </div>
-
-    <div class="col-xs-6 col-md-4">
-        <h2>Find by License</h2>
-        <ul>
-            <li ng-repeat="lic in licenses">
-                <a ng-href="#!/license/{{lic.name}}">{{lic.name}}</a>
-            </li>
-        </ul>
-    </div>
-
-    -->
 
     <div class="col-xs-6 col-md-4">
         <h2>About the Advisory Site</h2>
