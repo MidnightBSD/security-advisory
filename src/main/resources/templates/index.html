@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width" />
     <meta http-equiv="content-language" content="en-us" />
     <link rel="stylesheet" href="static/styles/bootstrap.min.css" th:href="@{static/styles/bootstrap.min.css}" />
-    <link rel="stylesheet" href="static/components/angular-ui/build/angular-ui.css" th:href="@{components/angular-ui/build/angular-ui.css}"/>
+
     <link rel="stylesheet" href="static/styles/17.css" th:href="@{static/styles/17.css}" />
 </head>
 
@@ -67,14 +67,8 @@
 
 <script type="text/javascript" th:src="@{js/bootstrap.min.js}" src="static/js/bootstrap.min.js"></script>
 
-
-<script type="text/javascript"   th:src="@{components/angular-ui-bootstrap/src/buttons/buttons.js}"
-        src="static/components/angular-ui-bootstrap/src/buttons/buttons.js"></script>
-<script type="text/javascript"   th:src="@{components/angular-ui-bootstrap/src/pagination/pagination.js}"
-        src="static/components/angular-ui-bootstrap/src/pagination/pagination.js"></script>
-<script type="text/javascript"   th:src="@{components/angular-ui-bootstrap/src/rating/rating.js}"
-        src="static/components/angular-ui-bootstrap/src/rating/rating.js"></script>
-
+<script th:src="@{/webjars/angular-ui-bootstrap/0.12.1/ui-bootstrap-tpls.min.js}"></script>
+<script th:src="@{/webjars/angular-ui-bootstrap/0.12.1/ui-bootstrap.min.js}"></script>
 
 <!-- build:js scripts/scripts.js -->
 <script type="text/javascript" src="static/scripts/app.js" th:src="@{scripts/app.js}"></script>
