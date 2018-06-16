@@ -32,7 +32,7 @@ public class SearchIndexer {
     public void initialize() {
         log.info("Starting search indexer - Load all nvd");
 
-   //    searchService.indexAllNvdItems();
+       searchService.indexAllNvdItems();
     }
 
 }

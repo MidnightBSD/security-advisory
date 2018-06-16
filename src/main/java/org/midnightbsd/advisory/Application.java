@@ -7,8 +7,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -45,9 +44,9 @@ public class Application {
        }
 
        @Bean
-       public EmbeddedServletContainerFactory servletContainer() {
+       public TomcatServletWebServerFactory servletContainer() {
 
-           final TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory();
+           final TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
            if (tomcatAjpEnabled) {
                final Connector ajpConnector = new Connector("AJP/1.3");
                ajpConnector.setProtocol("AJP/1.3");

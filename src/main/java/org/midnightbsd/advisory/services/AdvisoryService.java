@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lucas Holt
@@ -57,7 +58,11 @@ public class AdvisoryService implements AppService<Advisory> {
     }
 
     public Advisory get(final int id) {
-        return repository.findOne(id);
+        Optional<Advisory> advisory = repository.findById(id);
+        if (advisory.isPresent())
+            return advisory.get();
+
+        return null;
     }
     
     public Advisory getByCveId(final String cveId) {
@@ -119,7 +124,8 @@ public class AdvisoryService implements AppService<Advisory> {
         repository.flush();
 
         log.info("Saving {} new advisories", createList.size());
-        repository.save(createList).stream().peek(searchService::index);
+
+        repository.saveAll(createList).stream().peek(searchService::index);
         repository.flush();
     }
 

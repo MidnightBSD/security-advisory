@@ -10,6 +10,7 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -34,7 +35,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         super.addResourceHandlers(registry);
-        Integer cachePeriod = resourceProperties.getCachePeriod();
+        Integer cachePeriod = 60;
 
         registry.addResourceHandler("/robots.txt")
                      .addResourceLocations("classpath:/static/robots.txt")

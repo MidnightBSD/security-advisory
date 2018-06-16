@@ -6,7 +6,7 @@
 
     <groupId>org.midnightbsd</groupId>
     <artifactId>security-advisory</artifactId>
-    <version>1.0.2-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
 
     <organization>
         <name>MidnightBSD</name>
@@ -16,14 +16,14 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>1.5.13.RELEASE</version>
+        <version>2.0.3.RELEASE</version>
     </parent>
 
     <properties>
         <java-version>1.8</java-version>
         <hibernate.version>5.2.1.Final</hibernate.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flyway.version>4.2.0</flyway.version>
+        <flyway.version>5.0.0</flyway.version>
     </properties>
 
     <dependencies>
@@ -62,7 +62,7 @@
 
         <dependency>
             <groupId>org.webjars</groupId>
-            <artifactId>webjars-locator</artifactId>
+            <artifactId>webjars-locator-core</artifactId>
         </dependency>
 
         <!-- server stuff -->
@@ -70,6 +70,12 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
             <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+        	<groupId>org.springframework.boot</groupId>
+        	<artifactId>spring-boot-properties-migrator</artifactId>
+        	<scope>runtime</scope>
         </dependency>
 
         <dependency>
@@ -81,12 +87,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator-docs</artifactId>
-        </dependency>
-
+        
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-hateoas</artifactId>
@@ -142,17 +143,12 @@
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-eureka</artifactId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
-        </dependency>
-        
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
         </dependency>
         
         <dependency>
@@ -171,19 +167,13 @@
         <dependency>
             <groupId>com.github.vanroy</groupId>
             <artifactId>spring-boot-starter-data-jest</artifactId>
-            <version>2.3.1.RELEASE</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.vanroy</groupId>
-                    <artifactId>spring-data-jest</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>3.1.2.RELEASE</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.github.vanroy/spring-data-jest -->
+        <!-- needed for aws with jest client above -->
         <dependency>
-            <groupId>com.github.vanroy</groupId>
-            <artifactId>spring-data-jest</artifactId>
-            <version>2.3.2.RELEASE</version>
+            <groupId>vc.inreach.aws</groupId>
+            <artifactId>aws-signing-request-interceptor</artifactId>
+            <version>0.0.16</version>
         </dependency>
         
         <dependency>
@@ -282,7 +272,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>Edgware.SR3</version>
+                <version>Finchley.RC2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

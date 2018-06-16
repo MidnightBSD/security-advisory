@@ -12,6 +12,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -40,7 +41,7 @@ public class AdvisoryServiceTest {
         adv.setPublishedDate(Calendar.getInstance().getTime());
 
         when(advisoryRepository.findOneByCveId("CVE-0000-0000")).thenReturn(adv);
-        when(advisoryRepository.findOne(1)).thenReturn(adv);
+        when(advisoryRepository.findById(1)).thenReturn(Optional.of(adv));
         when(advisoryRepository.findAll()).thenReturn(Collections.singletonList(adv));
     }
 
@@ -63,7 +64,7 @@ public class AdvisoryServiceTest {
         assertEquals("CVE-0000-0000", adv.getCveId());
         assertEquals("Foo", adv.getDescription());
 
-        verify(advisoryRepository, times(1)).findOne(1);
+        verify(advisoryRepository, times(1)).findById(1);
     }
 
     @Test

@@ -8,6 +8,7 @@ spring:
       write-dates-as-timestamps: false
   datasource:
     url: jdbc:postgresql://db.midnightbsd.org/security-advisory
+    jdbc-url: jdbc:postgresql://db.midnightbsd.org/security-advisory
     username: securityadv
     password:
     max-active: 10
@@ -17,11 +18,20 @@ spring:
     test-while-idle: true
     test-on-borrow: true
     validation-query: SELECT 1
+    hikari:
+      jdbc-url:  jdbc:postgresql://db.midnightbsd.org/security-advisory
+      maximum-pool-size: 10
+      minimum-idle: 1
+  flyway:
+    baseline-on-migrate: true
+    user: securityadv
+    url: jdbc:postgresql://db.midnightbsd.org/security-advisory
   jpa:
     database: POSTGRESQL
     hibernate:
       ddl-auto: none
       naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+      use-new-id-generator-mappings: false
     generate-ddl: false
     show-sql: false
     properties:
@@ -50,20 +60,10 @@ spring:
       uri: http://localhost:9200
       aws-region: us-east-1
 
-endpoints:
-  hypermedia:
-    enabled: true
-
 eureka:
   client:
     serviceUrl:
      defaultZone: http://eureka.justjournal.com:8761/eureka/
-
-flyway:
-  baseline-on-migrate: true
-  user: securityadv
-  password:
-  url: jdbc:postgresql://db.midnightbsd.org/security-advisory
 
 server:
   tomcat:

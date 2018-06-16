@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 /**
  * @author Lucas Holt
  */
@@ -32,7 +34,12 @@ public class VendorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Vendor> get(@PathVariable("id") int id) {
-        return ResponseEntity.ok(vendorRepository.findOne(id));
+        Optional<Vendor> vendor = vendorRepository.findById(id);
+
+        if (vendor.isPresent())
+            return ResponseEntity.ok(vendor.get());
+        else
+            return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/name/{name}")

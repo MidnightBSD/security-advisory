@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 /**
  * @author Lucas Holt
  */
@@ -26,17 +28,21 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Product>> list(Pageable page) {
+    public ResponseEntity<Page<Product>> list(final Pageable page) {
         return ResponseEntity.ok(productRepository.findAll(page));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> get(@PathVariable("id") int id) {
-        return ResponseEntity.ok(productRepository.findOne(id));
+    public ResponseEntity<Product> get(@PathVariable("id") final int id) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent())
+            return ResponseEntity.ok(product.get());
+        else
+            return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/name/{name}/version/{version}")
-    public ResponseEntity<Product> get(@PathVariable("name") String name, @PathVariable("version") String version) {
+    public ResponseEntity<Product> get(@PathVariable("name") final String name, @PathVariable("version") final String version) {
         return ResponseEntity.ok(productRepository.findByNameAndVersion(name, version));
     }
 }

@@ -35,7 +35,7 @@ public class SearchService {
     @Autowired
     private AdvisoryRepository advisoryRepository;
 
-    @Cacheable(key="#p0.concat('-').concat(#p1.getPageNumber())", value = "search")
+   // @Cacheable(key="#p0.concat('-').concat(#p1.getPageNumber())", value = "search")
     public Page<NvdItem> find(String term, Pageable page) {
         return nvdSearchRepository.findByCveIdContainsOrDescriptionContainsAllIgnoreCase(term, term, page);
     }
@@ -45,7 +45,7 @@ public class SearchService {
     @Async
     public void indexAllNvdItems() {
         try {
-            Pageable pageable = new PageRequest(0, 100);
+            Pageable pageable = PageRequest.of(0, 100);
 
             Page<org.midnightbsd.advisory.model.Advisory> advisories = advisoryRepository.findAll(pageable);
             for (int i = 0; i < advisories.getTotalPages(); i++) {
@@ -56,12 +56,12 @@ public class SearchService {
                 }
 
                 log.debug("Saving a page of advisories to elasticsearch. pg " + i);
-                nvdSearchRepository.save(items);
+                nvdSearchRepository.saveAll(items);
 
-                pageable = new PageRequest(i + 1, 100);
+                pageable = PageRequest.of(i + 1, 100);
                 advisories = advisoryRepository.findAll(pageable);
             }
-        } catch (ElasticsearchException es) {
+        } catch (final ElasticsearchException es) {
             log.error(es.getDetailedMessage(), es);
         } catch (final Exception e) {
             log.error(e.getMessage(), e);
