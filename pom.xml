@@ -170,11 +170,13 @@
             <version>3.1.2.RELEASE</version>
         </dependency>
         <!-- needed for aws with jest client above -->
+        <!--
         <dependency>
             <groupId>vc.inreach.aws</groupId>
             <artifactId>aws-signing-request-interceptor</artifactId>
             <version>0.0.16</version>
         </dependency>
+            -->
         
         <dependency>
             <groupId>org.hibernate</groupId>

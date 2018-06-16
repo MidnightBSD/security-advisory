@@ -1,6 +1,7 @@
 spring:
   profiles.default: default
 ---
+
 spring:
   profiles: default
   jackson:
@@ -95,12 +96,17 @@ spring:
     database: 1
   data:
     jest:
-      uri: https://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com:9200
+      uri: http://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com
       aws-region: us-east-1
   flyway:
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
   datasource:
+    hikari:
+      jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+      maximum-pool-size: 10
+      minimum-idle: 1
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+    jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
     password: 
 cloud:
