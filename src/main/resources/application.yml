@@ -83,9 +83,8 @@ spring:
     url: jdbc:postgresql://localhost/security-advisory_test
     username: postgres
     password:
-
-flyway:
-  baseline-on-migrate: true
+  flyway:
+    baseline-on-migrate: true
 
 ---
 spring:
@@ -94,6 +93,12 @@ spring:
     host: midnightbsd-redis.c6ifkh.0001.use1.cache.amazonaws.com
     port: 6379
     database: 1
+  data:
+    jest:
+      uri: https://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com:9200
+      aws-region: us-east-1
+  flyway:
+    url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
   datasource:
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
@@ -106,9 +111,6 @@ cloud:
     region:
       static: US_EAST_1
 
-flyway:
-  url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
-  
 eureka:
   client:
     serviceUrl:
