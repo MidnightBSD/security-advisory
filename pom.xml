@@ -169,10 +169,23 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-elasticsearch</artifactId>
+            <groupId>com.github.vanroy</groupId>
+            <artifactId>spring-boot-starter-data-jest</artifactId>
+            <version>2.3.1.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.vanroy</groupId>
+                    <artifactId>spring-data-jest</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/com.github.vanroy/spring-data-jest -->
+        <dependency>
+            <groupId>com.github.vanroy</groupId>
+            <artifactId>spring-data-jest</artifactId>
+            <version>2.3.2.RELEASE</version>
+        </dependency>
+        
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>

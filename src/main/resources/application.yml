@@ -45,6 +45,10 @@ spring:
     host: localhost
     port: 6379
     database: 0
+  data:
+    jest:
+      uri: http://localhost:9200
+      aws-region: us-east-1
 
 endpoints:
   hypermedia:
