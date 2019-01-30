@@ -6,7 +6,7 @@
 
     <groupId>org.midnightbsd</groupId>
     <artifactId>security-advisory</artifactId>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
 
     <organization>
         <name>MidnightBSD</name>
@@ -147,14 +147,14 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.12</version>
+            <version>1.18.4</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>com.github.vanroy</groupId>
             <artifactId>spring-boot-starter-data-jest</artifactId>
-            <version>3.1.2.RELEASE</version>
+            <version>3.1.5.RELEASE</version>
         </dependency>
         <!-- needed for aws with jest client above -->
         <!--
