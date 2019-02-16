@@ -1,0 +1,11 @@
+language: java
+dist: trusty
+postgresql: "9.5"
+jdk:
+  - oraclejdk8
+  - openjdk8
+services:
+  - postgresql
+before_script:
+  - psql -c 'create database security-advisory_test;' -U postgres
+  - psql -h localhost -d security-advisory_test -U postgres -p 5432 -a -q -f src/main/resources/db/migration/V1_0__secadv_create.sql 
