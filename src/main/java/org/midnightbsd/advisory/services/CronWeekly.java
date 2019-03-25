@@ -30,7 +30,7 @@ public class CronWeekly {
     /**
      * Pull previous weeks
      */
-  //  @Scheduled(fixedDelay = ONE_WEEK, initialDelay = ONE_HOUR)
+    @Scheduled(fixedDelay = ONE_WEEK, initialDelay = ONE_HOUR)
     public void weekly() throws IOException {
         // https://static.nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-2018.json.gz
 

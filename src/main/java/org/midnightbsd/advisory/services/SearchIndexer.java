@@ -17,13 +17,13 @@ public class SearchIndexer {
     private SearchService searchService;
 
 
-  /*  @Scheduled(fixedDelay = 1000 * 60 * 120, initialDelay = 120000)
+    @Scheduled(fixedDelay = 1000 * 60 * 120, initialDelay = 120000)
     public void loadNewEntries() {
         log.info("Starting search indexer - Load all nvd items");
         
         // TODO: add timestamp so we can limit reindexing
         searchService.indexAllNvdItems();
-    }    */
+    }
 
     /**
      * Load all nvd items at startup into elasticsearch
