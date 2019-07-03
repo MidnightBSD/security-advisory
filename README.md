@@ -1,4 +1,6 @@
 # security-advisory
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory?ref=badge_shield)
+
 This project pulls data from NIST NVD feeds and offers it 
 for search or by specific vendors for use in REST clients. 
 
@@ -17,3 +19,7 @@ Requires:
 * PostgreSQL 9.x or newer
 * ElasticSearch 5.5.x
 
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory?ref=badge_large)
