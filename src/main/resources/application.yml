@@ -27,6 +27,7 @@ spring:
     baseline-on-migrate: true
     user: securityadv
     url: jdbc:postgresql://db.midnightbsd.org/security-advisory
+    table: schema_version
   jpa:
     database: POSTGRESQL
     hibernate:
