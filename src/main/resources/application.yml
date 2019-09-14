@@ -81,7 +81,7 @@ search:
 spring:
   profiles: test
   datasource:
-    url: jdbc:postgresql://localhost/security-advisory_test
+    url: jdbc:postgresql://localhost/security_advisory_test
     username: postgres
     password:
   flyway:
