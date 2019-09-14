@@ -46,6 +46,7 @@ public class NvdImportService {
     public void importNvd(final CveData cveData) {
         if (cveData == null)
             throw new IllegalArgumentException("cveData");
+
         if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
             throw new IllegalArgumentException("cveData.getItems()");
 
@@ -76,7 +77,6 @@ public class NvdImportService {
             advisory.setLastModifiedDate(convertDate(cveItem.getLastModifiedDate()));
 
             if (cve.getDescription() != null && cve.getDescription().getDescriptionData() != null) {
-
                 for(final DescriptionData descriptionData : cve.getDescription().getDescriptionData()) {
                    if (descriptionData.getLang().equalsIgnoreCase("en"))
                         advisory.setDescription(descriptionData.getValue());
@@ -84,10 +84,8 @@ public class NvdImportService {
             }
 
             // determine severity
-            if (cveItem.getImpact() != null) {
-                if (cveItem.getImpact().getBaseMetricV2() != null) {
-                    advisory.setSeverity(cveItem.getImpact().getBaseMetricV2().getSeverity());
-                }
+            if (cveItem.getImpact() != null && cveItem.getImpact().getBaseMetricV2() != null) {
+                advisory.setSeverity(cveItem.getImpact().getBaseMetricV2().getSeverity());
             }
 
             Set<Product> advProducts = new HashSet<>();
@@ -127,7 +125,7 @@ public class NvdImportService {
             // now save configurations
             if (cveItem.getConfigurations() != null && cveItem.getConfigurations().getNodes() != null) {
                 log.info("Now save configurations for " + advisory.getCveId());
-                for (Node node : cveItem.getConfigurations().getNodes()) {
+                for (final Node node : cveItem.getConfigurations().getNodes()) {
                      if (node.getOperator() != null) {
                          ConfigNode configNode = new ConfigNode();
                          configNode.setAdvisory(advisory);
@@ -136,8 +134,8 @@ public class NvdImportService {
                          configNode = configNodeRepository.save(configNode); // save top level item
 
                          if (node.getCpe() != null) {
-                             for (NodeCpe nodeCpe : node.getCpe()) {
-                                 ConfigNodeCpe cpe = new ConfigNodeCpe();
+                             for (final NodeCpe nodeCpe : node.getCpe()) {
+                                 final ConfigNodeCpe cpe = new ConfigNodeCpe();
 
                                  cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
                                  cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
@@ -150,17 +148,17 @@ public class NvdImportService {
                          }
 
                          if (node.getChildren() != null) {
-                             for (Node childNode : node.getChildren()) {
+                             for (final Node childNode : node.getChildren()) {
                                  if (childNode.getOperator() != null) {
-                                     ConfigNode cn = new ConfigNode();
+                                     final ConfigNode cn = new ConfigNode();
                                      cn.setAdvisory(advisory);
                                      cn.setOperator(node.getOperator());
                                      cn.setParentId(configNode.getId());
                                      configNodeRepository.save(cn);
 
                                      if (childNode.getCpe() != null) {
-                                         for (NodeCpe nodeCpe : childNode.getCpe()) {
-                                             ConfigNodeCpe cpe = new ConfigNodeCpe();
+                                         for (final NodeCpe nodeCpe : childNode.getCpe()) {
+                                             final ConfigNodeCpe cpe = new ConfigNodeCpe();
 
                                              cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
                                              cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
@@ -194,7 +192,7 @@ public class NvdImportService {
         try {
             SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
             return ISO8601DATEFORMAT.parse(dt);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             log.error("Could not convert " + dt, e);
         }
 

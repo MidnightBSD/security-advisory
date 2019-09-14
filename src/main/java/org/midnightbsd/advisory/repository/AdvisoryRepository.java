@@ -28,5 +28,5 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
     List<Advisory> findByVendorName(@Param("vendorName") String vendorName);
 
     @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p JOIN p.vendor v WHERE v.name = :vendorName and p.name like :productName ORDER BY a.cveId")
-    List<Advisory> findByVendorNameAAndProductsIsLike(@Param("vendorName") String vendorName, @Param("productName") String productName);
+    List<Advisory> findByVendorNameAndProductsIsLike(@Param("vendorName") String vendorName, @Param("productName") String productName);
 }

@@ -53,5 +53,4 @@ public class CronWeekly {
 
         log.info("Finished weekly import");
     }
-
 }

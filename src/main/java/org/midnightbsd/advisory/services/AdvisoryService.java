@@ -48,9 +48,9 @@ public class AdvisoryService implements AppService<Advisory> {
         return repository.findByVendorName(vendorName);
     }
 
-    @Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
+    //@Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
     public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
-        return repository.findByVendorNameAAndProductsIsLike(vendorName, productName);
+        return repository.findByVendorNameAndProductsIsLike(vendorName, productName);
     }
 
     public Page<Advisory> get(final Pageable page) {
@@ -58,11 +58,9 @@ public class AdvisoryService implements AppService<Advisory> {
     }
 
     public Advisory get(final int id) {
-        Optional<Advisory> advisory = repository.findById(id);
-        if (advisory.isPresent())
-            return advisory.get();
+        final Optional<Advisory> advisory = repository.findById(id);
+        return advisory.orElse(null);
 
-        return null;
     }
     
     public Advisory getByCveId(final String cveId) {

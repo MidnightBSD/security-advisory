@@ -37,8 +37,7 @@ public class Product implements Serializable {
 
     @Column(name = "version", nullable = false, length = 100)
     private String version;
-
-
+    
     @ManyToOne
     @JoinColumn(name = "vendor_id")
     private Vendor vendor;
