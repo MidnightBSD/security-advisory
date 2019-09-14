@@ -1,6 +1,8 @@
 spring:
   application:
     name: security-advisory
+  main:
+    allow-bean-definition-overriding: true
 
 server:
   port: ${port:8210}

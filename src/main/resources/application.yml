@@ -39,13 +39,6 @@ spring:
      hibernate:
        temp:
          use_jdbc_metadata_defaults: false
-       cache:
-         provider_class: org.hibernate.cache.EhCacheProvider
-         use_second_level_cache: true
-         use_query_cache: true
-         region:
-            factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
-            prefix: hibernate
      javax:
        persistence:
          sharedCache:
