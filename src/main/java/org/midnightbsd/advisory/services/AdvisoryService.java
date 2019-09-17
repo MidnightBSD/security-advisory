@@ -1,8 +1,13 @@
 package org.midnightbsd.advisory.services;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.model.Product;
+import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
+import org.midnightbsd.advisory.repository.ProductRepository;
+import org.midnightbsd.advisory.repository.VendorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -30,6 +35,12 @@ public class AdvisoryService implements AppService<Advisory> {
     private final SearchService searchService;
 
     @Autowired
+    private VendorRepository vendorRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
     public AdvisoryService(final AdvisoryRepository repository, final SearchService searchService) {
         this.repository = repository;
         this.searchService = searchService;
@@ -50,7 +61,19 @@ public class AdvisoryService implements AppService<Advisory> {
 
     //@Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
     public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
-        return repository.findByVendorNameAndProductsIsLike(vendorName, productName);
+         final List<List<Product>> products = getProducts(vendorName, productName);
+         final List<Advisory> results = new ArrayList<>();
+
+         for (final List<Product> smallerList : products) {
+            results.addAll(repository.findByProductsIn(smallerList));
+        }
+
+        return results;
+    }
+
+    private List<List<Product>> getProducts(final String vendorName, final String productName) {
+        final Vendor vendor = vendorRepository.findOneByName(vendorName);
+        return Lists.partition(productRepository.findByNameAndVendor(productName, vendor), 1000);
     }
 
     public Page<Advisory> get(final Pageable page) {

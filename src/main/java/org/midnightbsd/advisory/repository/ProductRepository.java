@@ -19,4 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     Product findByNameAndVersion(@Param("name") String name, @Param("version") String version);
 
     Product findByNameAndVersionAndVendor(@Param("name") String name, @Param("version") String version, @Param("vendor") Vendor vendor);
+
+    List<Product> findByNameAndVendor(@Param("name") String name, @Param("vendor") Vendor vendor);
 }

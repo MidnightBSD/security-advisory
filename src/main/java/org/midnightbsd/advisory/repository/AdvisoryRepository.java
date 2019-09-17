@@ -1,6 +1,7 @@
 package org.midnightbsd.advisory.repository;
 
 import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +24,10 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
     @Query(
             value = "SELECT distinct a FROM Advisory a JOIN a.products p JOIN p.vendor v WHERE p.name = :productName ORDER BY a.cveId")
     List<Advisory> findByProductName(@Param("productName") String productName);
+
+    @Query(
+            value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE p in (:products) ORDER BY a.cveId")
+    List<Advisory> findByProductsIn(@Param("products") List<Product> products);
 
     @Query(value = "SELECT distinct a FROM Advisory a INNER JOIN a.products p INNER JOIN p.vendor v WHERE v.name = :vendorName ORDER BY a.cveId")
     List<Advisory> findByVendorName(@Param("vendorName") String vendorName);

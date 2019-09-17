@@ -20,7 +20,7 @@ public class SearchIndexer {
     @Scheduled(fixedDelay = 1000 * 60 * 120, initialDelay = 120000)
     public void loadNewEntries() {
         log.info("Starting search indexer - Load all nvd items");
-        
+
         // TODO: add timestamp so we can limit reindexing
         searchService.indexAllNvdItems();
     }
@@ -32,7 +32,7 @@ public class SearchIndexer {
     public void initialize() {
         log.info("Starting search indexer - Load all nvd");
 
-       searchService.indexAllNvdItems();
+        searchService.indexAllNvdItems();
     }
 
 }
