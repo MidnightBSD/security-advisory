@@ -24,7 +24,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flyway.version>5.2.4</flyway.version>
         <angularjs.version>1.4.14</angularjs.version>
-        <datajest.version>3.2.5.RELEASE</datajest.version>
+        <datajest.version>3.3.0.RELEASE</datajest.version>
     </properties>
 
     <dependencies>
