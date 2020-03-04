@@ -18,3 +18,4 @@ tomcat:
     port: ${ajp-port:8211}
     remoteauthentication: ${ajp-auth:false}
     enabled: ${ajp-on:true}
+    secret: defaultSecret
