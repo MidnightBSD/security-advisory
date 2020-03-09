@@ -157,15 +157,7 @@
             <artifactId>spring-boot-starter-data-jest</artifactId>
             <version>${datajest.version}</version>
         </dependency>
-        <!-- needed for aws with jest client above -->
-        <!--
-        <dependency>
-            <groupId>vc.inreach.aws</groupId>
-            <artifactId>aws-signing-request-interceptor</artifactId>
-            <version>0.0.16</version>
-        </dependency>
-            -->
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -174,7 +166,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.5</version>
+            <version>42.2.10</version>
         </dependency>
 
         <dependency>
