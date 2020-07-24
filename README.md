@@ -21,6 +21,8 @@ Requires:
 * PostgreSQL 9.x or newer
 * ElasticSearch 5.5.x
 
+The public instance of this app is available at https://sec.midnightbsd.org/
+
 
 
 ## License
