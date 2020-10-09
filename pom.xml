@@ -25,7 +25,7 @@
         <flyway.version>6.5.6</flyway.version>
         <angularjs.version>1.7.9</angularjs.version>
         <jquery.version>3.5.1</jquery.version>
-        <datajest.version>3.3.1.RELEASE</datajest.version>
+        <datajest.version>3.3.2.RELEASE</datajest.version>
         <spring-cloud.version>Hoxton.SR6</spring-cloud.version>
     </properties>
 
