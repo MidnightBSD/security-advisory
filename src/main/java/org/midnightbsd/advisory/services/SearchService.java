@@ -55,7 +55,7 @@ public class SearchService {
                     items.add(convert(adv));
                 }
 
-                log.debug("Saving a page of advisories to elasticsearch. pg " + i);
+                log.debug("Saving a page of advisories to elasticsearch. pg {}", i);
                 nvdSearchRepository.saveAll(items);
 
                 pageable = PageRequest.of(i + 1, 100);
@@ -71,12 +71,12 @@ public class SearchService {
     @CacheEvict(value = "search", allEntries = true)
     @Transactional
     public void index(@NonNull final org.midnightbsd.advisory.model.Advisory adv) {
-        log.debug("Indexing advisory " + adv.getCveId() + " id: " + adv.getId());
+        log.debug("Indexing advisory {} id: {}",adv.getCveId(), adv.getId());
         nvdSearchRepository.save(convert(adv));
     }
 
     public NvdItem convert(@NonNull final org.midnightbsd.advisory.model.Advisory adv) {
-        log.trace("Converting advisory " + adv.getCveId() + " id: " + adv.getId());
+        log.trace("Converting advisory {} id: {}", adv.getCveId(), adv.getId());
         
         final NvdItem nvdItem = new NvdItem();
 
@@ -86,7 +86,7 @@ public class SearchService {
         nvdItem.setDescription(adv.getDescription());
         nvdItem.setVersion(Calendar.getInstance().getTimeInMillis());
 
-        List<Instance> instances = new ArrayList<>();
+        final List<Instance> instances = new ArrayList<>();
         if (adv.getProducts() != null) {
             for (final Product instance : adv.getProducts()) {
 

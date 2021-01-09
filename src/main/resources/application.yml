@@ -11,21 +11,15 @@ spring:
     url: jdbc:postgresql://db.midnightbsd.org/security-advisory
     jdbc-url: jdbc:postgresql://db.midnightbsd.org/security-advisory
     username: securityadv
-    password:
-    max-active: 10
-    initial-size: 5
-    max-idle: 5
-    min-idle: 1
-    test-while-idle: true
-    test-on-borrow: true
-    validation-query: SELECT 1
+    password: ad12tf
     hikari:
       jdbc-url:  jdbc:postgresql://db.midnightbsd.org/security-advisory
       maximum-pool-size: 10
-      minimum-idle: 1
+      minimum-idle: 2
   flyway:
     baseline-on-migrate: true
     user: securityadv
+    password: ad12tf
     url: jdbc:postgresql://db.midnightbsd.org/security-advisory
     table: schema_version
   jpa:
@@ -67,9 +61,12 @@ server:
 
 nvdfeed:
   baseUrl:  https://static.nvd.nist.gov/feeds/json/cve/1.0/
+  baseUrl2: http://people.midnightbsd.org/~laffer1/advisory/
 
 search:
   nvd-item-index: nvditem
+
+
 
 ---
 spring:
@@ -93,16 +90,16 @@ spring:
       uri: http://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com
       aws-region: us-east-1
   flyway:
-    url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+    url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
   datasource:
     hikari:
-      jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+      jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
       maximum-pool-size: 10
-      minimum-idle: 1
-    url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
-    jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&amp;sslfactory=org.postgresql.ssl.NonValidatingFactory
+      minimum-idle: 2
+    url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
+    jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
-    password: 
+    password: mnbsdapp
 cloud:
   aws:
     credentials:

@@ -43,11 +43,11 @@ public class CronWeekly {
             final CveData data = nvdFetchService.getNVDData(suffix);
 
             if (data == null) {
-                log.warn("Data for " + i + " invalid");
+                log.warn("Data for {} invalid", i);
                 continue;
             }
 
-            log.info("Begin import of " + i + " data");
+            log.info("Begin import of {} data", i);
             nvdImportService.importNvd(data);
         }
 

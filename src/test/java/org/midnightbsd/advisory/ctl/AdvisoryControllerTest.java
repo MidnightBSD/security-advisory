@@ -34,6 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(MockitoJUnitRunner.class)
 public class AdvisoryControllerTest {
 
+    private static final String TEST_CVE_ID = "CVE-0000-0000";
+    private static final String TEST_PRODUCT_NAME = "httpd";
+    private static final String TEST_VENDOR_NAME = "apache";
+
     private MockMvc mockMvc;
 
     @Mock
@@ -50,43 +54,34 @@ public class AdvisoryControllerTest {
 
         adv = new Advisory();
         adv.setDescription("TEST ARCH");
-        adv.setCveId("CVE-0000-0000");
+        adv.setCveId(TEST_CVE_ID);
         adv.setId(1);
         adv.setPublishedDate(Calendar.getInstance().getTime());
 
-        when(advisoryService.list()).thenReturn(Collections.singletonList(adv));
         when(advisoryService.get(1)).thenReturn(adv);
-    }
+        when(advisoryService.getByCveId(TEST_CVE_ID)).thenReturn(adv);
 
-    @Test
-    public void testList() {
-        Pageable page = PageRequest.of(0,10);
-        final ResponseEntity<Page<Advisory>> result = controller.list(page);
-        assertNotNull(result);
-        assertEquals(1, result.getBody().getTotalPages());
+        when(advisoryService.getByProduct(TEST_PRODUCT_NAME)).thenReturn(Collections.singletonList(adv));
+        when(advisoryService.getByVendor(TEST_VENDOR_NAME)).thenReturn(Collections.singletonList(adv));
+        when(advisoryService.getByVendorAndProduct(TEST_VENDOR_NAME, TEST_PRODUCT_NAME)).thenReturn(Collections.singletonList(adv));
     }
 
     @Test
     public void testGet() {
         final ResponseEntity<Advisory> result = controller.get(1);
         assertNotNull(result);
-        assertEquals("NAME", result.getBody().getCveId());
+        assertNotNull("Body should have a value", result.getBody());
+        assertEquals("CVE-0000-0000", result.getBody().getCveId());
         assertEquals(1, result.getBody().getId());
     }
 
     @Test
-    public void testGetByName() {
-        final ResponseEntity<Advisory> result = controller.get("NAME");
+    public void testGetByCve() {
+        final ResponseEntity<Advisory> result = controller.get(TEST_CVE_ID);
         assertNotNull(result);
-        assertEquals("NAME", result.getBody().getCveId());
+        assertNotNull("there should be a result body", result.getBody());
+        assertEquals(TEST_CVE_ID, result.getBody().getCveId());
         assertEquals(1, result.getBody().getId());
-    }
-
-    @Test
-    public void mvcTestList() throws Exception {
-        mockMvc.perform(get("/api/advisory"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
     }
 
     @Test
@@ -97,9 +92,23 @@ public class AdvisoryControllerTest {
     }
 
     @Test
-    public void mvcTestGetByName() throws Exception {
-        mockMvc.perform(get("/api/advisory/NAME"))
+    public void mvcTestGetByProductName() throws Exception {
+        mockMvc.perform(get("/api/advisory/product/" + TEST_PRODUCT_NAME))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
     }
+
+    @Test
+     public void mvcTestGetByVendorName() throws Exception {
+         mockMvc.perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME))
+                 .andExpect(status().isOk())
+                 .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
+     }
+
+    @Test
+       public void mvcTestGetByVendorNameAndProductName() throws Exception {
+           mockMvc.perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME + "/product/" + TEST_PRODUCT_NAME))
+                   .andExpect(status().isOk())
+                   .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
+       }
 }

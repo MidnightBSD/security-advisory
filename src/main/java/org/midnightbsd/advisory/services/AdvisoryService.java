@@ -93,7 +93,7 @@ public class AdvisoryService implements AppService<Advisory> {
     @CacheEvict(allEntries = true)
     @Transactional
     public void batchSave(final List<Advisory> advisories) {
-        log.info("Advisory batch save of " + advisories.size());
+        log.info("Advisory batch save of {}", advisories.size());
 
         final List<Advisory> createList = new ArrayList<>();
 
@@ -104,7 +104,7 @@ public class AdvisoryService implements AppService<Advisory> {
             } else {
                 boolean update = false; // dirty check
 
-                log.info("Updating " + adv.getCveId());
+                log.info("Updating {}", adv.getCveId());
 
                 if (advisory.getDescription() != null && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
                     adv.setDescription(advisory.getDescription());
@@ -155,13 +155,13 @@ public class AdvisoryService implements AppService<Advisory> {
     public Advisory save(final Advisory advisory) {
         Advisory adv = repository.findOneByCveId(advisory.getCveId());
         if (adv == null) {
-            log.info("Adding " + advisory.getCveId());
+            log.info("Adding {}", advisory.getCveId());
             return repository.saveAndFlush(advisory);
         }
 
         boolean update = false; // dirty check
 
-        log.info("Updating " + adv.getCveId());
+        log.info("Updating {}", adv.getCveId());
 
         if (advisory.getDescription() != null && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
             adv.setDescription(advisory.getDescription());

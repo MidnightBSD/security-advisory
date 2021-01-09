@@ -50,7 +50,7 @@ public class NvdImportService {
         if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
             throw new IllegalArgumentException("cveData.getItems()");
 
-        for (CveItem cveItem : cveData.getCveItems()) {
+        for (final CveItem cveItem : cveData.getCveItems()) {
             final Cve cve = cveItem.getCve();
             Advisory advisory = new Advisory();
 
@@ -60,7 +60,7 @@ public class NvdImportService {
             } else {
                 advisory.setCveId(cve.getCveDataMeta().getID());
 
-                log.info("Processing " + advisory.getCveId());
+                log.info("Processing {}", advisory.getCveId());
             }
 
             if (cve.getProblemType() != null && cve.getProblemType().getProblemTypeData() != null)  {
@@ -88,10 +88,10 @@ public class NvdImportService {
                 advisory.setSeverity(cveItem.getImpact().getBaseMetricV2().getSeverity());
             }
 
-            Set<Product> advProducts = new HashSet<>();
+            final Set<Product> advProducts = new HashSet<>();
 
             if (cve.getAffects() != null && cve.getAffects().getVendor() != null) {
-                log.info("Vendor count: " + cve.getAffects().getVendor().getVendorData().size());
+                log.info("Vendor count: {}",  cve.getAffects().getVendor().getVendorData().size());
                 
                 for (final VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
                     Vendor v = vendorRepository.findOneByName(vendorData.getVendorName());
@@ -101,7 +101,7 @@ public class NvdImportService {
                         v = vendorRepository.saveAndFlush(v);
                     }
 
-                    log.info("Product count " +  vendorData.getProduct().getProductData().size());
+                    log.info("Product count {}", vendorData.getProduct().getProductData().size());
                     for (final ProductData pd : vendorData.getProduct().getProductData()) {
                         for (final VersionData vd : pd.getVersion().getVersionData()) {
                             Product product = productRepository.findByNameAndVersionAndVendor(pd.getProductName(), vd.getVersionValue(), v);
@@ -124,7 +124,7 @@ public class NvdImportService {
 
             // now save configurations
             if (cveItem.getConfigurations() != null && cveItem.getConfigurations().getNodes() != null) {
-                log.info("Now save configurations for " + advisory.getCveId());
+                log.info("Now save configurations for {}", advisory.getCveId());
                 for (final Node node : cveItem.getConfigurations().getNodes()) {
                      if (node.getOperator() != null) {
                          ConfigNode configNode = new ConfigNode();
@@ -144,7 +144,6 @@ public class NvdImportService {
 
                                  configNodeCpeRepository.save(cpe);
                              }
-
                          }
 
                          if (node.getChildren() != null) {
@@ -190,10 +189,10 @@ public class NvdImportService {
         // 2018-02-20T21:29Z
 
         try {
-            SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
-            return ISO8601DATEFORMAT.parse(dt);
+            final SimpleDateFormat iso8601Dateformat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
+            return iso8601Dateformat.parse(dt);
         } catch (final Exception e) {
-            log.error("Could not convert " + dt, e);
+            log.error("Could not convert {}", dt, e);
         }
 
         return null;
