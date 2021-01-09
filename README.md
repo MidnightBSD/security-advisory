@@ -1,4 +1,7 @@
 # security-advisory
+
+[![Build Status](https://jenkins.midnightbsd.org/buildStatus/icon?job=MidnightBSD%2Fsecurity-advisory%2Fmaster&build=8)](https://jenkins.midnightbsd.org/job/MidnightBSD/job/security-advisory/job/master/8/)
+
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory?ref=badge_shield)
 
 ![CodeQL](https://github.com/MidnightBSD/security-advisory/workflows/CodeQL/badge.svg)
