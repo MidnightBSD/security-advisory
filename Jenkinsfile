@@ -31,10 +31,24 @@ pipeline {
                 }
             }
         }
-        stage('SonarQube') {
+        stage('jacoco') {
+        	steps {
+        		jacoco(
+              	execPattern: 'target/*.exec',
+              	classPattern: 'target/classes',
+              	sourcePattern: 'src/main/java',
+              	exclusionPattern: 'src/test*'
+        		)
+        	}
+        }
+        stage('Sonarqube') {
             steps {
-            	def sonarqubeScannerHome = tool name: 'sonar-scanner'
-            	sh "${sonarqubeScannerHome}/bin/sonar-scanner"
+                withSonarQubeEnv('sonarcloud') {
+                	sh 'mvn sonar:sonar -Dsonar.organization=laffer1-github'
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
     }
