@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class RedisCacheService implements CacheService<Object, Object> {
-    private RedisTemplate<Object, Object> client;
+    private final RedisTemplate<Object, Object> client;
 
     @Autowired
     public RedisCacheService(RedisTemplate<Object, Object> client) {
@@ -37,8 +37,8 @@ public class RedisCacheService implements CacheService<Object, Object> {
 
     public List<String> list() throws ServiceException {
         try {
-            Set<Object> redisKeys = this.client.keys("*");
-            return (List) redisKeys.stream().map(Object::toString).collect(Collectors.toList());
+            final Set<Object> redisKeys = this.client.keys("*");
+            return redisKeys.stream().map(Object::toString).collect(Collectors.toList());
         } catch (Exception var2) {
             log.error(var2.getMessage(), var2);
             throw new ServiceException("Cache list could not be loaded");
@@ -67,35 +67,33 @@ public class RedisCacheService implements CacheService<Object, Object> {
             log.error("Client is null.");
             throw new ServiceException("Could not delete all key/value pairs from current redis database, null client.");
         } else {
-            RedisConnectionFactory factory = this.client.getConnectionFactory();
-            if (factory == null) {
-                log.error("Factory is null.");
-                throw new ServiceException("Could not delete all key/value pairs from current redis database, unable to establish a factory");
-            } else {
-                RedisConnection connection = factory.getConnection();
-                if (connection == null) {
-                    log.error("Connection is null.");
-                    throw new ServiceException("Could not delete all key/value pairs from current redis database, unable to establish a connection");
-                } else {
-                    try {
-                        connection.flushDb();
-                        log.trace("flushed cache for current db %n", ((JedisConnectionFactory) this.client.getConnectionFactory()).getDatabase());
-                    } catch (Exception var4) {
-                        log.error(var4.getMessage(), var4);
-                        throw new ServiceException("Unable to delete all key/value pairs from current redis database");
-                    }
-                }
+            RedisConnection connection = getConnectionFactory().getConnection();
+            try {
+                connection.flushDb();
+                log.trace("flushed cache for current db %n", ((JedisConnectionFactory) getConnectionFactory()).getDatabase());
+            } catch (Exception var4) {
+                log.error(var4.getMessage(), var4);
+                throw new ServiceException("Unable to delete all key/value pairs from current redis database");
             }
         }
     }
 
     public void deleteAllFromInstance() throws ServiceException {
         try {
-            this.client.getConnectionFactory().getConnection().flushAll();
-            log.trace("flushed caches from instance %s", ((JedisConnectionFactory) this.client.getConnectionFactory()).getHostName());
-        } catch (Exception var2) {
-            log.error(var2.getMessage(), var2);
+            getConnectionFactory().getConnection().flushAll();
+            log.trace("flushed caches from instance %s", ((JedisConnectionFactory) getConnectionFactory()).getHostName());
+        } catch (final Exception e) {
+            log.error(e.getMessage(), e);
             throw new ServiceException("Unable to clear all databases in redis instance");
         }
+    }
+
+    private RedisConnectionFactory getConnectionFactory() throws ServiceException {
+        final RedisConnectionFactory factory = this.client.getConnectionFactory();
+        if (factory == null) {
+            log.error("Factory is null.");
+            throw new ServiceException("Unable to get connection factory");
+        }
+        return factory;
     }
 }
