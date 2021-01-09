@@ -27,15 +27,15 @@ public class CacheController {
         this.cacheService = cacheService;
     }
 
-    @GetMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<String>> list() throws ServiceException {
         return new ResponseEntity<>(cacheService.list(), HttpStatus.OK);
     }
 
+    @ResponseStatus(HttpStatus.OK)
     @DeleteMapping
-    public ResponseEntity delete() throws ServiceException {
+    public void delete() throws ServiceException {
         cacheService.deleteAllFromCurrentDb();
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
 

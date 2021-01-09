@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Lucas Holt
@@ -146,7 +147,9 @@ public class AdvisoryService implements AppService<Advisory> {
 
         log.info("Saving {} new advisories", createList.size());
 
-        repository.saveAll(createList).stream().peek(searchService::index);
+        long result = repository.saveAll(createList).stream()
+                .peek(searchService::index).count();
+        log.info("Indexed {} new advisories", result);
         repository.flush();
     }
 

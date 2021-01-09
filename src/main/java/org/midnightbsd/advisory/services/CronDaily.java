@@ -29,8 +29,6 @@ public class CronDaily {
     public void daily() throws IOException {
         final CveData recent = nvdFetchService.getNVDData(RECENT_SUFFIX);
 
-        //  log.info( "Dumped: " + objectMapper.writeValueAsString(recent));
-
         log.info("Begin import of recent data");
         nvdImportService.importNvd(recent);
 

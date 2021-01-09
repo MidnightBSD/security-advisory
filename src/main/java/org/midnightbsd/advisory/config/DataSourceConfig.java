@@ -12,12 +12,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DataSourceConfig {
 
-  /*  @Bean
-    @ConfigurationProperties("spring.datasource")
-    public DataSourceProperties dataSourceProperties() {
-        return new DataSourceProperties();
-    } */
-
     @Bean
     @ConfigurationProperties("spring.datasource")
     public HikariDataSource dataSource(DataSourceProperties properties) {
