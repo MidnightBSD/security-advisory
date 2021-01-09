@@ -31,5 +31,9 @@ pipeline {
                 }
             }
         }
+        stage('SonarQube') {
+            def sonarqubeScannerHome = tool name: 'sonar-scanner'
+            sh "${sonarqubeScannerHome}/bin/sonar-scanner"
+        }
     }
 }
