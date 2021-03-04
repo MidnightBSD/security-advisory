@@ -2,7 +2,7 @@ package org.midnightbsd.advisory.ctl;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.midnightbsd.advisory.services.ServiceException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @ControllerAdvice
 public class ExceptionHandlingController {
     private static final String ERR_REQUEST = "Request: ";

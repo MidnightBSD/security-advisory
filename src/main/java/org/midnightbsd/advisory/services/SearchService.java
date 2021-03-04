@@ -1,7 +1,7 @@
 package org.midnightbsd.advisory.services;
 
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.elasticsearch.ElasticsearchException;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.search.Instance;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @Service
 public class SearchService {
 

@@ -1,6 +1,6 @@
 package org.midnightbsd.advisory.ctl.api;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.midnightbsd.advisory.services.RedisCacheService;
 import org.midnightbsd.advisory.services.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import java.util.List;
  * Manage cache entries
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @RequestMapping("/api/cache")
 @RestController
 public class CacheController {

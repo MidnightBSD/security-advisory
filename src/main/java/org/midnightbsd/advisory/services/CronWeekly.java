@@ -1,6 +1,6 @@
 package org.midnightbsd.advisory.services;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.midnightbsd.advisory.model.nvd.CveData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -12,7 +12,7 @@ import java.util.Calendar;
 /**
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @Service
 public class CronWeekly {
     private static final int DELAY_ONE_MINUTE = 1000 * 60;

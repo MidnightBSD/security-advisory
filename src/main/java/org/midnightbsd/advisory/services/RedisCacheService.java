@@ -1,6 +1,6 @@
 package org.midnightbsd.advisory.services;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @Service
 public class RedisCacheService implements CacheService<Object, Object> {
     private final RedisTemplate<Object, Object> client;

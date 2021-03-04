@@ -1,6 +1,6 @@
 package org.midnightbsd.advisory.config;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 /**
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @Configuration
 @EnableElasticsearchRepositories(basePackages = {"org.midnightbsd.advisory.repository.search"})
 public class SearchConfig {

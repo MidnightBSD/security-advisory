@@ -1,5 +1,6 @@
 package org.midnightbsd.advisory.ctl;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +15,7 @@ import javax.servlet.http.HttpSession;
 @RequestMapping("/")
 public final class HomeController {
 
-    @GetMapping
+    @GetMapping(produces = MediaType.TEXT_HTML_VALUE)
     public String home(Model model, HttpSession session) {
 
         return "index";

@@ -1,7 +1,7 @@
 package org.midnightbsd.advisory.services;
 
 import com.google.common.collect.Lists;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  */
 @Transactional(readOnly = true)
 @CacheConfig(cacheNames = "advisory")
-@Slf4j
+@Log4j2
 @Service
 public class AdvisoryService implements AppService<Advisory> {
 

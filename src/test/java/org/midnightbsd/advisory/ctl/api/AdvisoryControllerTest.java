@@ -1,4 +1,4 @@
-package org.midnightbsd.advisory.ctl;
+package org.midnightbsd.advisory.ctl.api;
 
 import org.junit.Before;
 import org.junit.Test;

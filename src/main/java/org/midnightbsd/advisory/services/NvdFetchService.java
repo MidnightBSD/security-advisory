@@ -1,7 +1,7 @@
 package org.midnightbsd.advisory.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.HttpResponse;
@@ -24,7 +24,7 @@ import java.util.zip.ZipInputStream;
 /**
  * @author Lucas Holt
  */
-@Slf4j
+@Log4j2
 @Service
 public class NvdFetchService {
 
