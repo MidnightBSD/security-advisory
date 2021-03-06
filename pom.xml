@@ -16,17 +16,17 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.9.RELEASE</version>
+        <version>2.2.13.RELEASE</version>
     </parent>
 
     <properties>
-        <java-version>1.8</java-version>
+        <java-version>10</java-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flyway.version>6.5.7</flyway.version>
         <angularjs.version>1.7.9</angularjs.version>
         <jquery.version>3.5.1</jquery.version>
         <datajest.version>3.3.2.RELEASE</datajest.version>
-        <spring-cloud.version>Hoxton.SR6</spring-cloud.version>
+        <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
     </properties>
 
     <profiles>
