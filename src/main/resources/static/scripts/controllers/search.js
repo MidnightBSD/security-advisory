@@ -56,7 +56,7 @@ angular.module('wwwApp').controller('SearchCtrl', ['$scope', '$log', '$routePara
 			$scope.pageCount = -1; // reset to hide view all message on fresh search
 
 			$log.info('Starting search on ' + $scope.keyword + ' with page ' + $scope.page);
-			var kw = $scope.keyword.replace('\'', '');
+			const kw = $scope.keyword.replace(/'/g, '');
 
 			$scope.searchResponse = SearchService.get(
 				{
