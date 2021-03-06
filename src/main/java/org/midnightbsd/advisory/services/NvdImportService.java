@@ -55,7 +55,7 @@ public class NvdImportService {
             Advisory advisory = new Advisory();
 
             if (cve.getCveDataMeta() == null) {
-                log.warn("invalid meta data");
+                log.warn("invalid metadata");
                 continue;
             } else {
                 advisory.setCveId(cve.getCveDataMeta().getID());
@@ -189,10 +189,11 @@ public class NvdImportService {
         // 2018-02-20T21:29Z
 
         try {
+            // deepcode ignore FixDateFormat: API we're calling doesn't output in JS date format
             final SimpleDateFormat iso8601Dateformat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
             return iso8601Dateformat.parse(dt);
         } catch (final Exception e) {
-            log.error("Could not convert {}", dt, e);
+            log.error("Could not convert date string {}", dt, e);
         }
 
         return null;
