@@ -19,7 +19,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/product")
 public class ProductController {
-    
+
     private final ProductRepository productRepository;
 
     @Autowired
@@ -34,11 +34,12 @@ public class ProductController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Product> get(@PathVariable("id") final int id) {
-        Optional<Product> product = productRepository.findById(id);
-        if (product.isPresent())
+        final Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
             return ResponseEntity.ok(product.get());
-        else
-            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.notFound().build();
     }
 
     @GetMapping("/name/{name}/version/{version}")

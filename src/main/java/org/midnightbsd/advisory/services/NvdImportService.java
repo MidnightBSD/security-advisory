@@ -1,10 +1,22 @@
 package org.midnightbsd.advisory.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.midnightbsd.advisory.model.*;
+import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.model.ConfigNode;
+import org.midnightbsd.advisory.model.ConfigNodeCpe;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
-import org.midnightbsd.advisory.model.nvd.*;
+import org.midnightbsd.advisory.model.nvd.Cve;
+import org.midnightbsd.advisory.model.nvd.CveData;
+import org.midnightbsd.advisory.model.nvd.CveItem;
+import org.midnightbsd.advisory.model.nvd.DescriptionData;
+import org.midnightbsd.advisory.model.nvd.Node;
+import org.midnightbsd.advisory.model.nvd.NodeCpe;
+import org.midnightbsd.advisory.model.nvd.ProblemTypeData;
+import org.midnightbsd.advisory.model.nvd.ProblemTypeDataDescription;
+import org.midnightbsd.advisory.model.nvd.ProductData;
+import org.midnightbsd.advisory.model.nvd.VendorData;
+import org.midnightbsd.advisory.model.nvd.VersionData;
 import org.midnightbsd.advisory.repository.ConfigNodeCpeRepository;
 import org.midnightbsd.advisory.repository.ConfigNodeRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
@@ -42,6 +54,59 @@ public class NvdImportService {
     @Autowired
     private ConfigNodeCpeRepository configNodeCpeRepository;
 
+    private String getProblemType(final Cve cve) {
+        final StringBuilder sb = new StringBuilder();
+        for (final ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
+            for (final ProblemTypeDataDescription dd : ptd.getDescription()) {
+                sb.append(dd.getValue()).append(",");
+            }
+        }
+        return sb.toString();
+    }
+
+    private Vendor createOrFetchVendor(final VendorData vendorData) {
+        Vendor v = vendorRepository.findOneByName(vendorData.getVendorName());
+        if (v == null) {
+            v = new Vendor();
+            v.setName(vendorData.getVendorName());
+            v = vendorRepository.saveAndFlush(v);
+        }
+        return v;
+    }
+
+    private Product createOrFetchProduct(final ProductData pd, final VersionData vd, final Vendor v) {
+        Product product = productRepository.findByNameAndVersionAndVendor(pd.getProductName(), vd.getVersionValue(), v);
+        if (product == null) {
+            product = new Product();
+            product.setName(pd.getProductName());
+            product.setVersion(vd.getVersionValue());
+            product.setVendor(v);
+            product = productRepository.saveAndFlush(product);
+        }
+        return product;
+    }
+
+    private Set<Product> processVendorAndProducts(final Cve cve) {
+        final Set<Product> advProducts = new HashSet<>();
+        if (cve.getAffects() == null || cve.getAffects().getVendor() == null)
+            return advProducts;
+
+        log.info("Vendor count: {}", cve.getAffects().getVendor().getVendorData().size());
+
+        for (final VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
+            final Vendor v = createOrFetchVendor(vendorData);
+
+            log.info("Product count {}", vendorData.getProduct().getProductData().size());
+            for (final ProductData pd : vendorData.getProduct().getProductData()) {
+                for (final VersionData vd : pd.getVersion().getVersionData()) {
+                    advProducts.add(createOrFetchProduct(pd, vd, v));
+                }
+            }
+        }
+
+        return advProducts;
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void importNvd(final CveData cveData) {
         if (cveData == null)
@@ -57,20 +122,13 @@ public class NvdImportService {
             if (cve.getCveDataMeta() == null) {
                 log.warn("invalid metadata");
                 continue;
-            } else {
-                advisory.setCveId(cve.getCveDataMeta().getID());
-
-                log.info("Processing {}", advisory.getCveId());
             }
 
+            advisory.setCveId(cve.getCveDataMeta().getID());
+            log.info("Processing {}", advisory.getCveId());
+
             if (cve.getProblemType() != null && cve.getProblemType().getProblemTypeData() != null)  {
-                final StringBuilder sb = new StringBuilder();
-                for (final ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
-                    for (final ProblemTypeDataDescription dd : ptd.getDescription()) {
-                        sb.append(dd.getValue()).append(",");
-                    }
-                }
-                advisory.setProblemType(sb.toString());
+                advisory.setProblemType(getProblemType(cve));
             }
 
             advisory.setPublishedDate(convertDate(cveItem.getPublishedDate()));
@@ -87,39 +145,8 @@ public class NvdImportService {
             if (cveItem.getImpact() != null && cveItem.getImpact().getBaseMetricV2() != null) {
                 advisory.setSeverity(cveItem.getImpact().getBaseMetricV2().getSeverity());
             }
-
-            final Set<Product> advProducts = new HashSet<>();
-
-            if (cve.getAffects() != null && cve.getAffects().getVendor() != null) {
-                log.info("Vendor count: {}",  cve.getAffects().getVendor().getVendorData().size());
-                
-                for (final VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
-                    Vendor v = vendorRepository.findOneByName(vendorData.getVendorName());
-                    if (v == null) {
-                        v = new Vendor();
-                        v.setName(vendorData.getVendorName());
-                        v = vendorRepository.saveAndFlush(v);
-                    }
-
-                    log.info("Product count {}", vendorData.getProduct().getProductData().size());
-                    for (final ProductData pd : vendorData.getProduct().getProductData()) {
-                        for (final VersionData vd : pd.getVersion().getVersionData()) {
-                            Product product = productRepository.findByNameAndVersionAndVendor(pd.getProductName(), vd.getVersionValue(), v);
-                            if (product == null) {
-                                product = new Product();
-                                product.setName(pd.getProductName());
-                                product.setVersion(vd.getVersionValue());
-                                product.setVendor(v);
-                                product = productRepository.saveAndFlush(product);
-                            }
-
-                            advProducts.add(product);
-                        }
-                    }
-                }
-            }
-
-            advisory.setProducts(advProducts);
+            
+            advisory.setProducts(processVendorAndProducts(cve));
             advisory = advisoryService.save(advisory);
 
             // now save configurations
