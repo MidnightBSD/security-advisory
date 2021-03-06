@@ -20,13 +20,14 @@
     </parent>
 
     <properties>
-        <java-version>10</java-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flyway.version>6.5.7</flyway.version>
         <angularjs.version>1.7.9</angularjs.version>
         <jquery.version>3.5.1</jquery.version>
         <datajest.version>3.3.2.RELEASE</datajest.version>
         <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
     <profiles>
@@ -179,7 +180,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.2.18.jre7</version>
+            <version>42.2.19</version>
         </dependency>
 
         <dependency>
@@ -253,7 +254,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.4</version>
+                <version>0.8.6</version>
                 <executions>
                     <execution>
                         <id>default-check</id>
@@ -303,8 +304,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <source>${java-version}</source>
-                    <target>${java-version}</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
 
