@@ -2,24 +2,23 @@ package org.midnightbsd.advisory.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.Charsets;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.midnightbsd.advisory.model.nvd.CveData;
+import org.midnightbsd.advisory.model.nvd.CveDataPage;
+import org.midnightbsd.advisory.util.CompressUtil;
+import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.zip.DeflaterInputStream;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipException;
-import java.util.zip.ZipInputStream;
+import java.util.Date;
 
 /**
  * @author Lucas Holt
@@ -28,33 +27,48 @@ import java.util.zip.ZipInputStream;
 @Service
 public class NvdFetchService {
 
+    @Deprecated(forRemoval = true)
     @Value("${nvdfeed.baseUrl}")
     private String nvdfeedUrl;
+
+    @Value("${nvdfeed.serviceUrl}")
+    private String nvdServiceUrl;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    public static byte[] decompressGzip(final byte[] contentBytes) throws IOException {
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            IOUtils.copy(new GZIPInputStream(new ByteArrayInputStream(contentBytes)), out);
-            return out.toByteArray();
-        }
+    private RestTemplate restTemplate;
+
+    @Autowired
+    public NvdFetchService(final RestTemplateBuilder builder) {
+        this.restTemplate = builder.build();
     }
 
-    public static byte[] decompressZip(final byte[] contentBytes) throws IOException {
-        try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            IOUtils.copy(new ZipInputStream(new ByteArrayInputStream(contentBytes)), out);
-            return out.toByteArray();
-        }
+    /**
+     * In case we ever need to reload ALL data
+     * @param startIndex  record to start page with
+     * @return Single page of records
+     */
+    public CveDataPage getPage(final int startIndex) {
+        final String url = nvdServiceUrl + "cves/1.0?resultsPerPage=5000&startIndex={startIndex}";
+        return restTemplate.getForObject(url, CveDataPage.class, startIndex);
     }
 
-    public static byte[] decompressDeflate(final byte[] contentBytes) throws IOException {
-          try (final ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-              IOUtils.copy(new DeflaterInputStream(new ByteArrayInputStream(contentBytes)), out);
-              return out.toByteArray();
-          }
-      }
+    /**
+     * Reload data since a specific date
+     * @param modStartDate CVE modified start date
+     * @param startIndex record to start page with
+     * @return Single page of records
+     */                                                                  
+    public CveDataPage getPage(final Date modStartDate, final int startIndex) {
+        final String url = nvdServiceUrl + "cves/1.0?resultsPerPage=5000&startIndex={startIndex}&modStartDate={modStartDate}";
+        return restTemplate.getForObject(url, CveDataPage.class, startIndex, DateUtil.formatCveApiDate(modStartDate));
+    }
 
+    /**
+     * @deprecated CVE feeds retired
+     */
+    @Deprecated(forRemoval = true)
     public CveData getNVDData(final String suffix) {
         final String url = nvdfeedUrl + suffix;
 
@@ -87,7 +101,7 @@ public class NvdFetchService {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 entity.writeTo(baos);
 
-                String decompressed = extract(contentType, baos.toByteArray());
+                final String decompressed = CompressUtil.extract(contentType, baos.toByteArray());
                 baos.close();
 
                 return objectMapper.readValue(decompressed, CveData.class);
@@ -97,36 +111,4 @@ public class NvdFetchService {
         }
         return null;
     }
-
-    private String extract(String contentType, byte[] responseBytes) throws IOException {
-        String decompressed;
-        try {
-            decompressed = new String(decompressGzip(responseBytes), Charsets.UTF_8);
-        } catch (final ZipException zip) {
-            // fallback to raw string
-            decompressed = new String(responseBytes, Charsets.UTF_8);
-        }
-
-        // try zip if gzip fails
-        if (contentType.equalsIgnoreCase("application/x-zip") || contentType.equalsIgnoreCase("application/zip")) {
-            try {
-                decompressed = new String(decompressZip(responseBytes), Charsets.UTF_8);
-            } catch (final ZipException ignored) {
-                // fallback to raw string
-                decompressed = new String(responseBytes, Charsets.UTF_8);
-            }
-        }
-
-        if (contentType.equalsIgnoreCase("application/x-deflate") || contentType.equalsIgnoreCase("application/deflate")) {
-            try {
-                decompressed = new String(decompressDeflate(responseBytes), Charsets.UTF_8);
-            } catch (final ZipException z3) {
-                // fallback to raw string
-                decompressed = new String(responseBytes, Charsets.UTF_8);
-            }
-        }
-
-        return decompressed;
-    }
-
 }
