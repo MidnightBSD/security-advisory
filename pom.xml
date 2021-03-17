@@ -24,7 +24,7 @@
         <flyway.version>7.3.0</flyway.version>
         <angularjs.version>1.7.9</angularjs.version>
         <jquery.version>3.5.1</jquery.version>
-        <datajest.version>3.3.2.RELEASE</datajest.version>
+        <datajest.version>3.3.4.RELEASE</datajest.version>
         <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
