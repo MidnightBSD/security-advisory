@@ -21,7 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flyway.version>6.5.7</flyway.version>
+        <flyway.version>7.3.0</flyway.version>
         <angularjs.version>1.7.9</angularjs.version>
         <jquery.version>3.5.1</jquery.version>
         <datajest.version>3.3.2.RELEASE</datajest.version>
