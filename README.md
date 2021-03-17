@@ -20,7 +20,7 @@ Spring Boot 2.
 
 Requires:
 * Redis 3.x or later
-* Java 10
+* Java 11 or later
 * PostgreSQL 9.x or newer
 * ElasticSearch 6.7.x or newer
 
