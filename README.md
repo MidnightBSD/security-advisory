@@ -19,10 +19,10 @@ The web frontend is written in Angular.JS and the backend is
 Spring Boot 2.
 
 Requires:
-* Redis 3.x
-* Java 8
+* Redis 3.x or later
+* Java 10
 * PostgreSQL 9.x or newer
-* ElasticSearch 5.5.x
+* ElasticSearch 6.7.x or newer
 
 The public instance of this app is available at https://sec.midnightbsd.org/
 
