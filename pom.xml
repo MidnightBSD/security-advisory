@@ -23,7 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flyway.version>7.5.4</flyway.version>
         <angularjs.version>1.7.9</angularjs.version>
-        <jquery.version>3.5.1</jquery.version>
+        <jquery.version>3.6.0</jquery.version>
         <datajest.version>3.3.4.RELEASE</datajest.version>
         <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
         <maven.compiler.source>11</maven.compiler.source>
