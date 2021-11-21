@@ -1,6 +1,35 @@
+/*
+ * Copyright (c) 2017-2021 Lucas Holt
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 package org.midnightbsd.advisory.services;
 
+
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
@@ -17,192 +46,191 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-/**
- * @author Lucas Holt
- */
+/** @author Lucas Holt */
 @Transactional(readOnly = true)
 @CacheConfig(cacheNames = "advisory")
 @Slf4j
 @Service
 public class AdvisoryService implements AppService<Advisory> {
 
-    private final AdvisoryRepository repository;
+  private final AdvisoryRepository repository;
 
-    private final SearchService searchService;
+  private final SearchService searchService;
 
-    @Autowired
-    private VendorRepository vendorRepository;
+  @Autowired private VendorRepository vendorRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+  @Autowired private ProductRepository productRepository;
 
-    @Autowired
-    public AdvisoryService(final AdvisoryRepository repository, final SearchService searchService) {
-        this.repository = repository;
-        this.searchService = searchService;
+  @Autowired
+  public AdvisoryService(final AdvisoryRepository repository, final SearchService searchService) {
+    this.repository = repository;
+    this.searchService = searchService;
+  }
+
+  public List<Advisory> list() {
+    return repository.findAll();
+  }
+
+  public List<Advisory> getByProduct(final String productName) {
+    return repository.findByProductName(productName);
+  }
+
+  @Cacheable(unless = "#result == null", key = "#vendorName")
+  public List<Advisory> getByVendor(final String vendorName) {
+    return repository.findByVendorName(vendorName);
+  }
+
+  // @Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
+  public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
+    final List<List<Product>> products = getProducts(vendorName, productName);
+    final List<Advisory> results = new ArrayList<>();
+
+    for (final List<Product> smallerList : products) {
+      results.addAll(repository.findByProductsIn(smallerList));
     }
 
-    public List<Advisory> list() {
-        return repository.findAll();
-    }
+    return results;
+  }
 
-    public List<Advisory> getByProduct(final String productName) {
-        return repository.findByProductName(productName);
-    }
+  private List<List<Product>> getProducts(final String vendorName, final String productName) {
+    final Vendor vendor = vendorRepository.findOneByName(vendorName);
+    return Lists.partition(productRepository.findByNameAndVendor(productName, vendor), 1000);
+  }
 
-    @Cacheable(unless = "#result == null", key = "#vendorName")
-    public List<Advisory> getByVendor(final String vendorName) {
-        return repository.findByVendorName(vendorName);
-    }
+  public Page<Advisory> get(final Pageable page) {
+    return repository.findAll(page);
+  }
 
-    //@Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
-    public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
-         final List<List<Product>> products = getProducts(vendorName, productName);
-         final List<Advisory> results = new ArrayList<>();
+  public Advisory get(final int id) {
+    final Optional<Advisory> advisory = repository.findById(id);
+    return advisory.orElse(null);
+  }
 
-         for (final List<Product> smallerList : products) {
-            results.addAll(repository.findByProductsIn(smallerList));
-        }
+  public Advisory getByCveId(final String cveId) {
+    return repository.findOneByCveId(cveId);
+  }
 
-        return results;
-    }
+  @CacheEvict(allEntries = true)
+  @Transactional
+  public void batchSave(final List<Advisory> advisories) {
+    log.info("Advisory batch save of {}", advisories.size());
 
-    private List<List<Product>> getProducts(final String vendorName, final String productName) {
-        final Vendor vendor = vendorRepository.findOneByName(vendorName);
-        return Lists.partition(productRepository.findByNameAndVendor(productName, vendor), 1000);
-    }
+    final List<Advisory> createList = new ArrayList<>();
 
-    public Page<Advisory> get(final Pageable page) {
-        return repository.findAll(page);
-    }
-
-    public Advisory get(final int id) {
-        final Optional<Advisory> advisory = repository.findById(id);
-        return advisory.orElse(null);
-
-    }
-    
-    public Advisory getByCveId(final String cveId) {
-        return repository.findOneByCveId(cveId);
-    }
-
-    @CacheEvict(allEntries = true)
-    @Transactional
-    public void batchSave(final List<Advisory> advisories) {
-        log.info("Advisory batch save of {}", advisories.size());
-
-        final List<Advisory> createList = new ArrayList<>();
-
-        for (final Advisory advisory : advisories) {
-            Advisory adv = repository.findOneByCveId(advisory.getCveId());
-            if (adv == null) {
-                createList.add(advisory);
-            } else {
-                boolean update = false; // dirty check
-
-                log.info("Updating {}", adv.getCveId());
-
-                if (advisory.getDescription() != null && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
-                    adv.setDescription(advisory.getDescription());
-                    update = true;
-                }
-
-                if (advisory.getLastModifiedDate() != null && advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0) {
-                    adv.setLastModifiedDate(advisory.getLastModifiedDate());
-                    update = true;
-                }
-
-                if (advisory.getPublishedDate() != null && advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0) {
-                    adv.setPublishedDate(advisory.getPublishedDate());
-                    update = true;
-                }
-
-                if (advisory.getSeverity() != null && !advisory.getSeverity().equalsIgnoreCase(adv.getSeverity())) {
-                    adv.setSeverity(advisory.getSeverity());
-                    update = true;
-                }
-
-                if (advisory.getProblemType() != null && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
-                    adv.setProblemType(advisory.getProblemType());
-                    update = true;
-                }
-
-                if (update && advisory.getProducts() != null) {
-                    log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
-                    adv.setProducts(advisory.getProducts());
-                }
-
-                if (update) {
-                    adv = repository.save(adv);
-                    searchService.index(adv);
-                }
-            }
-        }
-        repository.flush();
-
-        log.info("Saving {} new advisories", createList.size());
-
-        long result = repository.saveAll(createList).stream()
-                .peek(searchService::index).count();
-        log.info("Indexed {} new advisories", result);
-        repository.flush();
-    }
-
-    @CacheEvict(allEntries = true)
-    @Transactional
-    public Advisory save(final Advisory advisory) {
-        Advisory adv = repository.findOneByCveId(advisory.getCveId());
-        if (adv == null) {
-            log.info("Adding {}", advisory.getCveId());
-            return repository.saveAndFlush(advisory);
-        }
-
+    for (final Advisory advisory : advisories) {
+      Advisory adv = repository.findOneByCveId(advisory.getCveId());
+      if (adv == null) {
+        createList.add(advisory);
+      } else {
         boolean update = false; // dirty check
 
         log.info("Updating {}", adv.getCveId());
 
-        if (advisory.getDescription() != null && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
-            adv.setDescription(advisory.getDescription());
-            update = true;
+        if (advisory.getDescription() != null
+            && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
+          adv.setDescription(advisory.getDescription());
+          update = true;
         }
 
-        if (advisory.getLastModifiedDate() != null && (adv.getLastModifiedDate() == null ||
-                advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0)) {
-            adv.setLastModifiedDate(advisory.getLastModifiedDate());
-            update = true;
+        if (advisory.getLastModifiedDate() != null
+            && advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0) {
+          adv.setLastModifiedDate(advisory.getLastModifiedDate());
+          update = true;
         }
 
-        if (advisory.getPublishedDate() != null && (adv.getPublishedDate() == null ||
-                advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0)) {
-            adv.setPublishedDate(advisory.getPublishedDate());
-            update = true;
+        if (advisory.getPublishedDate() != null
+            && advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0) {
+          adv.setPublishedDate(advisory.getPublishedDate());
+          update = true;
         }
 
-        if (advisory.getSeverity() != null && !advisory.getSeverity().equalsIgnoreCase(adv.getSeverity())) {
-            adv.setSeverity(advisory.getSeverity());
-            update = true;
+        if (advisory.getSeverity() != null
+            && !advisory.getSeverity().equalsIgnoreCase(adv.getSeverity())) {
+          adv.setSeverity(advisory.getSeverity());
+          update = true;
         }
 
-        if (advisory.getProblemType() != null && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
-            adv.setProblemType(advisory.getProblemType());
-            update = true;
+        if (advisory.getProblemType() != null
+            && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
+          adv.setProblemType(advisory.getProblemType());
+          update = true;
         }
 
         if (update && advisory.getProducts() != null) {
-            log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
-            adv.setProducts(advisory.getProducts());
+          log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
+          adv.setProducts(advisory.getProducts());
         }
 
         if (update) {
-            adv = repository.saveAndFlush(adv);
-            searchService.index(adv);
+          adv = repository.save(adv);
+          searchService.index(adv);
         }
-
-        return adv;
+      }
     }
+    repository.flush();
+
+    log.info("Saving {} new advisories", createList.size());
+
+    long result = repository.saveAll(createList).stream().peek(searchService::index).count();
+    log.info("Indexed {} new advisories", result);
+    repository.flush();
+  }
+
+  @CacheEvict(allEntries = true)
+  @Transactional
+  public Advisory save(final Advisory advisory) {
+    Advisory adv = repository.findOneByCveId(advisory.getCveId());
+    if (adv == null) {
+      log.info("Adding {}", advisory.getCveId());
+      return repository.saveAndFlush(advisory);
+    }
+
+    boolean update = false; // dirty check
+
+    log.info("Updating {}", adv.getCveId());
+
+    if (advisory.getDescription() != null
+        && !advisory.getDescription().equalsIgnoreCase(adv.getDescription())) {
+      adv.setDescription(advisory.getDescription());
+      update = true;
+    }
+
+    if (advisory.getLastModifiedDate() != null
+        && (adv.getLastModifiedDate() == null
+            || advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0)) {
+      adv.setLastModifiedDate(advisory.getLastModifiedDate());
+      update = true;
+    }
+
+    if (advisory.getPublishedDate() != null
+        && (adv.getPublishedDate() == null
+            || advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0)) {
+      adv.setPublishedDate(advisory.getPublishedDate());
+      update = true;
+    }
+
+    if (advisory.getSeverity() != null
+        && !advisory.getSeverity().equalsIgnoreCase(adv.getSeverity())) {
+      adv.setSeverity(advisory.getSeverity());
+      update = true;
+    }
+
+    if (advisory.getProblemType() != null
+        && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
+      adv.setProblemType(advisory.getProblemType());
+      update = true;
+    }
+
+    if (update && advisory.getProducts() != null) {
+      log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
+      adv.setProducts(advisory.getProducts());
+    }
+
+    if (update) {
+      adv = repository.saveAndFlush(adv);
+      searchService.index(adv);
+    }
+
+    return adv;
+  }
 }

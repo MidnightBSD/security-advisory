@@ -2,8 +2,8 @@
 
 ## Supported Versions
 
-The most recent release is the only version supported. 
+The most recent release is the only version supported.
 
 ## Reporting a Vulnerability
 
-To report a security vulnerability in this software, please email security@midnightbsd.org 
+To report a security vulnerability in this software, please email security@midnightbsd.org

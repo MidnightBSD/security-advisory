@@ -6,8 +6,8 @@
 
 ![CodeQL](https://github.com/MidnightBSD/security-advisory/workflows/CodeQL/badge.svg)
 
-This project pulls data from NIST NVD feeds and offers it 
-for search or by specific vendors for use in REST clients. 
+This project pulls data from NIST NVD feeds and offers it
+for search or by specific vendors for use in REST clients.
 
 It was developed for the midnightbsd-security-advisory command
 line tool which checks installed packages for vulnerabilities.
