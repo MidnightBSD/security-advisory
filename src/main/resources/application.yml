@@ -3,7 +3,9 @@ spring:
 ---
 
 spring:
-  profiles: default
+  config:
+    activate:
+      on-profile: default
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -31,28 +33,27 @@ spring:
     generate-ddl: false
     show-sql: false
     properties:
-     hibernate:
-       temp:
-         use_jdbc_metadata_defaults: false
-     javax:
-       persistence:
-         sharedCache:
-           mode: ALL
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+      javax:
+        persistence:
+          sharedCache:
+            mode: ALL
   cache:
     type: REDIS
   redis:
     host: localhost
     port: 6379
     database: 0
-  data:
-    jest:
-      uri: http://localhost:9200
-      aws-region: us-east-1
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200
 
 eureka:
   client:
     serviceUrl:
-     defaultZone: http://eureka.justjournal.com:8761/eureka/
+      defaultZone: http://eureka.justjournal.com:8761/eureka/
 
 server:
   tomcat:
@@ -70,7 +71,9 @@ search:
 
 ---
 spring:
-  profiles: test
+  config:
+    activate:
+      on-profile: test
   datasource:
     url: jdbc:postgresql://localhost/security_advisory_test
     username: postgres
@@ -80,15 +83,16 @@ spring:
 
 ---
 spring:
-  profiles: prod
+  config:
+    activate:
+      on-profile: prod
   redis:
     host: midnightbsd-redis.c6ifkh.0001.use1.cache.amazonaws.com
     port: 6379
     database: 1
-  data:
-    jest:
-      uri: http://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com
-      aws-region: us-east-1
+  elasticsearch:
+    rest:
+      uris: http://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com
   flyway:
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
   datasource:
@@ -111,4 +115,5 @@ cloud:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://appstore.midnightbsd.org:8761/eureka/
+      defaultZone: http://db.midnightbsd.org:8761/eureka/
+

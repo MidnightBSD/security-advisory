@@ -10,12 +10,6 @@ server:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/xml,text/plain
   tomcat:
-    remote_ip_header: x-forwarded-for
-    protocol_header: x-forwarded-proto
-
-tomcat:
-  ajp:
-    port: ${ajp-port:8211}
-    remoteauthentication: ${ajp-auth:false}
-    enabled: ${ajp-on:true}
-    secret: defaultSecret
+    remote_ip:
+      protocol_header: x-forwarded-proto
+      remote_ip_header: x-forwarded-for
