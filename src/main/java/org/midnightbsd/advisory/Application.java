@@ -1,67 +1,51 @@
+/*
+ * Copyright (c) 2017-2021 Lucas Holt
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
 package org.midnightbsd.advisory;
 
-import org.apache.catalina.connector.Connector;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.cloud.openfeign.EnableFeignClients;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-/**
- * @author Lucas Holt
- */
+/** @author Lucas Holt */
 @EnableFeignClients
 @Configuration
 @EnableScheduling
 @EnableAsync
 @EnableTransactionManagement
 @EnableJpaRepositories
-@SpringBootApplication(exclude = {ElasticsearchAutoConfiguration.class, ElasticsearchDataAutoConfiguration.class})
+@SpringBootApplication
 public class Application {
 
-    @Value("${tomcat.ajp.port}")
-    int ajpPort;
-
-    @Value("${tomcat.ajp.remoteauthentication}")
-    private boolean remoteAuthentication;
-
-    @Value("${tomcat.ajp.enabled}")
-    private boolean tomcatAjpEnabled;
-
-    @Value("${tomcat.ajp.secret}")
-    private String secret;
-
-    @Value("${tomcat.ajp.secretRequired:true}")
-    private boolean secretRequired;
-
-    public static void main(final String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
-
-    @Bean
-    public TomcatServletWebServerFactory servletContainer() {
-
-        final TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
-        if (tomcatAjpEnabled) {
-            final Connector ajpConnector = new Connector("AJP/1.3");
-            ajpConnector.setPort(ajpPort);
-            ajpConnector.setSecure(false);
-            ajpConnector.setAllowTrace(false);
-            ajpConnector.setScheme("http");
-            ajpConnector.setAttribute("tomcatAuthentication", !remoteAuthentication);
-            ajpConnector.setAttribute("secretRequired", secretRequired);
-            ajpConnector.setAttribute("secret", secret);
-            tomcat.addAdditionalTomcatConnectors(ajpConnector);
-        }
-
-        return tomcat;
-    }
+  public static void main(final String[] args) {
+    SpringApplication.run(Application.class, args);
+  }
 }
