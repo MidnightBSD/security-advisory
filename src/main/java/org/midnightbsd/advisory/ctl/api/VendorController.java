@@ -25,11 +25,8 @@
  */
 package org.midnightbsd.advisory.ctl.api;
 
-
-import java.util.Optional;
 import org.midnightbsd.advisory.model.Vendor;
-import org.midnightbsd.advisory.repository.VendorRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.midnightbsd.advisory.services.VendorService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -43,28 +40,32 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/vendor")
 public class VendorController {
 
-  private final VendorRepository vendorRepository;
+  private final VendorService vendorService;
 
-  @Autowired
-  public VendorController(final VendorRepository vendorRepository) {
-    this.vendorRepository = vendorRepository;
+  public VendorController(final VendorService vendorService) {
+    this.vendorService = vendorService;
   }
 
   @GetMapping
   public ResponseEntity<Page<Vendor>> list(Pageable page) {
-    return ResponseEntity.ok(vendorRepository.findAll(page));
+    return ResponseEntity.ok(vendorService.get(page));
   }
 
   @GetMapping("/{id}")
   public ResponseEntity<Vendor> get(@PathVariable("id") int id) {
-    Optional<Vendor> vendor = vendorRepository.findById(id);
+    Vendor vendor = vendorService.get(id);
+    if (vendor == null)
+      return ResponseEntity.notFound().build();
 
-    if (vendor.isPresent()) return ResponseEntity.ok(vendor.get());
-    else return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(vendor);
   }
 
   @GetMapping("/name/{name}")
   public ResponseEntity<Vendor> get(@PathVariable("name") String name) {
-    return ResponseEntity.ok(vendorRepository.findOneByName(name));
+    Vendor vendor = vendorService.getByName(name);
+    if (vendor == null)
+      return ResponseEntity.notFound().build();
+
+    return ResponseEntity.ok(vendor);
   }
 }
