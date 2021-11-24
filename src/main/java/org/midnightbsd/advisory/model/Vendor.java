@@ -28,12 +28,13 @@ package org.midnightbsd.advisory.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
+import org.hibernate.Hibernate;
+
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
-import javax.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Objects;
 
 /** @author Lucas Holt */
 @NoArgsConstructor
@@ -41,7 +42,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "vendor")
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class Vendor implements Serializable {
 
   @JsonIgnore private static final long serialVersionUID = 4504423113963008931L;
@@ -57,5 +61,19 @@ public class Vendor implements Serializable {
 
   @JsonIgnore
   @OneToMany(mappedBy = "vendor")
+  @ToString.Exclude
   private List<Product> products;
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+    Vendor vendor = (Vendor) o;
+    return id != 0 && Objects.equals(id, vendor.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }
