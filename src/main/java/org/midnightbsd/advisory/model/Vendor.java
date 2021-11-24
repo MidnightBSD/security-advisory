@@ -45,7 +45,6 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
 public class Vendor implements Serializable {
 
   @JsonIgnore private static final long serialVersionUID = 4504423113963008931L;
