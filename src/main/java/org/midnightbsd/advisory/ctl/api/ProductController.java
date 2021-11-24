@@ -25,7 +25,6 @@
  */
 package org.midnightbsd.advisory.ctl.api;
 
-
 import java.util.Optional;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.repository.ProductRepository;
@@ -58,11 +57,8 @@ public class ProductController {
   @GetMapping("/{id}")
   public ResponseEntity<Product> get(@PathVariable("id") final int id) {
     final Optional<Product> product = productRepository.findById(id);
-    if (product.isPresent()) {
-      return ResponseEntity.ok(product.get());
-    }
 
-    return ResponseEntity.notFound().build();
+    return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
   }
 
   @GetMapping("/name/{name}/version/{version}")
