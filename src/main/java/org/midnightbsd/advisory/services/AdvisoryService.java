@@ -61,7 +61,6 @@ public class AdvisoryService implements AppService<Advisory> {
 
   @Autowired private ProductRepository productRepository;
 
-  @Autowired
   public AdvisoryService(final AdvisoryRepository repository, final SearchService searchService) {
     this.repository = repository;
     this.searchService = searchService;
