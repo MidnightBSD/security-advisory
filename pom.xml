@@ -21,8 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flyway.version>6.5.7</flyway.version>
-        <angularjs.version>1.7.9</angularjs.version>
+        <angularjs.version>1.8.0</angularjs.version>
         <jquery.version>3.6.0</jquery.version>
         <spring-cloud.version>2020.0.4</spring-cloud.version>
         <maven.compiler.source>11</maven.compiler.source>
