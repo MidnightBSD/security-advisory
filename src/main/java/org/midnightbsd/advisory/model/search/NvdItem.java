@@ -37,6 +37,8 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /** @author Lucas Holt */
 @ToString
@@ -51,6 +53,7 @@ public class NvdItem implements Serializable, Comparable<NvdItem> {
 
   @Getter @Setter @Version private Long version;
 
+  @Field(type = FieldType.Keyword)
   @Getter @Setter private String cveId;
 
   @Getter @Setter private String description;
