@@ -6,7 +6,7 @@
 
     <groupId>org.midnightbsd</groupId>
     <artifactId>security-advisory</artifactId>
-    <version>1.5.3-SNAPSHOT</version>
+    <version>1.5.4-SNAPSHOT</version>
 
     <organization>
         <name>MidnightBSD</name>
