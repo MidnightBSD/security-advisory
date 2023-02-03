@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Lucas Holt
+ * Copyright (c) 2017-2023 Lucas Holt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,18 +26,9 @@
 package org.midnightbsd.advisory.services;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.midnightbsd.advisory.model.nvd.CveData;
 import org.midnightbsd.advisory.model.nvd.CveDataPage;
-import org.midnightbsd.advisory.util.CompressUtil;
 import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -53,9 +44,7 @@ public class NvdFetchService {
   @Value("${nvdfeed.serviceUrl}")
   private String nvdServiceUrl;
 
-  @Autowired private ObjectMapper objectMapper;
-
-  private RestTemplate restTemplate;
+  private final RestTemplate restTemplate;
 
   @Autowired
   public NvdFetchService(final RestTemplateBuilder builder) {
