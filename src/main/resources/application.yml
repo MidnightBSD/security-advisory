@@ -61,9 +61,8 @@ server:
     protocol_header: x-forwarded-proto
 
 nvdfeed:
-  baseUrl:  https://static.nvd.nist.gov/feeds/json/cve/1.0/
-  baseUrl2: http://people.midnightbsd.org/~laffer1/advisory/
   serviceUrl: https://services.nvd.nist.gov/rest/json/
+  apiKey:
 
 search:
   nvd-item-index: nvditem
