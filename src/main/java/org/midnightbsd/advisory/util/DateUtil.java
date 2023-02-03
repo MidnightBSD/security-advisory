@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Lucas Holt
+ * Copyright (c) 2017-2023 Lucas Holt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 /** @author Lucas Holt */
 @Slf4j
 public class DateUtil {
+
+  private DateUtil() {
+    super();
+  }
+
   public static Date yesterday() {
     return subtractDays(Calendar.getInstance().getTime(), 1);
   }
@@ -46,6 +51,23 @@ public class DateUtil {
     cal.add(Calendar.DATE, -days);
 
     return cal.getTime();
+  }
+
+  public static Date getCveApiDate(final String dt) {
+    if (dt == null || dt.isEmpty()) return null;
+
+    // 2018-02-20T21:29Z
+
+    try {
+      // deepcode ignore FixDateFormat: API we're calling doesn't output in JS date format
+      final SimpleDateFormat iso8601Dateformat =
+              new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
+      return iso8601Dateformat.parse(dt);
+    } catch (final Exception e) {
+      log.error("Could not convert date string {}", dt, e);
+    }
+
+    return null;
   }
 
   public static String formatCveApiDate(final Date date) {

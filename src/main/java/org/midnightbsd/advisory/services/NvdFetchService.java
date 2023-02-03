@@ -50,13 +50,6 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class NvdFetchService {
 
-  /**
-   * @deprecated retiring legacy cve feeds
-   */
-  @Deprecated(forRemoval = true)
-  @Value("${nvdfeed.baseUrl}")
-  private String nvdfeedUrl;
-
   @Value("${nvdfeed.serviceUrl}")
   private String nvdServiceUrl;
 
@@ -75,8 +68,8 @@ public class NvdFetchService {
    * @param startIndex record to start page with
    * @return Single page of records
    */
-  public CveDataPage getPage(final int startIndex) {
-    final String url = nvdServiceUrl + "cves/1.0?resultsPerPage=5000&startIndex={startIndex}";
+  public CveDataPage getPage(final long startIndex) {
+    final String url = nvdServiceUrl + "cves/1.0?resultsPerPage=2000&startIndex={startIndex}";
     return restTemplate.getForObject(url, CveDataPage.class, startIndex);
   }
 
@@ -87,55 +80,11 @@ public class NvdFetchService {
    * @param startIndex record to start page with
    * @return Single page of records
    */
-  public CveDataPage getPage(final Date modStartDate, final int startIndex) {
+  public CveDataPage getPage(final Date modStartDate, final long startIndex) {
     final String url =
         nvdServiceUrl
-            + "cves/1.0?resultsPerPage=5000&startIndex={startIndex}&modStartDate={modStartDate}";
+            + "cves/1.0?resultsPerPage=2000&startIndex={startIndex}&modStartDate={modStartDate}";
     return restTemplate.getForObject(
         url, CveDataPage.class, startIndex, DateUtil.formatCveApiDate(modStartDate));
-  }
-
-  /** @deprecated CVE feeds retired */
-  @Deprecated(forRemoval = true)
-  public CveData getNVDData(final String suffix) {
-    final String url = nvdfeedUrl + suffix;
-
-    log.info("Fetching nvd data for {}", url);
-    //  https://static.nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-recent.json.gz
-
-    try {
-      final HttpClient client = HttpClientBuilder.create().build();
-      final HttpGet request = new HttpGet(url);
-
-      final HttpResponse response = client.execute(request);
-
-      if (response.getStatusLine().getStatusCode() != 200) {
-        log.error("Unable to fetch with status code {}", response.getStatusLine().getStatusCode());
-        return null;
-      }
-
-      final org.apache.http.HttpEntity entity = response.getEntity();
-      if (entity != null) {
-
-        final String contentType = entity.getContentType().getValue();
-        log.info("Content type is {}", contentType);
-
-        if (contentType.equalsIgnoreCase(" text/html")) {
-          log.error("An error occurred and we got a web page");
-          return null;
-        }
-
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        entity.writeTo(baos);
-
-        final String decompressed = CompressUtil.extract(contentType, baos.toByteArray());
-        baos.close();
-
-        return objectMapper.readValue(decompressed, CveData.class);
-      }
-    } catch (final IOException e) {
-      log.error("network call failed.", e);
-    }
-    return null;
   }
 }

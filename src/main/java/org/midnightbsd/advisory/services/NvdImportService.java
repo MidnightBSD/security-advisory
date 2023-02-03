@@ -37,21 +37,12 @@ import org.midnightbsd.advisory.model.ConfigNode;
 import org.midnightbsd.advisory.model.ConfigNodeCpe;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
-import org.midnightbsd.advisory.model.nvd.Cve;
-import org.midnightbsd.advisory.model.nvd.CveData;
-import org.midnightbsd.advisory.model.nvd.CveItem;
-import org.midnightbsd.advisory.model.nvd.DescriptionData;
-import org.midnightbsd.advisory.model.nvd.Node;
-import org.midnightbsd.advisory.model.nvd.NodeCpe;
-import org.midnightbsd.advisory.model.nvd.ProblemTypeData;
-import org.midnightbsd.advisory.model.nvd.ProblemTypeDataDescription;
-import org.midnightbsd.advisory.model.nvd.ProductData;
-import org.midnightbsd.advisory.model.nvd.VendorData;
-import org.midnightbsd.advisory.model.nvd.VersionData;
+import org.midnightbsd.advisory.model.nvd.*;
 import org.midnightbsd.advisory.repository.ConfigNodeCpeRepository;
 import org.midnightbsd.advisory.repository.ConfigNodeRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.midnightbsd.advisory.repository.VendorRepository;
+import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -127,7 +118,8 @@ public class NvdImportService {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void importNvd(final CveData cveData) {
+  public void importNvd(final CveDataPage cveDataPage) {
+    var cveData = cveDataPage.getResult();
     if (cveData == null) throw new IllegalArgumentException("cveData");
 
     if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
@@ -149,8 +141,8 @@ public class NvdImportService {
         advisory.setProblemType(getProblemType(cve));
       }
 
-      advisory.setPublishedDate(convertDate(cveItem.getPublishedDate()));
-      advisory.setLastModifiedDate(convertDate(cveItem.getLastModifiedDate()));
+      advisory.setPublishedDate(DateUtil.getCveApiDate(cveItem.getPublishedDate()));
+      advisory.setLastModifiedDate(DateUtil.getCveApiDate(cveItem.getLastModifiedDate()));
 
       if (cve.getDescription() != null && cve.getDescription().getDescriptionData() != null) {
         for (final DescriptionData descriptionData : cve.getDescription().getDescriptionData()) {
@@ -236,22 +228,5 @@ public class NvdImportService {
         }
       }
     }
-  }
-
-  private Date convertDate(final String dt) {
-    if (dt == null || dt.isEmpty()) return null;
-
-    // 2018-02-20T21:29Z
-
-    try {
-      // deepcode ignore FixDateFormat: API we're calling doesn't output in JS date format
-      final SimpleDateFormat iso8601Dateformat =
-          new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
-      return iso8601Dateformat.parse(dt);
-    } catch (final Exception e) {
-      log.error("Could not convert date string {}", dt, e);
-    }
-
-    return null;
   }
 }

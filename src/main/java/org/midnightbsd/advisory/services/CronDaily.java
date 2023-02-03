@@ -25,10 +25,11 @@
  */
 package org.midnightbsd.advisory.services;
 
+import java.util.Date;
 
-import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.midnightbsd.advisory.model.nvd.CveData;
+import org.midnightbsd.advisory.model.nvd.CveDataPage;
+import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -39,20 +40,42 @@ import org.springframework.stereotype.Service;
 public class CronDaily {
   private static final int DELAY_ONE_MINUTE = 1000 * 60;
   private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
-  private static final int TEN_MINUTES = DELAY_ONE_MINUTE * 10;
-  private static final String RECENT_SUFFIX = "nvdcve-1.0-recent.json.gz";
+
+  private Date lastFetchedDate = null; // TODO: persist on startup
+
 
   @Autowired private NvdFetchService nvdFetchService;
 
   @Autowired private NvdImportService nvdImportService;
 
-  @Scheduled(fixedDelay = ONE_DAY, initialDelay = TEN_MINUTES)
-  public void daily() throws IOException {
-    final CveData recent = nvdFetchService.getNVDData(RECENT_SUFFIX);
+  @Scheduled(fixedDelay = ONE_DAY, initialDelay = DELAY_ONE_MINUTE)
+  public void daily() throws InterruptedException {
+    CveDataPage cveDataPage;
+    long startIndex = 0L;
 
-    log.info("Begin import of recent data");
-    nvdImportService.importNvd(recent);
+    log.info("Begin import of CVE data");
+    if (lastFetchedDate == null) {
+      cveDataPage = nvdFetchService.getPage(startIndex);
+    } else {
+      cveDataPage = nvdFetchService.getPage(lastFetchedDate, startIndex);
+    }
+    nvdImportService.importNvd(cveDataPage);
+    Thread.sleep(6000L);
+    startIndex += cveDataPage.getResultsPerPage();
 
+    while (cveDataPage.getTotalResults() > cveDataPage.getStartIndex()) {
+      if (lastFetchedDate == null) {
+        cveDataPage = nvdFetchService.getPage(startIndex);
+      } else {
+        cveDataPage = nvdFetchService.getPage(lastFetchedDate, startIndex);
+      }
+      nvdImportService.importNvd(cveDataPage);
+      Thread.sleep(6000L);
+
+      startIndex += cveDataPage.getResultsPerPage();
+    }
+
+    lastFetchedDate = DateUtil.getCveApiDate(cveDataPage.getResult().getTimestamp());
     log.info("Finished daily import");
   }
 }
