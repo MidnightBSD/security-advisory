@@ -30,6 +30,9 @@ import java.util.Date;
 import java.util.List;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
+import org.midnightbsd.advisory.model.search.NvdItem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -42,6 +45,10 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
   List<Advisory> findByPublishedDateBetween(Date startDate, Date endDate);
 
   List<Advisory> findByLastModifiedDateBetween(Date startDate, Date endDate);
+
+  Page<Advisory> findByLastModifiedDateBetween(Date startDate, Date endDate, Pageable page);
+
+  Advisory findFirstByOrderByLastModifiedDateDesc();
 
   @Query(
       value =

@@ -26,9 +26,8 @@
 package org.midnightbsd.advisory.services;
 
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
+
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ElasticsearchException;
@@ -92,6 +91,36 @@ public class SearchService {
 
   @CacheEvict(value = "search", allEntries = true)
   @Transactional
+  @Async
+  public void indexRecentEntries(Date since) {
+    try {
+      Pageable pageable = PageRequest.of(0, 100);
+      Date endDate = Calendar.getInstance().getTime();
+
+      Page<org.midnightbsd.advisory.model.Advisory> advisories =
+              advisoryRepository.findByLastModifiedDateBetween(since, endDate, pageable);
+      for (int i = 0; i < advisories.getTotalPages(); i++) {
+        final ArrayList<NvdItem> items = new ArrayList<>();
+
+        for (final org.midnightbsd.advisory.model.Advisory adv : advisories) {
+          items.add(convert(adv));
+        }
+
+        log.debug("Saving a page of advisories to elasticsearch. pg {}", i);
+        nvdSearchRepository.saveAll(items);
+
+        pageable = PageRequest.of(i + 1, 100);
+        advisories = advisoryRepository.findByLastModifiedDateBetween(since, endDate, pageable);
+      }
+    } catch (final ElasticsearchException es) {
+      log.error(es.getDetailedMessage(), es);
+    } catch (final Exception e) {
+      log.error(e.getMessage(), e);
+    }
+  }
+
+  @CacheEvict(value = "search", allEntries = true)
+  @Transactional
   public void index(@NonNull final org.midnightbsd.advisory.model.Advisory adv) {
     log.debug("Indexing advisory {} id: {}", adv.getCveId(), adv.getId());
     nvdSearchRepository.save(convert(adv));
@@ -107,6 +136,8 @@ public class SearchService {
     nvdItem.setCveId(adv.getCveId());
     nvdItem.setDescription(adv.getDescription());
     nvdItem.setVersion(Calendar.getInstance().getTimeInMillis());
+    nvdItem.setPublishedDate(adv.getPublishedDate());
+    nvdItem.setLastModifiedDate(adv.getLastModifiedDate());
 
     final List<Instance> instances = new ArrayList<>();
     if (adv.getProducts() != null) {

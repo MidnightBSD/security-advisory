@@ -29,10 +29,13 @@ import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.nvd.CveDataPage;
+import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 
 /** @author Lucas Holt */
 @Slf4j
@@ -41,12 +44,21 @@ public class CronDaily {
   private static final int DELAY_ONE_MINUTE = 1000 * 60;
   private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
 
-  private Date lastFetchedDate = null; // TODO: persist on startup
-
+  private Date lastFetchedDate = null;
 
   @Autowired private NvdFetchService nvdFetchService;
 
   @Autowired private NvdImportService nvdImportService;
+
+  @Autowired private AdvisoryRepository advisoryRepository;
+
+  @PostConstruct
+  public void init() {
+    var advisory = advisoryRepository.findFirstByOrderByLastModifiedDateDesc();
+    if (advisory!= null) {
+      lastFetchedDate = advisory.getLastModifiedDate();
+    }
+  }
 
   @Scheduled(fixedDelay = ONE_DAY, initialDelay = DELAY_ONE_MINUTE)
   public void daily() throws InterruptedException {
@@ -64,6 +76,7 @@ public class CronDaily {
     startIndex += cveDataPage.getResultsPerPage();
 
     while (cveDataPage.getTotalResults() > cveDataPage.getStartIndex()) {
+      log.info("Starting fetch of page {}", cveDataPage.getStartIndex());
       if (lastFetchedDate == null) {
         cveDataPage = nvdFetchService.getPage(startIndex);
       } else {

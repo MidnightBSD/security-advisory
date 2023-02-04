@@ -63,6 +63,8 @@ public class NvdImportService {
 
   @Autowired private ConfigNodeCpeRepository configNodeCpeRepository;
 
+  @Autowired private SearchService searchService;
+
   private String getProblemType(final Cve cve) {
     final StringBuilder sb = new StringBuilder();
     for (final ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
@@ -226,6 +228,13 @@ public class NvdImportService {
         } catch (InterruptedException e) {
           log.error("Issue sleeping during nvd import", e);
         }
+      }
+
+      try {
+        log.info("Attempt to ES index CVE ID: {}", advisory.getCveId());
+        searchService.index(advisory);
+      } catch (Exception e) {
+        log.error("Issue indexing advisory {}", advisory.getCveId(), e);
       }
     }
   }

@@ -33,6 +33,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
+
 @Slf4j
 @Component
 @Profile("!test")
@@ -40,12 +43,13 @@ public class SearchIndexer {
 
   @Autowired private SearchService searchService;
 
+  private Date date;
+
   @Scheduled(fixedDelay = 1000 * 60 * 120, initialDelay = 120000)
   public void loadNewEntries() {
     log.info("Starting search indexer - Load all nvd items");
 
-    // TODO: add timestamp so we can limit reindexing
-    searchService.indexAllNvdItems();
+    searchService.indexRecentEntries(date);
   }
 
   /** Load all nvd items at startup into elasticsearch */
@@ -54,5 +58,6 @@ public class SearchIndexer {
     log.info("Starting search indexer - Load all nvd");
 
     searchService.indexAllNvdItems();
+    date = GregorianCalendar.getInstance().getTime();
   }
 }

@@ -29,13 +29,16 @@ package org.midnightbsd.advisory.model.search;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -59,6 +62,14 @@ public class NvdItem implements Serializable, Comparable<NvdItem> {
   @Getter @Setter private String description;
 
   @Getter @Setter private List<Instance> instances;
+
+  @Getter @Setter
+  @Field(type = FieldType.Date, format = DateFormat.basic_date_time)
+  private Date publishedDate;
+
+  @Getter @Setter
+  @Field(type = FieldType.Date, format = DateFormat.basic_date_time)
+  private Date lastModifiedDate;
 
   @Override
   public int compareTo(final NvdItem o) {

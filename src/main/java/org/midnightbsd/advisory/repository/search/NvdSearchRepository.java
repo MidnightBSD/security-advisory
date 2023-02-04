@@ -36,4 +36,6 @@ public interface NvdSearchRepository extends ElasticsearchRepository<NvdItem, In
 
   Page<NvdItem> findByCveIdContainsOrDescriptionContainsAllIgnoreCase(
       String name, String description, Pageable page);
+
+  NvdItem findFirstByOrderByLastModifiedDateDesc();
 }

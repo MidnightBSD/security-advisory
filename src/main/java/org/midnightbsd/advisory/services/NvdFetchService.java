@@ -44,6 +44,11 @@ public class NvdFetchService {
   @Value("${nvdfeed.serviceUrl}")
   private String nvdServiceUrl;
 
+  @Value("${nvdfeed.apiKey}")
+  private String apiKey;
+
+  private static final int RESULTS_PER_PAGE = 500;
+
   private final RestTemplate restTemplate;
 
   @Autowired
@@ -58,8 +63,8 @@ public class NvdFetchService {
    * @return Single page of records
    */
   public CveDataPage getPage(final long startIndex) {
-    final String url = nvdServiceUrl + "cves/1.0?resultsPerPage=2000&startIndex={startIndex}";
-    return restTemplate.getForObject(url, CveDataPage.class, startIndex);
+    final String url = nvdServiceUrl + "cves/1.0?resultsPerPage={resultsPerPage}&startIndex={startIndex}&apiKey={apiKey}&addOns=dictionaryCpes";
+    return restTemplate.getForObject(url, CveDataPage.class, RESULTS_PER_PAGE, startIndex, apiKey);
   }
 
   /**
@@ -72,8 +77,8 @@ public class NvdFetchService {
   public CveDataPage getPage(final Date modStartDate, final long startIndex) {
     final String url =
         nvdServiceUrl
-            + "cves/1.0?resultsPerPage=2000&startIndex={startIndex}&modStartDate={modStartDate}";
+            + "cves/1.0?resultsPerPage={resultsPerPage}&startIndex={startIndex}&modStartDate={modStartDate}&apiKey={apiKey}&addOns=dictionaryCpes";
     return restTemplate.getForObject(
-        url, CveDataPage.class, startIndex, DateUtil.formatCveApiDate(modStartDate));
+        url, CveDataPage.class, RESULTS_PER_PAGE, startIndex, DateUtil.formatCveApiDate(modStartDate), apiKey);
   }
 }

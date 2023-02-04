@@ -45,6 +45,7 @@ public class CveData {
   @JsonProperty("CVE_data_version")
   private String version;
 
+  // TODO: is this deprecated? part of flat file format only?
   @JsonProperty("CVE_data_numberOfCVEs")
   private String numberOfCVE;
 
