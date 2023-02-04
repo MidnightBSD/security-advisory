@@ -119,13 +119,17 @@ public class NvdImportService {
     return advProducts;
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void importNvd(final CveDataPage cveDataPage) {
-    var cveData = cveDataPage.getResult();
+  private void sanityCheck(CveData cveData) {
     if (cveData == null) throw new IllegalArgumentException("cveData");
 
     if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
       throw new IllegalArgumentException("cveData.getItems()");
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  public void importNvd(final CveDataPage cveDataPage) {
+    var cveData = cveDataPage.getResult();
+    sanityCheck(cveData);
 
     for (final CveItem cveItem : cveData.getCveItems()) {
       final Cve cve = cveItem.getCve();
@@ -172,48 +176,16 @@ public class NvdImportService {
 
             configNode = configNodeRepository.save(configNode); // save top level item
 
-            if (node.getCpe() != null) {
-              for (final NodeCpe nodeCpe : node.getCpe()) {
-                final ConfigNodeCpe cpe = new ConfigNodeCpe();
-
-                cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
-                cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
-                cpe.setVulnerable(nodeCpe.getVulnerable());
-                cpe.setConfigNode(configNode);
-
-                configNodeCpeRepository.save(cpe);
-              }
-            }
+            cpe(node, configNode);
 
             if (node.getChildren() != null) {
               for (final Node childNode : node.getChildren()) {
                 if (childNode.getOperator() != null) {
-                  final ConfigNode cn = new ConfigNode();
-                  cn.setAdvisory(advisory);
-                  cn.setOperator(node.getOperator());
-                  cn.setParentId(configNode.getId());
-                  configNodeRepository.save(cn);
-
-                  if (childNode.getCpe() != null) {
-                    for (final NodeCpe nodeCpe : childNode.getCpe()) {
-                      final ConfigNodeCpe cpe = new ConfigNodeCpe();
-
-                      cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
-                      cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
-                      cpe.setVulnerable(nodeCpe.getVulnerable());
-                      cpe.setConfigNode(cn);
-
-                      configNodeCpeRepository.save(cpe);
-                    }
-                  }
-
+                  var cn = configNode(node, advisory, configNode);
+                  cpe(childNode, cn);
                   // currently, do not support child-child nodes.
 
-                  try {
-                    Thread.sleep(500L);
-                  } catch (InterruptedException e) {
-                    log.error("Issue sleeping during nvd import", e);
-                  }
+                  sleep();
                 }
               }
             }
@@ -223,19 +195,51 @@ public class NvdImportService {
         configNodeRepository.flush();
         configNodeCpeRepository.flush();
 
-        try {
-          Thread.sleep(200L);
-        } catch (InterruptedException e) {
-          log.error("Issue sleeping during nvd import", e);
-        }
+        sleep();
       }
 
-      try {
-        log.info("Attempt to ES index CVE ID: {}", advisory.getCveId());
-        searchService.index(advisory);
-      } catch (Exception e) {
-        log.error("Issue indexing advisory {}", advisory.getCveId(), e);
+      searchIndex(advisory);
+    }
+  }
+
+  private ConfigNode configNode(Node node, Advisory advisory, ConfigNode configNode) {
+    final ConfigNode cn = new ConfigNode();
+    cn.setAdvisory(advisory);
+    cn.setOperator(node.getOperator());
+    cn.setParentId(configNode.getId());
+    return configNodeRepository.save(cn);
+  }
+
+  private void cpe(Node node, ConfigNode configNode) {
+    if (node.getCpe() != null) {
+      for (final NodeCpe nodeCpe : node.getCpe()) {
+        final ConfigNodeCpe cpe = new ConfigNodeCpe();
+
+        cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
+        cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
+        cpe.setVulnerable(nodeCpe.getVulnerable());
+        cpe.setConfigNode(configNode);
+
+        configNodeCpeRepository.save(cpe);
       }
+    }
+  }
+
+  private void sleep() {
+    try {
+      Thread.sleep(200L);
+    } catch (InterruptedException e) {
+      log.error("Issue sleeping during nvd import", e);
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  private void searchIndex(Advisory advisory) {
+    try {
+      log.info("Attempt to ES index CVE ID: {}", advisory.getCveId());
+      searchService.index(advisory);
+    } catch (Exception e) {
+      log.error("Issue indexing advisory {}", advisory.getCveId(), e);
     }
   }
 }
