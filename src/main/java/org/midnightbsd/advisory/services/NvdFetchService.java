@@ -47,7 +47,7 @@ public class NvdFetchService {
   @Value("${nvdfeed.apiKey}")
   private String apiKey;
 
-  private static final int RESULTS_PER_PAGE = 500;
+  private static final int RESULTS_PER_PAGE = 100;
 
   private final RestTemplate restTemplate;
 
