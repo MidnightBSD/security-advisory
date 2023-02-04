@@ -2,7 +2,7 @@ package org.midnightbsd.advisory.model.nvd2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Weakness{
     @JsonProperty("source")
@@ -18,10 +18,10 @@ public class Weakness{
         this.type = type; }
     String type;
     @JsonProperty("description")
-    public ArrayList<Description> getDescription() {
+    public List<Description> getDescription() {
         return this.description; }
-    public void setDescription(ArrayList<Description> description) {
+    public void setDescription(List<Description> description) {
         this.description = description; }
-    ArrayList<Description> description;
+    List<Description> description;
 }
 

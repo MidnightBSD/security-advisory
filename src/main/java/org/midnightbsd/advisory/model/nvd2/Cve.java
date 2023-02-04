@@ -2,7 +2,7 @@ package org.midnightbsd.advisory.model.nvd2;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Date;
 
 public class Cve{
@@ -37,11 +37,11 @@ public class Cve{
         this.vulnStatus = vulnStatus; }
     String vulnStatus;
     @JsonProperty("descriptions")
-    public ArrayList<Description> getDescriptions() {
+    public List<Description> getDescriptions() {
         return this.descriptions; }
-    public void setDescriptions(ArrayList<Description> descriptions) {
+    public void setDescriptions(List<Description> descriptions) {
         this.descriptions = descriptions; }
-    ArrayList<Description> descriptions;
+    List<Description> descriptions;
     @JsonProperty("metrics")
     public Metrics getMetrics() {
         return this.metrics; }
@@ -49,21 +49,21 @@ public class Cve{
         this.metrics = metrics; }
     Metrics metrics;
     @JsonProperty("weaknesses")
-    public ArrayList<Weakness> getWeaknesses() {
+    public List<Weakness> getWeaknesses() {
         return this.weaknesses; }
-    public void setWeaknesses(ArrayList<Weakness> weaknesses) {
+    public void setWeaknesses(List<Weakness> weaknesses) {
         this.weaknesses = weaknesses; }
-    ArrayList<Weakness> weaknesses;
+    List<Weakness> weaknesses;
     @JsonProperty("configurations")
-    public ArrayList<Configuration> getConfigurations() {
+    public List<Configuration> getConfigurations() {
         return this.configurations; }
-    public void setConfigurations(ArrayList<Configuration> configurations) {
+    public void setConfigurations(List<Configuration> configurations) {
         this.configurations = configurations; }
-    ArrayList<Configuration> configurations;
+    List<Configuration> configurations;
     @JsonProperty("references")
-    public ArrayList<Reference> getReferences() {
+    public List<Reference> getReferences() {
         return this.references; }
-    public void setReferences(ArrayList<Reference> references) {
+    public void setReferences(List<Reference> references) {
         this.references = references; }
-    ArrayList<Reference> references;
+    List<Reference> references;
 }

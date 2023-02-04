@@ -1,9 +1,7 @@
 package org.midnightbsd.advisory.model.nvd2;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.ArrayList;
+import java.util.List;
 
 public class Node{
     @JsonProperty("operator")
@@ -19,9 +17,9 @@ public class Node{
         this.negate = negate; }
     boolean negate;
     @JsonProperty("cpeMatch")
-    public ArrayList<CpeMatch> getCpeMatch() {
+    public List<CpeMatch> getCpeMatch() {
         return this.cpeMatch; }
-    public void setCpeMatch(ArrayList<CpeMatch> cpeMatch) {
+    public void setCpeMatch(List<CpeMatch> cpeMatch) {
         this.cpeMatch = cpeMatch; }
-    ArrayList<CpeMatch> cpeMatch;
+    List<CpeMatch> cpeMatch;
 }

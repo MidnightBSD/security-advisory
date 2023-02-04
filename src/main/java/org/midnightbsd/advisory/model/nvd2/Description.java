@@ -1,6 +1,5 @@
 package org.midnightbsd.advisory.model.nvd2;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Description{

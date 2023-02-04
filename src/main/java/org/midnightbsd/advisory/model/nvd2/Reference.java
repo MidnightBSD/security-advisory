@@ -1,9 +1,8 @@
 package org.midnightbsd.advisory.model.nvd2;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class Reference{
     @JsonProperty("url")
@@ -19,9 +18,9 @@ public class Reference{
         this.source = source; }
     String source;
     @JsonProperty("tags")
-    public ArrayList<String> getTags() {
+    public List<String> getTags() {
         return this.tags; }
-    public void setTags(ArrayList<String> tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags; }
-    ArrayList<String> tags;
+    List<String> tags;
 }

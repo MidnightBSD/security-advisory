@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Root{
     @JsonProperty("resultsPerPage")
@@ -43,9 +44,9 @@ public class Root{
         this.timestamp = timestamp; }
     Date timestamp;
     @JsonProperty("vulnerabilities")
-    public ArrayList<Vulnerability> getVulnerabilities() {
+    public List<Vulnerability> getVulnerabilities() {
         return this.vulnerabilities; }
-    public void setVulnerabilities(ArrayList<Vulnerability> vulnerabilities) {
+    public void setVulnerabilities(List<Vulnerability> vulnerabilities) {
         this.vulnerabilities = vulnerabilities; }
-    ArrayList<Vulnerability> vulnerabilities;
+    List<Vulnerability> vulnerabilities;
 }
