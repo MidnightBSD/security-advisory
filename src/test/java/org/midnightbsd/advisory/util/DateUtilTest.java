@@ -25,14 +25,13 @@
  */
 package org.midnightbsd.advisory.util;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.Calendar;
 import java.util.Date;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /** @author Lucas Holt */
-public class DateUtilTest {
+class DateUtilTest {
 
   private Date specificDate() {
     // Generate a date for Jan. 9, 2013, 10:11:12 AM
@@ -48,20 +47,20 @@ public class DateUtilTest {
   }
 
   @Test
-  public void subtractDays() {
+  void subtractDays() {
     Date result = DateUtil.subtractDays(specificDate(), 1);
-    assertEquals("Tue Jan 08 10:11:12 EST 2013", result.toString());
+    Assertions.assertEquals("Tue Jan 08 10:11:12 EST 2013",result.toString());
   }
 
   @Test
-  public void yesterday() {
+  void yesterday() {
     Date now = Calendar.getInstance().getTime();
-    assertEquals(DateUtil.subtractDays(now, 1).toString(), DateUtil.yesterday().toString());
+    Assertions.assertEquals(DateUtil.subtractDays(now, 1).toString(),DateUtil.yesterday().toString());
   }
 
   @Test
-  public void formatCveApiDate() {
+  void formatCveApiDate() {
     String result = DateUtil.formatCveApiDate(specificDate());
-    assertEquals("2013-01-09T15:11:12:000 UTC", result);
+    Assertions.assertEquals("2013-01-09T15:11:12:000 UTC",result);
   }
 }

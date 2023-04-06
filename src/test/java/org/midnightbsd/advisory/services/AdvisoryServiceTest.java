@@ -25,34 +25,30 @@
  */
 package org.midnightbsd.advisory.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;import static org.mockito.Mockito.*;
 
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /** @author Lucas Holt */
-@RunWith(MockitoJUnitRunner.class)
-public class AdvisoryServiceTest {
+@ExtendWith(MockitoExtension.class)
+class AdvisoryServiceTest {
 
   @Mock private AdvisoryRepository advisoryRepository;
 
   @InjectMocks private AdvisoryService advisoryService;
 
-  @Before
+  @BeforeEach
   public void setup() {
     Advisory adv = new Advisory();
     adv.setId(1);
@@ -66,7 +62,7 @@ public class AdvisoryServiceTest {
   }
 
   @Test
-  public void testGetName() {
+  void testGetName() {
     Advisory adv = advisoryService.getByCveId("CVE-0000-0000");
     assertNotNull(adv);
     assertEquals(1, adv.getId());
@@ -77,7 +73,7 @@ public class AdvisoryServiceTest {
   }
 
   @Test
-  public void testGet() {
+  void testGet() {
     Advisory adv = advisoryService.get(1);
     assertNotNull(adv);
     assertEquals(1, adv.getId());
@@ -88,7 +84,7 @@ public class AdvisoryServiceTest {
   }
 
   @Test
-  public void testList() {
+  void testList() {
     List<Advisory> items = advisoryService.list();
     assertNotNull(items);
     assertTrue(items.size() > 0);

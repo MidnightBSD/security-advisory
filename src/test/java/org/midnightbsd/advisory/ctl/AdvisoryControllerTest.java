@@ -25,8 +25,8 @@
  */
 package org.midnightbsd.advisory.ctl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -34,16 +34,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Calendar;
 import java.util.Collections;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.ctl.api.AdvisoryController;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.data.domain.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -53,8 +52,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  *
  * @author Lucas Holt
  */
-@RunWith(MockitoJUnitRunner.class)
-public class AdvisoryControllerTest {
+@ExtendWith(MockitoExtension.class)
+class AdvisoryControllerTest {
 
   private static final String TEST_CVE_ID = "CVE-0000-0000";
   private static final String TEST_PRODUCT_NAME = "httpd";
@@ -68,7 +67,7 @@ public class AdvisoryControllerTest {
 
   private Advisory adv;
 
-  @Before
+  @BeforeEach
   public void setup() {
     mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
@@ -89,25 +88,25 @@ public class AdvisoryControllerTest {
   }
 
   @Test
-  public void testGet() {
+  void testGet() {
     final ResponseEntity<Advisory> result = controller.get(1);
     assertNotNull(result);
-    assertNotNull("Body should have a value", result.getBody());
+    assertNotNull(result.getBody());
     assertEquals("CVE-0000-0000", result.getBody().getCveId());
     assertEquals(1, result.getBody().getId());
   }
 
   @Test
-  public void testGetByCve() {
+  void testGetByCve() {
     final ResponseEntity<Advisory> result = controller.get(TEST_CVE_ID);
     assertNotNull(result);
-    assertNotNull("there should be a result body", result.getBody());
+    assertNotNull(result.getBody());
     assertEquals(TEST_CVE_ID, result.getBody().getCveId());
     assertEquals(1, result.getBody().getId());
   }
 
   @Test
-  public void mvcTestGet() throws Exception {
+  void mvcTestGet() throws Exception {
     mockMvc
         .perform(get("/api/advisory/1"))
         .andExpect(status().isOk())
@@ -115,7 +114,7 @@ public class AdvisoryControllerTest {
   }
 
   @Test
-  public void mvcTestGetByProductName() throws Exception {
+  void mvcTestGetByProductName() throws Exception {
     mockMvc
         .perform(get("/api/advisory/product/" + TEST_PRODUCT_NAME))
         .andExpect(status().isOk())
@@ -123,7 +122,7 @@ public class AdvisoryControllerTest {
   }
 
   @Test
-  public void mvcTestGetByVendorName() throws Exception {
+  void mvcTestGetByVendorName() throws Exception {
     mockMvc
         .perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME))
         .andExpect(status().isOk())
@@ -131,7 +130,7 @@ public class AdvisoryControllerTest {
   }
 
   @Test
-  public void mvcTestGetByVendorNameAndProductName() throws Exception {
+  void mvcTestGetByVendorNameAndProductName() throws Exception {
     mockMvc
         .perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME + "/product/" + TEST_PRODUCT_NAME))
         .andExpect(status().isOk())
