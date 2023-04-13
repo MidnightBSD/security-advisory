@@ -48,21 +48,20 @@ class AdvisoryServiceTest {
 
   @InjectMocks private AdvisoryService advisoryService;
 
+  Advisory adv;
+
   @BeforeEach
   public void setup() {
-    Advisory adv = new Advisory();
+    adv = new Advisory();
     adv.setId(1);
     adv.setCveId("CVE-0000-0000");
     adv.setDescription("Foo");
     adv.setPublishedDate(Calendar.getInstance().getTime());
-
-    when(advisoryRepository.findOneByCveId("CVE-0000-0000")).thenReturn(adv);
-    when(advisoryRepository.findById(1)).thenReturn(Optional.of(adv));
-    when(advisoryRepository.findAll()).thenReturn(Collections.singletonList(adv));
   }
 
   @Test
   void testGetName() {
+    when(advisoryRepository.findOneByCveId("CVE-0000-0000")).thenReturn(adv);
     Advisory adv = advisoryService.getByCveId("CVE-0000-0000");
     assertNotNull(adv);
     assertEquals(1, adv.getId());
@@ -74,6 +73,7 @@ class AdvisoryServiceTest {
 
   @Test
   void testGet() {
+    when(advisoryRepository.findById(1)).thenReturn(Optional.of(adv));
     Advisory adv = advisoryService.get(1);
     assertNotNull(adv);
     assertEquals(1, adv.getId());
@@ -85,6 +85,7 @@ class AdvisoryServiceTest {
 
   @Test
   void testList() {
+    when(advisoryRepository.findAll()).thenReturn(Collections.singletonList(adv));
     List<Advisory> items = advisoryService.list();
     assertNotNull(items);
     assertTrue(items.size() > 0);

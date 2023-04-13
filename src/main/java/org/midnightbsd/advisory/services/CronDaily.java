@@ -25,10 +25,12 @@
  */
 package org.midnightbsd.advisory.services;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.nvd.CveDataPage;
+import org.midnightbsd.advisory.model.nvd2.Root;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,16 +62,23 @@ public class CronDaily {
     }
   }
 
+  private Date maxDate(Date input) {
+    Calendar c = Calendar.getInstance();
+    c.setTime(input);
+    c.add(Calendar.DATE, 120); // 120 days added (max value)
+    return c.getTime();
+  }
+
   @Scheduled(fixedDelay = ONE_DAY, initialDelay = DELAY_ONE_MINUTE)
   public void daily() throws InterruptedException {
-    CveDataPage cveDataPage;
+    Root cveDataPage;
     long startIndex = 0L;
 
     log.info("Begin import of CVE data");
     if (lastFetchedDate == null) {
       cveDataPage = nvdFetchService.getPage(startIndex);
     } else {
-      cveDataPage = nvdFetchService.getPage(lastFetchedDate, startIndex);
+      cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
     }
     nvdImportService.importNvd(cveDataPage);
     Thread.sleep(6000L);
@@ -80,7 +89,7 @@ public class CronDaily {
       if (lastFetchedDate == null) {
         cveDataPage = nvdFetchService.getPage(startIndex);
       } else {
-        cveDataPage = nvdFetchService.getPage(lastFetchedDate, startIndex);
+        cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
       }
       nvdImportService.importNvd(cveDataPage);
       Thread.sleep(6000L);
@@ -88,7 +97,7 @@ public class CronDaily {
       startIndex += cveDataPage.getResultsPerPage();
     }
 
-    lastFetchedDate = DateUtil.getCveApiDate(cveDataPage.getResult().getTimestamp());
+    lastFetchedDate = cveDataPage.getTimestamp();
     log.info("Finished daily import");
   }
 }

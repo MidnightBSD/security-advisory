@@ -26,10 +26,7 @@
 package org.midnightbsd.advisory.services;
 
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
@@ -37,16 +34,16 @@ import org.midnightbsd.advisory.model.ConfigNode;
 import org.midnightbsd.advisory.model.ConfigNodeCpe;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
-import org.midnightbsd.advisory.model.nvd.*;
+import org.midnightbsd.advisory.model.nvd2.*;
 import org.midnightbsd.advisory.repository.ConfigNodeCpeRepository;
 import org.midnightbsd.advisory.repository.ConfigNodeRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.midnightbsd.advisory.repository.VendorRepository;
-import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;import us.springett.parsers.cpe.Cpe;import us.springett.parsers.cpe.CpeParser;import us.springett.parsers.cpe.exceptions.CpeParsingException;
 
 /** @author Lucas Holt */
 @Slf4j
@@ -67,32 +64,32 @@ public class NvdImportService {
 
   private String getProblemType(final Cve cve) {
     final StringBuilder sb = new StringBuilder();
-    for (final ProblemTypeData ptd : cve.getProblemType().getProblemTypeData()) {
-      for (final ProblemTypeDataDescription dd : ptd.getDescription()) {
+    for (final Weakness weakness : cve.getWeaknesses()) {
+      for (final Description dd : weakness.getDescription()) {
         sb.append(dd.getValue()).append(",");
       }
     }
     return sb.toString();
   }
 
-  private Vendor createOrFetchVendor(final VendorData vendorData) {
-    Vendor v = vendorRepository.findOneByName(vendorData.getVendorName());
+  private Vendor createOrFetchVendor(final Cpe cpe) {
+    Vendor v = vendorRepository.findOneByName(cpe.getVendor());
     if (v == null) {
       v = new Vendor();
-      v.setName(vendorData.getVendorName());
+      v.setName(cpe.getVendor());
       v = vendorRepository.saveAndFlush(v);
     }
     return v;
   }
 
-  private Product createOrFetchProduct(final ProductData pd, final VersionData vd, final Vendor v) {
+  private Product createOrFetchProduct(final Cpe cpe, final Vendor v) {
     Product product =
         productRepository.findByNameAndVersionAndVendor(
-            pd.getProductName(), vd.getVersionValue(), v);
+            cpe.getProduct(), cpe.getVersion(), v);
     if (product == null) {
       product = new Product();
-      product.setName(pd.getProductName());
-      product.setVersion(vd.getVersionValue());
+      product.setName(cpe.getProduct());
+      product.setVersion(cpe.getVersion());
       product.setVendor(v);
       product = productRepository.saveAndFlush(product);
     }
@@ -101,17 +98,24 @@ public class NvdImportService {
 
   private Set<Product> processVendorAndProducts(final Cve cve) {
     final Set<Product> advProducts = new HashSet<>();
-    if (cve.getAffects() == null || cve.getAffects().getVendor() == null) return advProducts;
 
-    log.info("Vendor count: {}", cve.getAffects().getVendor().getVendorData().size());
+    if (cve == null || cve.getConfigurations() == null) return advProducts;
 
-    for (final VendorData vendorData : cve.getAffects().getVendor().getVendorData()) {
-      final Vendor v = createOrFetchVendor(vendorData);
+    for (Configuration configuration : cve.getConfigurations() ) {
+      for (var node: configuration.getNodes()) {
+        if (node.getCpeMatch() == null)
+          continue;
 
-      log.info("Product count {}", vendorData.getProduct().getProductData().size());
-      for (final ProductData pd : vendorData.getProduct().getProductData()) {
-        for (final VersionData vd : pd.getVersion().getVersionData()) {
-          advProducts.add(createOrFetchProduct(pd, vd, v));
+        for (var cpeMatch: node.getCpeMatch()) {
+          if (cpeMatch.getVulnerable()) {
+            try {
+            Cpe parsed = CpeParser.parse(cpeMatch.getCriteria());
+              final Vendor v = createOrFetchVendor(parsed);
+              advProducts.add(createOrFetchProduct(parsed, v));
+            } catch (CpeParsingException e) {
+              log.error("Unable to parse CPE: {}", cpeMatch.getCriteria(), e);
+            }
+          }
         }
       }
     }
@@ -119,75 +123,63 @@ public class NvdImportService {
     return advProducts;
   }
 
-  private void sanityCheck(CveData cveData) {
-    if (cveData == null) throw new IllegalArgumentException("cveData");
+  private void sanityCheck(Root root) {
+    if (root == null) throw new IllegalArgumentException("root");
 
-    if (cveData.getCveItems() == null || cveData.getCveItems().isEmpty())
-      throw new IllegalArgumentException("cveData.getItems()");
+    if (CollectionUtils.isEmpty(root.getVulnerabilities()))
+      throw new IllegalArgumentException("root.getVulnerabilities()");
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void importNvd(final CveDataPage cveDataPage) {
-    var cveData = cveDataPage.getResult();
-    sanityCheck(cveData);
+  public void importNvd(final Root root) {
+    sanityCheck(root);
 
-    for (final CveItem cveItem : cveData.getCveItems()) {
-      final Cve cve = cveItem.getCve();
+    for (final Vulnerability vulnerability : root.getVulnerabilities()) {
+      final Cve cve = vulnerability.getCve();
       Advisory advisory = new Advisory();
 
-      if (cve.getCveDataMeta() == null) {
-        log.warn("invalid metadata");
-        continue;
-      }
-
-      advisory.setCveId(cve.getCveDataMeta().getID());
+      advisory.setCveId(vulnerability.getCve().getId());
       log.info("Processing {}", advisory.getCveId());
 
-      if (cve.getProblemType() != null && cve.getProblemType().getProblemTypeData() != null) {
+      if (cve.getWeaknesses() != null) {
         advisory.setProblemType(getProblemType(cve));
       }
 
-      advisory.setPublishedDate(DateUtil.getCveApiDate(cveItem.getPublishedDate()));
-      advisory.setLastModifiedDate(DateUtil.getCveApiDate(cveItem.getLastModifiedDate()));
+      advisory.setPublishedDate(cve.getPublished());
+      advisory.setLastModifiedDate(cve.getLastModified());
 
-      if (cve.getDescription() != null && cve.getDescription().getDescriptionData() != null) {
-        for (final DescriptionData descriptionData : cve.getDescription().getDescriptionData()) {
+      if (cve.getDescriptions() != null) {
+        for (final Description descriptionData : cve.getDescriptions()) {
           if (descriptionData.getLang().equalsIgnoreCase("en"))
             advisory.setDescription(descriptionData.getValue());
         }
       }
 
       // determine severity
-      if (cveItem.getImpact() != null && cveItem.getImpact().getBaseMetricV2() != null) {
-        advisory.setSeverity(cveItem.getImpact().getBaseMetricV2().getSeverity());
+      if (cve.getMetrics() != null && !CollectionUtils.isEmpty(cve.getMetrics().getCvssMetricV2())) {
+        advisory.setSeverity(cve.getMetrics().getCvssMetricV2().get(0).getBaseSeverity());
       }
 
       advisory.setProducts(processVendorAndProducts(cve));
       advisory = advisoryService.save(advisory);
 
       // now save configurations
-      if (cveItem.getConfigurations() != null && cveItem.getConfigurations().getNodes() != null) {
+      if (cve.getConfigurations() != null) {
         log.info("Now save configurations for {}", advisory.getCveId());
-        for (final Node node : cveItem.getConfigurations().getNodes()) {
-          if (node.getOperator() != null) {
-            ConfigNode configNode = new ConfigNode();
-            configNode.setAdvisory(advisory);
-            configNode.setOperator(node.getOperator());
+        for (Configuration configuration : cve.getConfigurations()) {
+          if (configuration.getNodes() != null) {
+          for (final Node node : configuration.getNodes()) {
+            if (node.getOperator() != null) {
+              ConfigNode configNode = new ConfigNode();
+              configNode.setAdvisory(advisory);
+              configNode.setOperator(node.getOperator());
+              configNode = configNodeRepository.save(configNode); // save top level item
 
-            configNode = configNodeRepository.save(configNode); // save top level item
+              cpe(node, configNode);
 
-            cpe(node, configNode);
+              sleep();
 
-            if (node.getChildren() != null) {
-              for (final Node childNode : node.getChildren()) {
-                if (childNode.getOperator() != null) {
-                  var cn = configNode(node, advisory, configNode);
-                  cpe(childNode, cn);
-                  // currently, do not support child-child nodes.
-
-                  sleep();
-                }
-              }
+            }
             }
           }
         }
@@ -202,27 +194,17 @@ public class NvdImportService {
     }
   }
 
-  private ConfigNode configNode(Node node, Advisory advisory, ConfigNode configNode) {
-    final ConfigNode cn = new ConfigNode();
-    cn.setAdvisory(advisory);
-    cn.setOperator(node.getOperator());
-    cn.setParentId(configNode.getId());
-    return configNodeRepository.save(cn);
-  }
-
   private void cpe(Node node, ConfigNode configNode) {
-    if (node.getCpe() != null) {
-      for (final NodeCpe nodeCpe : node.getCpe()) {
+      for (final CpeMatch nodeCpe : node.getCpeMatch()) {
         final ConfigNodeCpe cpe = new ConfigNodeCpe();
 
-        cpe.setCpe22Uri(nodeCpe.getCpe22Uri());
-        cpe.setCpe23Uri(nodeCpe.getCpe23Uri());
+        cpe.setCpe23Uri(nodeCpe.getCriteria());
         cpe.setVulnerable(nodeCpe.getVulnerable());
+        cpe.setMatchCriteriaId(nodeCpe.getMatchCriteriaId());
         cpe.setConfigNode(configNode);
 
         configNodeCpeRepository.save(cpe);
       }
-    }
   }
 
   private void sleep() {

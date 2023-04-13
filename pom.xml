@@ -6,7 +6,7 @@
 
     <groupId>org.midnightbsd</groupId>
     <artifactId>security-advisory</artifactId>
-    <version>1.7.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
 
     <organization>
         <name>MidnightBSD</name>
@@ -198,6 +198,12 @@
             <artifactId>aspectjweaver</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>us.springett</groupId>
+            <artifactId>cpe-parser</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+
         <!-- For unit testing -->
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -222,8 +228,6 @@
             <version>4.5.1</version>
             <scope>test</scope>
         </dependency>
-
-
     </dependencies>
 
 
@@ -452,9 +456,9 @@
                 </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>org.apache.maven.surefire</groupId>
-                        <artifactId>surefire-junit47</artifactId>
-                        <version>3.0.0-M5</version>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>5.9.2</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -469,11 +473,7 @@
                     <argLine>${argLine} -Xmx512m -Dspring.profiles.active=it</argLine>
                 </configuration>
                 <dependencies>
-                <dependency>
-                    <groupId>org.apache.maven.surefire</groupId>
-                    <artifactId>surefire-junit47</artifactId>
-                    <version>3.0.0</version>
-                </dependency>
+
                 </dependencies>
             </plugin>
         </plugins>

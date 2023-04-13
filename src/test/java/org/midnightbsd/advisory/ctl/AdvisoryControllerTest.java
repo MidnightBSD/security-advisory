@@ -76,19 +76,11 @@ class AdvisoryControllerTest {
     adv.setCveId(TEST_CVE_ID);
     adv.setId(1);
     adv.setPublishedDate(Calendar.getInstance().getTime());
-
-    when(advisoryService.get(1)).thenReturn(adv);
-    when(advisoryService.getByCveId(TEST_CVE_ID)).thenReturn(adv);
-
-    when(advisoryService.getByProduct(TEST_PRODUCT_NAME))
-        .thenReturn(Collections.singletonList(adv));
-    when(advisoryService.getByVendor(TEST_VENDOR_NAME)).thenReturn(Collections.singletonList(adv));
-    when(advisoryService.getByVendorAndProduct(TEST_VENDOR_NAME, TEST_PRODUCT_NAME))
-        .thenReturn(Collections.singletonList(adv));
   }
 
   @Test
   void testGet() {
+    when(advisoryService.get(1)).thenReturn(adv);
     final ResponseEntity<Advisory> result = controller.get(1);
     assertNotNull(result);
     assertNotNull(result.getBody());
@@ -98,6 +90,7 @@ class AdvisoryControllerTest {
 
   @Test
   void testGetByCve() {
+    when(advisoryService.getByCveId(TEST_CVE_ID)).thenReturn(adv);
     final ResponseEntity<Advisory> result = controller.get(TEST_CVE_ID);
     assertNotNull(result);
     assertNotNull(result.getBody());
@@ -107,6 +100,7 @@ class AdvisoryControllerTest {
 
   @Test
   void mvcTestGet() throws Exception {
+    when(advisoryService.get(1)).thenReturn(adv);
     mockMvc
         .perform(get("/api/advisory/1"))
         .andExpect(status().isOk())
@@ -115,6 +109,8 @@ class AdvisoryControllerTest {
 
   @Test
   void mvcTestGetByProductName() throws Exception {
+    when(advisoryService.getByProduct(TEST_PRODUCT_NAME))
+            .thenReturn(Collections.singletonList(adv));
     mockMvc
         .perform(get("/api/advisory/product/" + TEST_PRODUCT_NAME))
         .andExpect(status().isOk())
@@ -123,6 +119,7 @@ class AdvisoryControllerTest {
 
   @Test
   void mvcTestGetByVendorName() throws Exception {
+    when(advisoryService.getByVendor(TEST_VENDOR_NAME)).thenReturn(Collections.singletonList(adv));
     mockMvc
         .perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME))
         .andExpect(status().isOk())
@@ -131,6 +128,8 @@ class AdvisoryControllerTest {
 
   @Test
   void mvcTestGetByVendorNameAndProductName() throws Exception {
+    when(advisoryService.getByVendorAndProduct(TEST_VENDOR_NAME, TEST_PRODUCT_NAME))
+            .thenReturn(Collections.singletonList(adv));
     mockMvc
         .perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME + "/product/" + TEST_PRODUCT_NAME))
         .andExpect(status().isOk())

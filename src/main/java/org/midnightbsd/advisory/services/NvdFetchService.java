@@ -26,13 +26,14 @@
 package org.midnightbsd.advisory.services;
 
 
+import java.util.Collections;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
-import org.midnightbsd.advisory.model.nvd.CveDataPage;
-import org.midnightbsd.advisory.util.DateUtil;
+import org.midnightbsd.advisory.model.nvd2.Root;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -47,7 +48,6 @@ public class NvdFetchService {
   @Value("${nvdfeed.apiKey}")
   private String apiKey;
 
-  private static final int RESULTS_PER_PAGE = 100;
 
   private final RestTemplate restTemplate;
 
@@ -56,29 +56,43 @@ public class NvdFetchService {
     this.restTemplate = builder.build();
   }
 
+  private Root get(final String url) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+    headers.add("apiKey", apiKey);
+
+    HttpEntity<String> entity = new HttpEntity<>(headers);
+    var page = restTemplate.exchange(url, HttpMethod.GET, entity, Root.class);
+    if (page.getStatusCode().is2xxSuccessful()) {
+      return page.getBody();
+    }
+    return null;
+  }
+
   /**
    * In case we ever need to reload ALL data
    *
    * @param startIndex record to start page with
    * @return Single page of records
    */
-  public CveDataPage getPage(final long startIndex) {
-    final String url = nvdServiceUrl + "cves/1.0?resultsPerPage={resultsPerPage}&startIndex={startIndex}&apiKey={apiKey}&addOns=dictionaryCpes";
-    return restTemplate.getForObject(url, CveDataPage.class, RESULTS_PER_PAGE, startIndex, apiKey);
+  public Root getPage(final long startIndex) {
+    final String url = String.format("%scves/2.0?startIndex=%d", nvdServiceUrl,  startIndex);
+    return get(url);
   }
 
   /**
    * Reload data since a specific date
    *
+   * 120 day range max
+   *
    * @param modStartDate CVE modified start date
+   * @param modEndDate CVE modified end date
    * @param startIndex record to start page with
    * @return Single page of records
    */
-  public CveDataPage getPage(final Date modStartDate, final long startIndex) {
-    final String url =
-        nvdServiceUrl
-            + "cves/1.0?resultsPerPage={resultsPerPage}&startIndex={startIndex}&modStartDate={modStartDate}&apiKey={apiKey}&addOns=dictionaryCpes";
-    return restTemplate.getForObject(
-        url, CveDataPage.class, RESULTS_PER_PAGE, startIndex, DateUtil.formatCveApiDate(modStartDate), apiKey);
+  public Root getPage(final Date modStartDate, final Date modEndDate, final long startIndex) {
+    final String url = String.format("%scves/2.0?startIndex=%d&lastModStartDate=%s&lastModEndDate=%s",
+            nvdServiceUrl, startIndex, modStartDate, modEndDate);
+    return get(url);
   }
 }
