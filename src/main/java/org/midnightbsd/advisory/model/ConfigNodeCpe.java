@@ -65,7 +65,7 @@ public class ConfigNodeCpe implements Serializable {
   @Column(name = "cpe23Uri", length = 100)
   private String cpe23Uri;
 
-  @Column(name = "matchCriteriaId")
+  @Column(name = "match_criteria_id")
   private String matchCriteriaId;
 
   @ManyToOne

@@ -1,0 +1,1 @@
+alter table config_node_cpe add COLUMN match_criteria_id varchar(36) NULL;
