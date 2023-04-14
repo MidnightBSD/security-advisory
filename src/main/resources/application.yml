@@ -47,8 +47,7 @@ spring:
     port: 6379
     database: 0
   elasticsearch:
-    rest:
-      uris: http://localhost:9200
+    uris: http://localhost:9200
 
 eureka:
   client:
@@ -67,7 +66,6 @@ nvdfeed:
 
 search:
   nvd-item-index: nvditem
-
 
 ---
 spring:
@@ -103,7 +101,7 @@ spring:
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
     jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
-    password: mnbsdapp
+    password:
 cloud:
   aws:
     credentials:
