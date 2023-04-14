@@ -198,6 +198,11 @@ public class NvdImportService {
       for (final CpeMatch nodeCpe : node.getCpeMatch()) {
         final ConfigNodeCpe cpe = new ConfigNodeCpe();
 
+        if (nodeCpe.getMatchCriteriaId() == null || nodeCpe.getMatchCriteriaId().isEmpty()) {
+          log.warn("No match criteria for {}", nodeCpe.getCriteria());
+          continue;
+          }
+
         cpe.setCpe23Uri(nodeCpe.getCriteria());
         cpe.setVulnerable(nodeCpe.getVulnerable());
         cpe.setMatchCriteriaId(nodeCpe.getMatchCriteriaId());
