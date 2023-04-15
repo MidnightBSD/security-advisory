@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Lucas Holt
+ * Copyright (c) 2017-2023 Lucas Holt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.model.Product;
+import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
+import org.midnightbsd.advisory.repository.ProductRepository;
+import org.midnightbsd.advisory.repository.VendorRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -45,6 +49,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class AdvisoryServiceTest {
 
   @Mock private AdvisoryRepository advisoryRepository;
+
+  @Mock private VendorRepository vendorRepository;
+
+  @Mock private ProductRepository productRepository;
 
   @InjectMocks private AdvisoryService advisoryService;
 
@@ -90,5 +98,71 @@ class AdvisoryServiceTest {
     assertNotNull(items);
     assertTrue(items.size() > 0);
     verify(advisoryRepository, times(1)).findAll();
+  }
+
+  @Test
+  void testGetByVendorAndProductAndVersion() {
+    when(advisoryRepository.findByProductNameAndVendor(anyString(), anyString(), anyString())).thenReturn(Collections.singletonList(adv));
+    List<Advisory> items = advisoryService.getByVendorAndProductAndVersion("vendor", "product", "version", null);
+    assertNotNull(items);
+    assertTrue(items.size() > 0);
+    verify(advisoryRepository, times(1)).findByProductNameAndVendor(anyString(), anyString(), anyString());
+  }
+
+  @Test
+  void testGetByVendorAndProductAndVersionWithDate() {
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    when(vendorRepository.findOneByName(anyString())).thenReturn(vendor);
+    when(productRepository.findByNameAndVendor(anyString(), any(Vendor.class))).thenReturn(Collections.singletonList(new Product()));
+    when(advisoryRepository.findByVersionPublishedDateIsAfterProductsIn(anyString(), any(), anyList())).thenReturn(Collections.singletonList(adv));
+    List<Advisory> items =
+        advisoryService.getByVendorAndProductAndVersion(
+            "vendor", "product", "version", Calendar.getInstance().getTime());
+
+    verify(vendorRepository, times(1)).findOneByName(anyString());
+    verify(productRepository, times(1)).findByNameAndVendor(anyString(), any(Vendor.class));
+    verify(advisoryRepository, times(1)).findByVersionPublishedDateIsAfterProductsIn(anyString(), any(), anyList());
+
+    assertNotNull(items);
+    assertTrue(items.size() > 0);
+  }
+
+  @Test
+  void testGetByVendorAndProductWithDate() {
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    when(vendorRepository.findOneByName(anyString())).thenReturn(vendor);
+    when(productRepository.findByNameAndVendor(anyString(), any(Vendor.class))).thenReturn(Collections.singletonList(new Product()));
+    when(advisoryRepository.findByPublishedDateIsAfterProductsIn(any(), anyList())).thenReturn(Collections.singletonList(adv));
+    List<Advisory> items =
+            advisoryService.getByVendorAndProduct(
+                    "vendor", "product", Calendar.getInstance().getTime());
+
+    verify(vendorRepository, times(1)).findOneByName(anyString());
+    verify(productRepository, times(1)).findByNameAndVendor(anyString(), any(Vendor.class));
+    verify(advisoryRepository, times(1)).findByPublishedDateIsAfterProductsIn(any(), anyList());
+
+    assertNotNull(items);
+    assertTrue(items.size() > 0);
+  }
+
+  @Test
+  void testGetByVendorAndProduct() {
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    when(vendorRepository.findOneByName(anyString())).thenReturn(vendor);
+    when(productRepository.findByNameAndVendor(anyString(), any(Vendor.class))).thenReturn(Collections.singletonList(new Product()));
+    when(advisoryRepository.findByProductsIn(anyList())).thenReturn(Collections.singletonList(adv));
+    List<Advisory> items =
+            advisoryService.getByVendorAndProduct(
+                    "vendor", "product", null);
+
+    verify(vendorRepository, times(1)).findOneByName(anyString());
+    verify(productRepository, times(1)).findByNameAndVendor(anyString(), any(Vendor.class));
+    verify(advisoryRepository, times(1)).findByProductsIn(anyList());
+
+    assertNotNull(items);
+    assertTrue(items.size() > 0);
   }
 }

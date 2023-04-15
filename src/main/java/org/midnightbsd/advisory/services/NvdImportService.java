@@ -171,24 +171,19 @@ public class NvdImportService {
         log.info("Now save configurations for {}", advisory.getCveId());
         for (Configuration configuration : cve.getConfigurations()) {
           if (configuration.getNodes() != null) {
-          for (final Node node : configuration.getNodes()) {
-            if (node.getOperator() != null) {
-              ConfigNode configNode = new ConfigNode();
-              configNode.setAdvisory(advisory);
-              configNode.setOperator(node.getOperator());
-              configNode = configNodeRepository.save(configNode); // save top level item
+            for (final Node node : configuration.getNodes()) {
+              if (node.getOperator() != null) {
+                ConfigNode configNode = new ConfigNode();
+                configNode.setAdvisory(advisory);
+                configNode.setOperator(node.getOperator());
+                configNode = configNodeRepository.saveAndFlush(configNode); // save top level item
 
-              cpe(node, configNode);
-
-              sleep();
-
-            }
+                cpe(node, configNode);
+                sleep();
+              }
             }
           }
         }
-
-        configNodeRepository.flush();
-        configNodeCpeRepository.flush();
 
         sleep();
       }
@@ -198,13 +193,14 @@ public class NvdImportService {
   }
 
   private void cpe(Node node, ConfigNode configNode) {
+    try {
       for (final CpeMatch nodeCpe : node.getCpeMatch()) {
         final ConfigNodeCpe cpe = new ConfigNodeCpe();
 
         if (nodeCpe.getMatchCriteriaId() == null || nodeCpe.getMatchCriteriaId().isEmpty()) {
           log.warn("No match criteria for {}", nodeCpe.getCriteria());
           continue;
-          }
+        }
 
         cpe.setCpe23Uri(nodeCpe.getCriteria());
         cpe.setVulnerable(nodeCpe.getVulnerable());
@@ -213,6 +209,10 @@ public class NvdImportService {
 
         configNodeCpeRepository.save(cpe);
       }
+      configNodeCpeRepository.flush();
+    } catch (Exception e) {
+      log.error("Unable to save CPE: {}", node.getCpeMatch(), e);
+    }
   }
 
   private void sleep() {

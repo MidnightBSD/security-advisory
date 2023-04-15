@@ -58,12 +58,14 @@ public class AdvisoryService implements AppService<Advisory> {
 
   private final SearchService searchService;
 
-  @Autowired private VendorRepository vendorRepository;
+  private final VendorRepository vendorRepository;
 
-  @Autowired private ProductRepository productRepository;
+  private final ProductRepository productRepository;
 
-  public AdvisoryService(final AdvisoryRepository repository, final SearchService searchService) {
+  public AdvisoryService(final AdvisoryRepository repository, VendorRepository vendorRepository, ProductRepository productRepository, final SearchService searchService) {
     this.repository = repository;
+    this.vendorRepository = vendorRepository;
+    this.productRepository = productRepository;
     this.searchService = searchService;
   }
 
@@ -80,7 +82,7 @@ public class AdvisoryService implements AppService<Advisory> {
     return repository.findByVendorName(vendorName);
   }
 
-  // @Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
+
   public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName, final Date startDate) {
     final List<List<Product>> products = getProducts(vendorName, productName);
     final List<Advisory> results = new ArrayList<>();
@@ -93,6 +95,23 @@ public class AdvisoryService implements AppService<Advisory> {
         subset = repository.findByPublishedDateIsAfterProductsIn(startDate, smallerList);
       }
       results.addAll(subset);
+    }
+
+    return results;
+  }
+
+  public List<Advisory> getByVendorAndProductAndVersion(final String vendorName, final String productName, final String version, final Date startDate) {
+    if (startDate == null) {
+      return repository.findByProductNameAndVendor(productName, version, vendorName);
+    }
+
+    final List<List<Product>> products = getProducts(vendorName, productName);
+    final List<Advisory> results = new ArrayList<>();
+
+    for (final List<Product> smallerList : products) {
+      List<Advisory> subset;
+        subset = repository.findByVersionPublishedDateIsAfterProductsIn(version, startDate, smallerList);
+        results.addAll(subset);
     }
 
     return results;

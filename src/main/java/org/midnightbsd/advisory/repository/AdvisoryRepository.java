@@ -25,12 +25,10 @@
  */
 package org.midnightbsd.advisory.repository;
 
-
 import java.util.Date;
 import java.util.List;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
-import org.midnightbsd.advisory.model.search.NvdItem;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,12 +54,21 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
               + " :productName ORDER BY a.cveId")
   List<Advisory> findByProductName(@Param("productName") String productName);
 
+  @Query(
+          value =
+                  "SELECT distinct a FROM Advisory a JOIN a.products p JOIN p.vendor v WHERE p.name ="
+                          + " :productName and p.version = :version and v.name = :vendor ORDER BY a.cveId")
+  List<Advisory> findByProductNameAndVendor(@Param("productName") String productName, @Param("version") String version, @Param("vendor") String vendor);
+
   @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE p in (:products) ORDER BY a.cveId")
   List<Advisory> findByProductsIn(@Param("products") List<Product> products);
 
 
   @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE a.publishedDate >= :startDate and p in (:products) ORDER BY a.cveId")
   List<Advisory> findByPublishedDateIsAfterProductsIn(@Param("startDate") Date startDate, @Param("products") List<Product> products);
+
+  @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE a.publishedDate >= :startDate and p.version = :version and p in (:products) ORDER BY a.cveId")
+  List<Advisory> findByVersionPublishedDateIsAfterProductsIn(@Param("version") String version, @Param("startDate") Date startDate, @Param("products") List<Product> products);
 
   @Query(
       value =
