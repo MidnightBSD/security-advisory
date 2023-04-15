@@ -165,4 +165,18 @@ class AdvisoryServiceTest {
     assertNotNull(items);
     assertTrue(items.size() > 0);
   }
+
+  @Test
+  void testGetByProduct() {
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    when(advisoryRepository.findByProductName(anyString())).thenReturn(Collections.singletonList(adv));
+    List<Advisory> items =
+            advisoryService.getByProduct("product");
+
+    verify(advisoryRepository, times(1)).findByProductName(anyString());
+
+    assertNotNull(items);
+    assertTrue(items.size() > 0);
+  }
 }
