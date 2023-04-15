@@ -43,7 +43,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;import us.springett.parsers.cpe.Cpe;import us.springett.parsers.cpe.CpeParser;import us.springett.parsers.cpe.exceptions.CpeParsingException;
+import org.springframework.util.CollectionUtils;
+import us.springett.parsers.cpe.Cpe;
+import us.springett.parsers.cpe.CpeParser;
+import us.springett.parsers.cpe.exceptions.CpeParsingException;
 
 /** @author Lucas Holt */
 @Slf4j
