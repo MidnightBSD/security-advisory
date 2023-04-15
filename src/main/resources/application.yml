@@ -67,6 +67,12 @@ nvdfeed:
 search:
   nvd-item-index: nvditem
 
+logging:
+  level:
+    root: info
+    org.springframework.web: warn
+    org.hibernate: error
+
 ---
 spring:
   config:
