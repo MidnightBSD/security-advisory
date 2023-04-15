@@ -109,7 +109,7 @@ public class NvdImportService {
         for (var cpeMatch: node.getCpeMatch()) {
           if (cpeMatch.getVulnerable()) {
             try {
-            Cpe parsed = CpeParser.parse(cpeMatch.getCriteria());
+              Cpe parsed = CpeParser.parse(cpeMatch.getCriteria());
               final Vendor v = createOrFetchVendor(parsed);
               advProducts.add(createOrFetchProduct(parsed, v));
             } catch (CpeParsingException e) {

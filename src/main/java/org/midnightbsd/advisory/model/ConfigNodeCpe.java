@@ -59,10 +59,7 @@ public class ConfigNodeCpe implements Serializable {
   @Column(name = "vulnerable")
   private Boolean vulnerable;
 
-  @Column(name = "cpe22Uri", length = 100)
-  private String cpe22Uri;
-
-  @Column(name = "cpe23Uri", length = 100)
+  @Column(name = "cpe23Uri", length = 300)
   private String cpe23Uri;
 
   @Column(name = "match_criteria_id")
