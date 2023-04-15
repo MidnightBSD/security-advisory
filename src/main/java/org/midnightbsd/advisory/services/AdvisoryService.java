@@ -28,6 +28,7 @@ package org.midnightbsd.advisory.services;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -80,12 +81,18 @@ public class AdvisoryService implements AppService<Advisory> {
   }
 
   // @Cacheable(unless = "#result == null", key = "#vendorName.concat(#productName)")
-  public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName) {
+  public List<Advisory> getByVendorAndProduct(final String vendorName, final String productName, final Date startDate) {
     final List<List<Product>> products = getProducts(vendorName, productName);
     final List<Advisory> results = new ArrayList<>();
 
     for (final List<Product> smallerList : products) {
-      results.addAll(repository.findByProductsIn(smallerList));
+      List<Advisory> subset;
+      if (startDate == null) {
+        subset = repository.findByProductsIn(smallerList);
+      } else {
+        subset = repository.findByPublishedDateIsAfterProductsIn(startDate, smallerList);
+      }
+      results.addAll(subset);
     }
 
     return results;

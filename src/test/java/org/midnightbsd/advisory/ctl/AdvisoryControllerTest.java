@@ -27,6 +27,8 @@ package org.midnightbsd.advisory.ctl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -34,6 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -128,11 +132,21 @@ class AdvisoryControllerTest {
 
   @Test
   void mvcTestGetByVendorNameAndProductName() throws Exception {
-    when(advisoryService.getByVendorAndProduct(TEST_VENDOR_NAME, TEST_PRODUCT_NAME))
+    when(advisoryService.getByVendorAndProduct(TEST_VENDOR_NAME, TEST_PRODUCT_NAME, null))
             .thenReturn(Collections.singletonList(adv));
     mockMvc
         .perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME + "/product/" + TEST_PRODUCT_NAME))
         .andExpect(status().isOk())
         .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
+  }
+
+  @Test
+  void mvcTestGetByVendorNameAndProductNameWithDate() throws Exception {
+    when(advisoryService.getByVendorAndProduct(anyString(), anyString(), any(Date.class)))
+            .thenReturn(Collections.singletonList(adv));
+    mockMvc
+            .perform(get("/api/advisory/vendor/" + TEST_VENDOR_NAME + "/product/" + TEST_PRODUCT_NAME + "?startDate=2006-02-28"))
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
   }
 }

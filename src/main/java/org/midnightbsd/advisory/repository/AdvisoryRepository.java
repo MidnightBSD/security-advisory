@@ -56,11 +56,12 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
               + " :productName ORDER BY a.cveId")
   List<Advisory> findByProductName(@Param("productName") String productName);
 
-  @Query(
-      value =
-          "SELECT distinct a FROM Advisory a JOIN a.products p WHERE p in (:products) ORDER BY"
-              + " a.cveId")
+  @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE p in (:products) ORDER BY a.cveId")
   List<Advisory> findByProductsIn(@Param("products") List<Product> products);
+
+
+  @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE a.publishedDate >= :startDate and p in (:products) ORDER BY a.cveId")
+  List<Advisory> findByPublishedDateIsAfterProductsIn(@Param("startDate") Date startDate, @Param("products") List<Product> products);
 
   @Query(
       value =

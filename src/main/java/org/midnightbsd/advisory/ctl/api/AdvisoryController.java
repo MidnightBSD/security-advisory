@@ -26,17 +26,16 @@
 package org.midnightbsd.advisory.ctl.api;
 
 
+import java.util.Date;
 import java.util.List;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /** @author Lucas Holt */
 @RestController
@@ -77,7 +76,8 @@ public class AdvisoryController {
 
   @GetMapping("vendor/{name}/product/{product}")
   public ResponseEntity<List<Advisory>> getbyProduct(
-      @PathVariable("name") String name, @PathVariable("product") String product) {
-    return ResponseEntity.ok(advisoryService.getByVendorAndProduct(name, product));
+          @PathVariable("name") String name, @PathVariable("product") String product,
+          @RequestParam(required = false, name = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate) {
+    return ResponseEntity.ok(advisoryService.getByVendorAndProduct(name, product, startDate));
   }
 }
