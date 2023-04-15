@@ -47,12 +47,18 @@ import org.midnightbsd.advisory.services.AdvisoryService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
- * Test architecture controller
+ * Test advisory controller
  *
  * @author Lucas Holt
  */
@@ -73,13 +79,16 @@ class AdvisoryControllerTest {
 
   @BeforeEach
   public void setup() {
-    mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(controller)
+            .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+            .build();
 
     adv = new Advisory();
     adv.setDescription("TEST ARCH");
     adv.setCveId(TEST_CVE_ID);
     adv.setId(1);
     adv.setPublishedDate(Calendar.getInstance().getTime());
+
   }
 
   @Test
@@ -100,6 +109,16 @@ class AdvisoryControllerTest {
     assertNotNull(result.getBody());
     assertEquals(TEST_CVE_ID, result.getBody().getCveId());
     assertEquals(1, result.getBody().getId());
+  }
+
+
+  @Test
+  void mvcTestList() throws Exception {
+    Page<Advisory> page = new PageImpl<>(Collections.singletonList(adv));
+    when(advisoryService.get(any())).thenReturn(page);
+    mockMvc
+            .perform(get("/api/advisory?pageSize=5&pageNo=1"))
+            .andExpect(status().isOk());
   }
 
   @Test
