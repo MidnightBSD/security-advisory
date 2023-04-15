@@ -76,8 +76,10 @@ public class CronDaily {
 
     log.info("Begin import of CVE data");
     if (lastFetchedDate == null) {
+      log.info("Starting cron daily from the beginning");
       cveDataPage = nvdFetchService.getPage(startIndex);
     } else {
+      log.info("Starting cron daily from {}", lastFetchedDate);
       cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
     }
     nvdImportService.importNvd(cveDataPage);

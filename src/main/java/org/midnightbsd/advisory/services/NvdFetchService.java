@@ -65,6 +65,8 @@ public class NvdFetchService {
     var page = restTemplate.exchange(url, HttpMethod.GET, entity, Root.class);
     if (page.getStatusCode().is2xxSuccessful()) {
       return page.getBody();
+    } else {
+      log.error("Failed to fetch data from NvdFeed: {}", page.getStatusCode());
     }
     return null;
   }
