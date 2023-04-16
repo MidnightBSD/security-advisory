@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
@@ -38,6 +39,7 @@ import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.midnightbsd.advisory.repository.VendorRepository;
+import org.midnightbsd.advisory.util.VersionCompareUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
@@ -46,6 +48,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+import us.springett.parsers.cpe.Cpe;
+import us.springett.parsers.cpe.CpeParser;
 
 /** @author Lucas Holt */
 @Transactional(readOnly = true)
@@ -100,21 +105,71 @@ public class AdvisoryService implements AppService<Advisory> {
     return results;
   }
 
-  public List<Advisory> getByVendorAndProductAndVersion(final String vendorName, final String productName, final String version, final Date startDate) {
-    if (startDate == null) {
-      return repository.findByProductNameAndVendor(productName, version, vendorName);
+  /**
+   * Implements a partial match algorithm by vendor / product / version combination.
+   * Will not deal with AND + parentID relationship with OS or firmware. (if bug x only happens on windows... )
+   * @param vendorName
+   * @param productName
+   * @param version
+   * @param startDate
+   * @return
+   */
+  @Transactional
+  public List<Advisory> getByVendorAndProductAndVersion(
+      final String vendorName,
+      final String productName,
+      final String version,
+      final Date startDate) {
+
+    List<Advisory> advisories = getByVendorAndProduct(vendorName, productName, startDate);
+    List<Advisory> pruned = new ArrayList<>();
+    for (final Advisory advisory : advisories) {
+      boolean skip = false;
+      for (var configNode : advisory.getConfigNodes()) {
+        if (skip) break;
+
+        for (var configNodeCpe : configNode.getConfigNodeCpes()) {
+          try {
+            Cpe parsed = CpeParser.parse(configNodeCpe.getCpe23Uri());
+
+            // some records have a AND + parentID relationship with OS or firmware, we are doing partial match here
+            if (!parsed.getVendor().equalsIgnoreCase(vendorName) || !parsed.getProduct().equalsIgnoreCase(productName))
+              continue;
+
+            if (!Boolean.TRUE.equals(configNodeCpe.getVulnerable())) {
+              continue;
+            }
+
+            if (StringUtils.hasText(configNodeCpe.getVersionEndExcluding())) {
+              if (VersionCompareUtil.compare(configNodeCpe.getVersionEndExcluding(), version)
+                  >= 0) {
+                skip = true; // not a match, done processing
+                break;
+              } else {
+                pruned.add(advisory);
+                skip = true; // done processing, found vulnerable
+                break;
+              }
+            } else {
+                if ("*".equals(parsed.getVersion())) {
+                  pruned.add(advisory);
+                  skip = true; // done
+                  break;
+                } else if (VersionCompareUtil.compare(parsed.getVersion(), version) >= 0) {
+                  pruned.add(advisory);
+                  skip = true; // done
+                  break;
+                }
+
+            }
+          } catch (Exception e) {
+            log.error("Unable to parse CPE23 URI: {}", configNodeCpe.getCpe23Uri(), e);
+          }
+        }
+      }
     }
 
-    final List<List<Product>> products = getProducts(vendorName, productName);
-    final List<Advisory> results = new ArrayList<>();
-
-    for (final List<Product> smallerList : products) {
-      List<Advisory> subset;
-        subset = repository.findByVersionPublishedDateIsAfterProductsIn(version, startDate, smallerList);
-        results.addAll(subset);
-    }
-
-    return results;
+    return pruned;
   }
 
   private List<List<Product>> getProducts(final String vendorName, final String productName) {
