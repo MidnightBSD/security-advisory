@@ -87,8 +87,7 @@ public class NvdImportService {
 
   private Product createOrFetchProduct(final Cpe cpe, final Vendor v) {
     Product product =
-        productRepository.findByNameAndVersionAndVendor(
-            cpe.getProduct(), cpe.getVersion(), v);
+        productRepository.findByNameAndVersionAndVendor(cpe.getProduct(), cpe.getVersion(), v);
     if (product == null) {
       product = new Product();
       product.setName(cpe.getProduct());
@@ -110,16 +109,18 @@ public class NvdImportService {
           continue;
 
         for (var cpeMatch: node.getCpeMatch()) {
-          if (cpeMatch.getVulnerable()) {
             try {
               Cpe parsed = CpeParser.parse(cpeMatch.getCriteria());
               final Vendor v = createOrFetchVendor(parsed);
-              advProducts.add(createOrFetchProduct(parsed, v));
+              final Product p = createOrFetchProduct(parsed, v);
+
+              if (cpeMatch.getVulnerable()) {
+                  advProducts.add(p);
+              }
             } catch (CpeParsingException e) {
               log.error("Unable to parse CPE: {}", cpeMatch.getCriteria(), e);
             }
           }
-        }
       }
     }
 
@@ -188,7 +189,7 @@ public class NvdImportService {
         sleep();
       }
 
-      searchIndex(advisory);
+      searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
     }
   }
 
