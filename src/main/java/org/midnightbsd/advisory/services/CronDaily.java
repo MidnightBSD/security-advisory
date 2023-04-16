@@ -34,6 +34,7 @@ import org.midnightbsd.advisory.model.nvd2.Root;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -56,9 +57,11 @@ public class CronDaily {
 
   @PostConstruct
   public void init() {
-    var advisory = advisoryRepository.findFirstByOrderByLastModifiedDateDesc();
-    if (advisory!= null) {
-      lastFetchedDate = advisory.getLastModifiedDate();
+    if (lastFetchedDate == null) {
+      var item = advisoryRepository.findByOrderByLastModifiedDateDesc(PageRequest.of(0, 1));
+      if (item!= null && item.hasContent()) {
+        lastFetchedDate = item.get().findFirst().get().getLastModifiedDate();
+      }
     }
   }
 
@@ -74,20 +77,28 @@ public class CronDaily {
     Root cveDataPage;
     long startIndex = 0L;
 
-    log.info("Begin import of CVE data");
+    log.warn("Begin import of CVE data");
     if (lastFetchedDate == null) {
-      log.info("Starting cron daily from the beginning");
+      var item = advisoryRepository.findByOrderByLastModifiedDateDesc(PageRequest.of(0, 1));
+      if (item!= null && item.hasContent()) {
+        lastFetchedDate = item.get().findFirst().get().getLastModifiedDate();
+      }
+    }
+
+    if (lastFetchedDate == null) {
+      log.warn("Starting cron daily from the beginning");
       cveDataPage = nvdFetchService.getPage(startIndex);
     } else {
       log.info("Starting cron daily from {}", lastFetchedDate);
       cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
     }
+    log.warn("Loading first fetched page. total results: {}", cveDataPage.getTotalResults());
     nvdImportService.importNvd(cveDataPage);
     Thread.sleep(6000L);
     startIndex += cveDataPage.getResultsPerPage();
 
     while (cveDataPage.getTotalResults() > cveDataPage.getStartIndex()) {
-      log.info("Starting fetch of page {}", cveDataPage.getStartIndex());
+      log.warn("Starting fetch at {} of total {}", cveDataPage.getStartIndex(), cveDataPage.getTotalResults());
       if (lastFetchedDate == null) {
         cveDataPage = nvdFetchService.getPage(startIndex);
       } else {

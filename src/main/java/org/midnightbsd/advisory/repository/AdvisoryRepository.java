@@ -46,7 +46,8 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
 
   Page<Advisory> findByLastModifiedDateBetween(Date startDate, Date endDate, Pageable page);
 
-  Advisory findFirstByOrderByLastModifiedDateDesc();
+  @Query( value = "SELECT distinct a FROM Advisory a JOIN a.products p JOIN p.vendor v where a.lastModifiedDate is not null order by a.lastModifiedDate desc")
+  Page<Advisory> findByOrderByLastModifiedDateDesc(Pageable page);
 
   @Query(
       value =
