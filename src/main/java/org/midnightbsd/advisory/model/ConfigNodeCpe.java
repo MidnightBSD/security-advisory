@@ -65,6 +65,9 @@ public class ConfigNodeCpe implements Serializable {
   @Column(name = "match_criteria_id")
   private String matchCriteriaId;
 
+  @Column(name = "version_end_excluding")
+  private String versionEndExcluding;
+
   @ManyToOne
   @JoinColumn(name = "config_node_id")
   private ConfigNode configNode;
