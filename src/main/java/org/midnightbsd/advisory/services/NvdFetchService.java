@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.nvd2.Root;
+import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -94,7 +95,7 @@ public class NvdFetchService {
    */
   public Root getPage(final Date modStartDate, final Date modEndDate, final long startIndex) {
     final String url = String.format("%scves/2.0?startIndex=%d&lastModStartDate=%s&lastModEndDate=%s",
-            nvdServiceUrl, startIndex, modStartDate, modEndDate);
+            nvdServiceUrl, startIndex, DateUtil.formatCveApiDate(modStartDate), DateUtil.formatCveApiDate(modEndDate));
     return get(url);
   }
 }

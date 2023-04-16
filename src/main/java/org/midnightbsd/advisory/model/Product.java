@@ -30,9 +30,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import javax.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 
 /** @author Lucas Holt */
 @NoArgsConstructor
@@ -40,7 +39,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "product")
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
+@Getter
+@Setter
 public class Product implements Serializable {
 
   @JsonIgnore private static final long serialVersionUID = 4079808577154801658L;
