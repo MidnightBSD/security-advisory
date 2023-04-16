@@ -150,7 +150,11 @@ public class NvdImportService {
       }
 
       advisory.setPublishedDate(cve.getPublished());
-      advisory.setLastModifiedDate(cve.getLastModified());
+      if (cve.getLastModified() == null) {
+        advisory.setLastModifiedDate(cve.getPublished());
+      } else {
+        advisory.setLastModifiedDate(cve.getLastModified());
+      }
 
       if (cve.getDescriptions() != null) {
         for (final Description descriptionData : cve.getDescriptions()) {
