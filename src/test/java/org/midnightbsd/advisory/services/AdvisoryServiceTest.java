@@ -118,7 +118,6 @@ class AdvisoryServiceTest {
     when(productRepository.findByNameAndVendor(anyString(), any(Vendor.class))).thenReturn(Collections.singletonList(new Product()));
     when(advisoryRepository.findByProductsIn(anyList())).thenReturn(Collections.singletonList(adv));
 
-    //when(advisoryRepository.findByProductNameAndVendor(anyString(), anyString(), anyString())).thenReturn(Collections.singletonList(adv));
     List<Advisory> items = advisoryService.getByVendorAndProductAndVersion("vendor", "product", "1.0", null);
     assertNotNull(items);
     assertTrue(items.size() > 0);
