@@ -29,10 +29,8 @@ import java.util.Calendar;
 import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
-import org.midnightbsd.advisory.model.nvd.CveDataPage;
 import org.midnightbsd.advisory.model.nvd2.Root;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
-import org.midnightbsd.advisory.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -68,7 +66,7 @@ public class CronDaily {
   private Date maxDate(Date input) {
     Calendar c = Calendar.getInstance();
     c.setTime(input);
-    c.add(Calendar.DATE, 120); // 120 days added (max value)
+    c.add(Calendar.DATE, 90); // 90 days added, 120 max value
     return c.getTime();
   }
 
