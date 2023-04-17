@@ -134,14 +134,14 @@ class AdvisoryServiceTest {
     vendor.setName("vendor");
     when(vendorRepository.findOneByName(anyString())).thenReturn(vendor);
     when(productRepository.findByNameAndVendor(anyString(), any(Vendor.class))).thenReturn(Collections.singletonList(new Product()));
-    when(advisoryRepository.findByVersionPublishedDateIsAfterProductsIn(anyString(), any(), anyList())).thenReturn(Collections.singletonList(adv));
+    when(advisoryRepository.findByPublishedDateIsAfterProductsIn(any(), anyList())).thenReturn(Collections.singletonList(adv));
     List<Advisory> items =
         advisoryService.getByVendorAndProductAndVersion(
-            "vendor", "product", "version", Calendar.getInstance().getTime());
+            "vendor", "product", "1.0", Calendar.getInstance().getTime());
 
     verify(vendorRepository, times(1)).findOneByName(anyString());
     verify(productRepository, times(1)).findByNameAndVendor(anyString(), any(Vendor.class));
-    verify(advisoryRepository, times(1)).findByVersionPublishedDateIsAfterProductsIn(anyString(), any(), anyList());
+    verify(advisoryRepository, times(1)).findByPublishedDateIsAfterProductsIn(any(), anyList());
 
     assertNotNull(items);
     assertTrue(items.size() > 0);
