@@ -79,7 +79,7 @@ public class NvdFetchService {
    * @return Single page of records
    */
   public Root getPage(final long startIndex) {
-    final String url = String.format("%scves/2.0?startIndex=%d", nvdServiceUrl,  startIndex);
+    final String url = String.format("%scves/2.0?noRejected&startIndex=%d", nvdServiceUrl,  startIndex);
     return get(url);
   }
 
@@ -94,7 +94,7 @@ public class NvdFetchService {
    * @return Single page of records
    */
   public Root getPage(final Date modStartDate, final Date modEndDate, final long startIndex) {
-    final String url = String.format("%scves/2.0?startIndex=%d&lastModStartDate=%s&lastModEndDate=%s",
+    final String url = String.format("%scves/2.0?noRejected&startIndex=%d&lastModStartDate=%s&lastModEndDate=%s",
             nvdServiceUrl, startIndex, DateUtil.formatCveApiDate(modStartDate), DateUtil.formatCveApiDate(modEndDate));
     return get(url);
   }
