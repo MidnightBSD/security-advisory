@@ -130,12 +130,12 @@ public class NvdImportService {
 
       var a = advisoryService.getByCveId(vulnerability.getCve().getId());
       if (a !=null) {
-        // TODO: handle updates
-        log.error("Advisory {} already exists", vulnerability.getCve().getId());
-        return;
+        log.warn("Advisory {} already exists", vulnerability.getCve().getId());
+        advisory = a;
+      } else {
+        advisory.setCveId(vulnerability.getCve().getId());
       }
 
-      advisory.setCveId(vulnerability.getCve().getId());
       log.info("Processing {}", advisory.getCveId());
 
       if (cve.getWeaknesses() != null) {
@@ -161,9 +161,18 @@ public class NvdImportService {
         advisory.setSeverity(cve.getMetrics().getCvssMetricV2().get(0).getBaseSeverity());
       }
 
-      advisory.setProducts(processVendorAndProducts(cve));
+      if (a == null) {
+        // TODO: this is broken on the update path.
+        advisory.setProducts(processVendorAndProducts(cve));
+      }
       advisory = advisoryService.save(advisory);
 
+      if (a != null) {
+        searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
+        return;
+      }
+
+      // TODO: make the rest of this work with updates
         if (cve.getMetrics() != null && !CollectionUtils.isEmpty(cve.getMetrics().getCvssMetricV31())) {
           var cvssMetrics3 = new HashSet<CvssMetrics3>();
           for (var metric : cve.getMetrics().getCvssMetricV31()) {
