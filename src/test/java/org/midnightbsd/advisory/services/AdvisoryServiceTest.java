@@ -27,16 +27,13 @@ package org.midnightbsd.advisory.services;
 
 import static org.junit.jupiter.api.Assertions.*;import static org.mockito.Mockito.*;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+
+import org.elasticsearch.http.CorsHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.midnightbsd.advisory.model.Advisory;
-import org.midnightbsd.advisory.model.Product;
-import org.midnightbsd.advisory.model.Vendor;
+import org.midnightbsd.advisory.model.*;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.midnightbsd.advisory.repository.VendorRepository;
@@ -60,11 +57,24 @@ class AdvisoryServiceTest {
 
   @BeforeEach
   public void setup() {
+    var configNode = new ConfigNode();
+    configNode.setOperator("OR");
+    configNode.setId(1);
+    var configNodeCpe = new ConfigNodeCpe();
+    configNodeCpe.setCpe23Uri("cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:*");
+    configNodeCpe.setId(1);
+    configNodeCpe.setConfigNode(configNode);
+    configNodeCpe.setMatchCriteriaId(UUID.randomUUID().toString());
+    configNodeCpe.setVulnerable(true);
+    configNode.setConfigNodeCpes(Collections.singleton(configNodeCpe));
+
+
     adv = new Advisory();
     adv.setId(1);
     adv.setCveId("CVE-0000-0000");
     adv.setDescription("Foo");
     adv.setPublishedDate(Calendar.getInstance().getTime());
+    adv.setConfigNodes(Collections.singleton(configNode));
   }
 
   @Test
@@ -102,11 +112,20 @@ class AdvisoryServiceTest {
 
   @Test
   void testGetByVendorAndProductAndVersion() {
-    when(advisoryRepository.findByProductNameAndVendor(anyString(), anyString(), anyString())).thenReturn(Collections.singletonList(adv));
-    List<Advisory> items = advisoryService.getByVendorAndProductAndVersion("vendor", "product", "version", null);
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    when(vendorRepository.findOneByName(anyString())).thenReturn(vendor);
+    when(productRepository.findByNameAndVendor(anyString(), any(Vendor.class))).thenReturn(Collections.singletonList(new Product()));
+    when(advisoryRepository.findByProductsIn(anyList())).thenReturn(Collections.singletonList(adv));
+
+    //when(advisoryRepository.findByProductNameAndVendor(anyString(), anyString(), anyString())).thenReturn(Collections.singletonList(adv));
+    List<Advisory> items = advisoryService.getByVendorAndProductAndVersion("vendor", "product", "1.0", null);
     assertNotNull(items);
     assertTrue(items.size() > 0);
-    verify(advisoryRepository, times(1)).findByProductNameAndVendor(anyString(), anyString(), anyString());
+
+    verify(vendorRepository, times(1)).findOneByName(anyString());
+    verify(productRepository, times(1)).findByNameAndVendor(anyString(), any(Vendor.class));
+    verify(advisoryRepository, times(1)).findByProductsIn(anyList());
   }
 
   @Test
