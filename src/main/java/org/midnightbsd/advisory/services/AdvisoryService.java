@@ -82,7 +82,7 @@ public class AdvisoryService implements AppService<Advisory> {
     return repository.findByProductName(productName);
   }
 
-  @Cacheable(unless = "#result == null", key = "#vendorName")
+  //@Cacheable(unless = "#result == null", key = "#vendorName")
   public List<Advisory> getByVendor(final String vendorName) {
     return repository.findByVendorName(vendorName);
   }

@@ -32,6 +32,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ElasticsearchException;
 import org.midnightbsd.advisory.model.Product;
+import org.midnightbsd.advisory.model.search.CvssMetric;
 import org.midnightbsd.advisory.model.search.Instance;
 import org.midnightbsd.advisory.model.search.NvdItem;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
@@ -140,6 +141,37 @@ public class SearchService {
     nvdItem.setVersion(Calendar.getInstance().getTimeInMillis());
     nvdItem.setPublishedDate(adv.getPublishedDate());
     nvdItem.setLastModifiedDate(adv.getLastModifiedDate());
+
+    List<CvssMetric> metrics = new ArrayList<>();
+    if (adv.getCvssMetrics3() != null) {
+      for (var metric : adv.getCvssMetrics3()) {
+        CvssMetric metrics3 = new CvssMetric();
+
+        metrics3.setSource(metric.getSource());
+        metrics3.setType(metric.getType());
+        metrics3.setExploitabilityScore(metric.getExploitabilityScore());
+        metrics3.setImpactScore(metric.getImpactScore());
+
+        metrics3.setAccessComplexity(metric.getAccessComplexity());
+        metrics3.setAccessVector(metric.getAccessVector());
+        metrics3.setAuthentication(metric.getAuthentication());
+        metrics3.setAvailabilityImpact(metric.getAvailabilityImpact());
+        metrics3.setConfidentialityImpact(metric.getConfidentialityImpact());
+        metrics3.setIntegrityImpact(metric.getIntegrityImpact());
+        metrics3.setAttackVector(metric.getAttackVector());
+        metrics3.setVersion(metric.getVersion());
+        metrics3.setBaseScore(metric.getBaseScore());
+        metrics3.setBaseSeverity(metric.getBaseSeverity());
+        metrics3.setScope(metric.getScope());
+        metrics3.setVectorString(metric.getVectorString());
+        metrics3.setUserInteraction(metric.getUserInteraction());
+        metrics3.setAttackComplexity(metric.getAttackComplexity());
+        metrics3.setPrivilegesRequired(metrics3.getPrivilegesRequired());
+
+        metrics.add(metrics3);
+      }
+    }
+    nvdItem.setCvssMetrics3(metrics);
 
     final List<Instance> instances = new ArrayList<>();
     if (adv.getConfigNodes() != null) {

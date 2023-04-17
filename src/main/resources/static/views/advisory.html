@@ -13,6 +13,14 @@
                 <p>Problem Type: {{adv.problemType}}</p>
             </div>
 
+            <h5>CVSS 3.x</h5>
+            <div ng-repeat="inst in item.cvssMetrics3">
+                <p>Source: {{inst.source}} Base Score: <b>{{inst.baseScore}}</b> Base Severity: {{inst.baseSeverity}}</p>
+                <p>Vector: {{inst.vectorString}}</p>
+                <p>Exploitability: {{inst.exploitabilityScore}} Impact: {{inst.impactScore}}</p>
+                <p>Attack Vector: {{inst.attackVector}} Attack Complexity: {{inst.attackComplexity}}</p>
+            </div>
+
             <h4>Products affected</h4>
             <div ng-repeat="inst in adv.products">
                 <b>{{inst.vendor.name}}</b>  {{inst.name}} {{inst.version}}

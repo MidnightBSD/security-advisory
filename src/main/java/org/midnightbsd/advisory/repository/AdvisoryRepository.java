@@ -34,6 +34,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 /** @author Lucas Holt */
 public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
@@ -71,7 +72,7 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
   @Query(value = "SELECT distinct a FROM Advisory a JOIN a.products p WHERE a.publishedDate >= :startDate and p.version = :version and p in (:products) ORDER BY a.cveId")
   List<Advisory> findByVersionPublishedDateIsAfterProductsIn(@Param("version") String version, @Param("startDate") Date startDate, @Param("products") List<Product> products);
 
-  @Query(
+   @Query(
       value =
           "SELECT distinct a FROM Advisory a INNER JOIN a.products p INNER JOIN p.vendor v WHERE"
               + " v.name = :vendorName ORDER BY a.cveId")

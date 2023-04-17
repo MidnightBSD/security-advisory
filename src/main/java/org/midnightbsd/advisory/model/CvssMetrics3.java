@@ -83,6 +83,7 @@ public class CvssMetrics3 {
     @Column(name = "authentication", length = 100)
     private String authentication;
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "advisory_id")
     private Advisory advisory;

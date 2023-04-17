@@ -61,6 +61,8 @@ public class NvdItem implements Serializable, Comparable<NvdItem> {
 
   @Getter @Setter private String description;
 
+  @Getter @Setter private List<CvssMetric> cvssMetrics3;
+
   @Getter @Setter private List<Instance> instances;
 
   @Getter @Setter
