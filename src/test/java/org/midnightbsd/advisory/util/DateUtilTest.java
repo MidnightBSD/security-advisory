@@ -63,4 +63,10 @@ class DateUtilTest {
     String result = DateUtil.formatCveApiDate(specificDate());
     Assertions.assertEquals("2013-01-09T15:11:12.000-05:00",result); // hardcoded for EST for now
   }
+
+  @Test
+  void testGetCveApiDate() {
+    var result = DateUtil.getCveApiDate("2019-01-01T00:00Z");
+    Assertions.assertEquals("Tue Jan 01 00:00:00 EST 2019",result.toString());
+  }
 }
