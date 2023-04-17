@@ -30,11 +30,13 @@ import java.util.Date;
 
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.nvd2.Root;
+import org.midnightbsd.advisory.model.nvd2.Vulnerability;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 
@@ -91,7 +93,7 @@ public class CronDaily {
       cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
     }
     log.warn("Loading first fetched page. total results: {}", cveDataPage.getTotalResults());
-    nvdImportService.importNvd(cveDataPage);
+    importNvd(cveDataPage);
     Thread.sleep(6000L);
     startIndex += cveDataPage.getResultsPerPage();
 
@@ -102,13 +104,38 @@ public class CronDaily {
       } else {
         cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
       }
-      nvdImportService.importNvd(cveDataPage);
-      Thread.sleep(6000L);
+      importNvd(cveDataPage);
+      sleep(6000L);
 
       startIndex += cveDataPage.getResultsPerPage();
     }
 
     lastFetchedDate = cveDataPage.getTimestamp();
     log.info("Finished daily import");
+  }
+
+  public void importNvd(final Root root) {
+    sanityCheck(root);
+
+    for (final Vulnerability vulnerability : root.getVulnerabilities()) {
+      nvdImportService.importVulnerability(vulnerability);
+      sleep(200L);
+    }
+  }
+
+  private void sanityCheck(Root root) {
+    if (root == null) throw new IllegalArgumentException("root");
+
+    if (CollectionUtils.isEmpty(root.getVulnerabilities()))
+      throw new IllegalArgumentException("root.getVulnerabilities()");
+  }
+
+  private void sleep(long time) {
+    try {
+        Thread.sleep(time);
+    } catch (InterruptedException e) {
+      log.error("Issue sleeping during nvd import", e);
+      Thread.currentThread().interrupt();
+    }
   }
 }

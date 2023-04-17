@@ -35,6 +35,7 @@
 
                     <div ng-repeat="inst in item.instances">
                         <b>{{inst.vendor}}</b> {{inst.product}} {{inst.version}}
+                        <span data-ng-show="inst.versionEndExcluding != null" data-ng-cloak>up to (excluding) {{inst.versionEndExcluding}}</span>
                     </div>
 
                 </div>

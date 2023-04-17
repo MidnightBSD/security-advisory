@@ -44,6 +44,8 @@ public class Instance implements Serializable, Comparable<Instance> {
 
   @Getter @Setter private String version;
 
+  @Getter @Setter private String versionEndExcluding;
+
   @Override
   public int compareTo(final Instance o) {
     return this.vendor.compareTo(o.getVendor())

@@ -132,11 +132,11 @@ public class AdvisoryService implements AppService<Advisory> {
           try {
             Cpe parsed = CpeParser.parse(configNodeCpe.getCpe23Uri());
 
-            // some records have a AND + parentID relationship with OS or firmware, we are doing partial match here
-            if (!parsed.getVendor().equalsIgnoreCase(vendorName) || !parsed.getProduct().equalsIgnoreCase(productName))
-              continue;
-
-            if (!Boolean.TRUE.equals(configNodeCpe.getVulnerable())) {
+            // some records have a AND + parentID relationship with OS or firmware, we are doing
+            // partial match here
+            if (!parsed.getVendor().equalsIgnoreCase(vendorName)
+                || !parsed.getProduct().equalsIgnoreCase(productName)
+                || !Boolean.TRUE.equals(configNodeCpe.getVulnerable())) {
               continue;
             }
 

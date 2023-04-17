@@ -4,12 +4,16 @@
         <div ng-repeat="adv in advisories">
             <h3>{{adv.cveId}}</h3>
 
-            <p>Severity: {{adv.severity}}</p>
-            <p>Problem Type: {{adv.problemType}}</p>
-
             <p ng-bind-html="adv.description"></p>
 
-            <h3>Products affected</h3>
+            <h4>Severity</h4>
+            <h5>CVSS 2.0</h5>
+            <div id="cvss2">
+                <p>Severity: {{adv.severity}}</p>
+                <p>Problem Type: {{adv.problemType}}</p>
+            </div>
+
+            <h4>Products affected</h4>
             <div ng-repeat="inst in adv.products">
                 <b>{{inst.vendor.name}}</b>  {{inst.name}} {{inst.version}}
             </div>

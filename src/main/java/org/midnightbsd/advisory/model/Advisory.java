@@ -32,16 +32,15 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 import javax.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 
 /** @author Lucas Holt */
 @Entity
 @Table(name = "advisory")
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -82,6 +81,9 @@ public class Advisory implements Serializable {
       inverseJoinColumns = @JoinColumn(name = "package_fixed_id", referencedColumnName = "id"))
   private Set<PackageFixed> fixedPackages;
 
+  // product save bug might be the cascasde type.  try cascade = { CascadeType.MERGE,
+  // CascadeType.REMOVE,
+  //                      CascadeType.REFRESH, CascadeType.DETACH },
   @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
   @JoinTable(
       name = "advisory_product_map",
@@ -92,4 +94,7 @@ public class Advisory implements Serializable {
   @JsonIgnore
   @OneToMany(mappedBy = "advisory")
   private Set<ConfigNode> configNodes;
+
+  @OneToMany(mappedBy = "advisory")
+  private Set<CvssMetrics3> cvssMetrics3;
 }

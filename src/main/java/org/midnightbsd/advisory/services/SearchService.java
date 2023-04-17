@@ -44,6 +44,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import us.springett.parsers.cpe.Cpe;
+import us.springett.parsers.cpe.CpeParser;
 
 /** @author Lucas Holt */
 @Slf4j
@@ -122,7 +124,7 @@ public class SearchService {
   @CacheEvict(value = "search", allEntries = true)
   @Transactional
   public void index(@NonNull final org.midnightbsd.advisory.model.Advisory adv) {
-    log.debug("Indexing advisory {} id: {}", adv.getCveId(), adv.getId());
+    log.info("Indexing advisory {} id: {}", adv.getCveId(), adv.getId());
     nvdSearchRepository.save(convert(adv));
   }
 
@@ -140,16 +142,27 @@ public class SearchService {
     nvdItem.setLastModifiedDate(adv.getLastModifiedDate());
 
     final List<Instance> instances = new ArrayList<>();
-    if (adv.getProducts() != null) {
-      for (final Product instance : adv.getProducts()) {
+    if (adv.getConfigNodes() != null) {
+      for (final org.midnightbsd.advisory.model.ConfigNode node : adv.getConfigNodes()) {
 
-        final Instance inst = new Instance();
-        if (instance.getVendor() != null) inst.setVendor(instance.getVendor().getName());
-        if (instance.getName() != null) inst.setProduct(instance.getName());
-        inst.setVersion(instance.getVersion());
-        instances.add(inst);
+        for (var configNodeCpe : node.getConfigNodeCpes()) {
+          try {
+            Cpe parsed = CpeParser.parse(configNodeCpe.getCpe23Uri());
+            final Instance inst = new Instance();
+            if (Boolean.TRUE.equals(configNodeCpe.getVulnerable())) {
+              inst.setVendor(parsed.getVendor());
+              inst.setProduct(parsed.getProduct());
+              inst.setVersion(parsed.getVersion());
+              inst.setVersionEndExcluding(configNodeCpe.getVersionEndExcluding());
+              instances.add(inst);
+            }
+          } catch (final Exception e) {
+            log.error("Error parsing CPE: {}", configNodeCpe.getCpe23Uri(), e);
+          }
+        }
       }
     }
+
     nvdItem.setInstances(instances);
 
     return nvdItem;

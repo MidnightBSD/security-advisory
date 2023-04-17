@@ -26,19 +26,13 @@
 package org.midnightbsd.advisory.services;
 
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.midnightbsd.advisory.model.Advisory;
-import org.midnightbsd.advisory.model.ConfigNode;
-import org.midnightbsd.advisory.model.ConfigNodeCpe;
-import org.midnightbsd.advisory.model.Product;
-import org.midnightbsd.advisory.model.Vendor;
+import org.midnightbsd.advisory.model.*;
 import org.midnightbsd.advisory.model.nvd2.*;
-import org.midnightbsd.advisory.repository.ConfigNodeCpeRepository;
-import org.midnightbsd.advisory.repository.ConfigNodeRepository;
-import org.midnightbsd.advisory.repository.ProductRepository;
-import org.midnightbsd.advisory.repository.VendorRepository;
+import org.midnightbsd.advisory.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -62,6 +56,8 @@ public class NvdImportService {
   @Autowired private ConfigNodeRepository configNodeRepository;
 
   @Autowired private ConfigNodeCpeRepository configNodeCpeRepository;
+
+  @Autowired private CvssMetrics3Repository cvssMetrics3Repository;
 
   @Autowired private SearchService searchService;
 
@@ -127,20 +123,17 @@ public class NvdImportService {
     return advProducts;
   }
 
-  private void sanityCheck(Root root) {
-    if (root == null) throw new IllegalArgumentException("root");
-
-    if (CollectionUtils.isEmpty(root.getVulnerabilities()))
-      throw new IllegalArgumentException("root.getVulnerabilities()");
-  }
-
   @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void importNvd(final Root root) {
-    sanityCheck(root);
-
-    for (final Vulnerability vulnerability : root.getVulnerabilities()) {
+  public void importVulnerability(final Vulnerability vulnerability) {
       final Cve cve = vulnerability.getCve();
       Advisory advisory = new Advisory();
+
+      var a = advisoryService.getByCveId(vulnerability.getCve().getId());
+      if (a !=null) {
+        // TODO: handle updates
+        log.error("Advisory {} already exists", vulnerability.getCve().getId());
+        return;
+      }
 
       advisory.setCveId(vulnerability.getCve().getId());
       log.info("Processing {}", advisory.getCveId());
@@ -171,6 +164,36 @@ public class NvdImportService {
       advisory.setProducts(processVendorAndProducts(cve));
       advisory = advisoryService.save(advisory);
 
+        if (cve.getMetrics() != null && !CollectionUtils.isEmpty(cve.getMetrics().getCvssMetricV31())) {
+          var cvssMetrics3 = new HashSet<CvssMetrics3>();
+          for (var metric : cve.getMetrics().getCvssMetricV31()) {
+            CvssMetrics3 metrics3 = new CvssMetrics3();
+            metrics3.setSource(metric.getSource());
+            metrics3.setType(metric.getType());
+            metrics3.setExploitabilityScore(Double.toString(metric.getExploitabilityScore()));
+            metrics3.setImpactScore(Double.toString(metric.getImpactScore()));
+
+            metrics3.setAccessComplexity(metric.getCvssData().getAccessComplexity());
+            metrics3.setAccessVector(metric.getCvssData().getAccessVector());
+            metrics3.setAuthentication(metric.getCvssData().getAuthentication());
+            metrics3.setAvailabilityImpact(metric.getCvssData().getAvailabilityImpact());
+            metrics3.setConfidentialityImpact(metric.getCvssData().getConfidentialityImpact());
+            metrics3.setIntegrityImpact(metric.getCvssData().getIntegrityImpact());
+            metrics3.setAttackVector(metric.getCvssData().getAttackVector());
+            metrics3.setVersion(metric.getCvssData().getVersion());
+            metrics3.setBaseScore(Double.toString(metric.getCvssData().getBaseScore()));
+            metrics3.setBaseSeverity(metric.getCvssData().getBaseSeverity());
+            metrics3.setScope(metric.getCvssData().getScope());
+            metrics3.setVectorString(metric.getCvssData().getVectorString());
+            metrics3.setUserInteraction(metric.getCvssData().getUserInteraction());
+            metrics3.setAttackComplexity(metric.getCvssData().getAttackComplexity());
+            metrics3.setPrivilegesRequired(metrics3.getPrivilegesRequired());
+            metrics3.setAdvisory(advisory);
+            cvssMetrics3.add(metrics3);
+          }
+          cvssMetrics3Repository.saveAllAndFlush(cvssMetrics3);
+        }
+
       // now save configurations
       if (cve.getConfigurations() != null) {
         log.info("Now save configurations for {}", advisory.getCveId());
@@ -184,17 +207,13 @@ public class NvdImportService {
                 configNode = configNodeRepository.saveAndFlush(configNode); // save top level item
 
                 cpe(node, configNode);
-                sleep();
               }
             }
           }
         }
-
-        sleep();
       }
 
       searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
-    }
   }
 
   private void cpe(Node node, ConfigNode configNode) {
@@ -212,15 +231,6 @@ public class NvdImportService {
       configNodeCpeRepository.flush();
     } catch (Exception e) {
       log.error("Unable to save CPE: {}", node.getCpeMatch(), e);
-    }
-  }
-
-  private void sleep() {
-    try {
-      Thread.sleep(200L);
-    } catch (InterruptedException e) {
-      log.error("Issue sleeping during nvd import", e);
-      Thread.currentThread().interrupt();
     }
   }
 

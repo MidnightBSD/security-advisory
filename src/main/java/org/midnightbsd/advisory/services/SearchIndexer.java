@@ -33,8 +33,8 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 
 @Slf4j
 @Component
@@ -58,6 +58,6 @@ public class SearchIndexer {
     log.info("Starting search indexer - Load all nvd");
 
     searchService.indexAllNvdItems();
-    date = GregorianCalendar.getInstance().getTime();
+    date = Calendar.getInstance().getTime();
   }
 }
