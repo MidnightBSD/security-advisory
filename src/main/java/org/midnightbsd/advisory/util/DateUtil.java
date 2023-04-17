@@ -76,7 +76,8 @@ public class DateUtil {
     // they recommend yyyy-MM-dd'T'HH:mm:ss:SSS z but the api seems picky about the time zone format
 
     // 2019-01-01T00:00:00:000 UTC-05:00
-    return formatDate(date, "yyyy-MM-dd'T'HH:mm:ss:'000' z");
+    // TODO: date format changed in cves 2.0 api.  Ideally we'd use UTC but it breaks the call. figure out why + or %2B don't work
+    return formatDate(date, "yyyy-MM-dd'T'HH:mm:ss.'000-05:00'"); // %2B00:00
   }
 
   public static String formatDate(final Date date, final String dateFormat) {
