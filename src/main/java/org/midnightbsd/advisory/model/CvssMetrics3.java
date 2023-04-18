@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "cvss_metrics3")
@@ -14,7 +15,7 @@ import javax.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CvssMetrics3 {
+public class CvssMetrics3 implements Serializable {
     @JsonIgnore private static final long serialVersionUID = -2413883936383873806L;
 
     @Id
