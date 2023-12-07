@@ -21,7 +21,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <angularjs.version>1.8.2</angularjs.version>
+        <angularjs.version>1.8.3</angularjs.version>
         <jquery.version>3.6.3</jquery.version>
         <spring-cloud.version>2021.0.5</spring-cloud.version>
         <maven.compiler.source>11</maven.compiler.source>
