@@ -55,6 +55,16 @@ class CpeControllerTest {
         adv.setPublishedDate(Calendar.getInstance().getTime());
     }
 
+    // MidnightBSD cpe identifiers used to not include the other field at the end of the identifier.
+    @Test
+    void mvcTestGetCpe2() throws Exception {
+        when(advisoryService.getByVendorAndProduct(anyString(), anyString(), ArgumentMatchers.isNull()))
+                .thenReturn(Collections.singletonList(adv));
+        mockMvc
+                .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:apache:mod_dav_svn:1.14.3:*:*:*:*:midnightbsd3:x64"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
+    }
 
     @Test
     void mvcTestGetCpe() throws Exception {
