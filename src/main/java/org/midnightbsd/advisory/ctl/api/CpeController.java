@@ -39,6 +39,8 @@ public class CpeController {
 
     Cpe parse(String cpe) throws CpeParsingException {
         String localCpe = cpe;
+        // mports didn't include the trailing other field at the end of the identifier.  (which contains PORTREVISION)
+        // this wouldn't parse properly in this tool but did work in the NVD search tool.  Be safe here.
         if (cpe.startsWith("cpe:2.3") && (cpe.endsWith("x64") || cpe.endsWith("x86"))) {
             localCpe = cpe + ":0";
         }
