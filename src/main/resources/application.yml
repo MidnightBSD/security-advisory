@@ -40,12 +40,6 @@ spring:
         persistence:
           sharedCache:
             mode: ALL
-  cache:
-    type: REDIS
-  redis:
-    host: localhost
-    port: 6379
-    database: 0
   elasticsearch:
     uris: http://localhost:9200
 
@@ -90,10 +84,6 @@ spring:
   config:
     activate:
       on-profile: prod
-  redis:
-    host: midnightbsd-redis.c6ifkh.0001.use1.cache.amazonaws.com
-    port: 6379
-    database: 1
   elasticsearch:
     rest:
       uris: http://vpc-mnbsd-3en4agwhc4ud7wmwuigo7aovwi.us-east-1.es.amazonaws.com

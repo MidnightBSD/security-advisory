@@ -40,10 +40,8 @@ import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.midnightbsd.advisory.repository.VendorRepository;
 import org.midnightbsd.advisory.util.VersionCompareUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -82,7 +80,6 @@ public class AdvisoryService implements AppService<Advisory> {
     return repository.findByProductName(productName);
   }
 
-  //@Cacheable(unless = "#result == null", key = "#vendorName")
   public List<Advisory> getByVendor(final String vendorName) {
     return repository.findByVendorName(vendorName);
   }
