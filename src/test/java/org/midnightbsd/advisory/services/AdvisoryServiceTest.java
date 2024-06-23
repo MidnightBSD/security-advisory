@@ -30,7 +30,6 @@ import static org.mockito.Mockito.*;
 
 import java.util.*;
 
-import org.elasticsearch.http.CorsHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,11 +80,11 @@ class AdvisoryServiceTest {
   @Test
   void testGetName() {
     when(advisoryRepository.findOneByCveId("CVE-0000-0000")).thenReturn(adv);
-    Advisory adv = advisoryService.getByCveId("CVE-0000-0000");
-    assertNotNull(adv);
-    assertEquals(1, adv.getId());
-    assertEquals("CVE-0000-0000", adv.getCveId());
-    assertEquals("Foo", adv.getDescription());
+    Advisory adv2 = advisoryService.getByCveId("CVE-0000-0000");
+    assertNotNull(adv2);
+    assertEquals(1, adv2.getId());
+    assertEquals("CVE-0000-0000", adv2.getCveId());
+    assertEquals("Foo", adv2.getDescription());
 
     verify(advisoryRepository, times(1)).findOneByCveId(anyString());
   }
@@ -93,11 +92,11 @@ class AdvisoryServiceTest {
   @Test
   void testGet() {
     when(advisoryRepository.findById(1)).thenReturn(Optional.of(adv));
-    Advisory adv = advisoryService.get(1);
-    assertNotNull(adv);
-    assertEquals(1, adv.getId());
-    assertEquals("CVE-0000-0000", adv.getCveId());
-    assertEquals("Foo", adv.getDescription());
+    Advisory adv2 = advisoryService.get(1);
+    assertNotNull(adv2);
+    assertEquals(1, adv2.getId());
+    assertEquals("CVE-0000-0000", adv2.getCveId());
+    assertEquals("Foo", adv2.getDescription());
 
     verify(advisoryRepository, times(1)).findById(1);
   }

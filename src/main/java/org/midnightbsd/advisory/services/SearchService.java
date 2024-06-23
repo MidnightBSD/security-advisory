@@ -53,9 +53,14 @@ import us.springett.parsers.cpe.CpeParser;
 @Service
 public class SearchService {
 
-  @Autowired private NvdSearchRepository nvdSearchRepository;
+  private final NvdSearchRepository nvdSearchRepository;
 
-  @Autowired private AdvisoryRepository advisoryRepository;
+  private final AdvisoryRepository advisoryRepository;
+
+  public SearchService(NvdSearchRepository nvdSearchRepository, AdvisoryRepository advisoryRepository) {
+    this.nvdSearchRepository = nvdSearchRepository;
+    this.advisoryRepository = advisoryRepository;
+  }
 
   // @Cacheable(key="#p0.concat('-').concat(#p1.getPageNumber())", value = "search")
   public Page<NvdItem> find(String term, Pageable page) {

@@ -41,9 +41,13 @@ import java.util.Date;
 @Profile("!test")
 public class SearchIndexer {
 
-  @Autowired private SearchService searchService;
+  private final SearchService searchService;
 
   private Date date;
+
+  public SearchIndexer(SearchService searchService) {
+    this.searchService = searchService;
+  }
 
   @Scheduled(fixedDelay = 1000 * 60 * 120, initialDelay = 120000)
   public void loadNewEntries() {

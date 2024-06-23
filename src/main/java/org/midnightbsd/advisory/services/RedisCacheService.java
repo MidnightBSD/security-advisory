@@ -25,11 +25,9 @@
  */
 package org.midnightbsd.advisory.services;
 
-
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +37,9 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-/** @author Lucas Holt */
+/**
+ * @author Lucas Holt
+ */
 @Slf4j
 @Service
 public class RedisCacheService implements CacheService<Object, Object> {
@@ -61,7 +61,8 @@ public class RedisCacheService implements CacheService<Object, Object> {
   public List<String> list() throws ServiceException {
     try {
       final Set<Object> redisKeys = this.client.keys("*");
-      return redisKeys.stream().map(Object::toString).collect(Collectors.toList());
+      assert redisKeys != null;
+      return redisKeys.stream().map(Object::toString).toList();
     } catch (Exception var2) {
       log.error(var2.getMessage(), var2);
       throw new ServiceException("Cache list could not be loaded");

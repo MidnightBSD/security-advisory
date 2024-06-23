@@ -41,10 +41,14 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = {"org.midnightbsd.advisory.repository.search"})
 public class SearchConfig {
 
-  @Autowired private Environment environment;
+  private final Environment environment;
 
   @Value("search.nvd-item-index")
   private String nvdItemIndex;
+
+  public SearchConfig(Environment environment) {
+    this.environment = environment;
+  }
 
   @Bean
   public String nvdItemIndex() {

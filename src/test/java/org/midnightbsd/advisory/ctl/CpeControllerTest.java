@@ -3,7 +3,6 @@ package org.midnightbsd.advisory.ctl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.midnightbsd.advisory.ctl.api.AdvisoryController;
 import org.midnightbsd.advisory.ctl.api.CpeController;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.services.AdvisoryService;
@@ -11,7 +10,6 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -19,8 +17,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;

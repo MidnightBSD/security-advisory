@@ -36,9 +36,9 @@ public class VersionCompareUtil {
         } else if (val.matches("^\\d$")) {
             return Integer.parseInt(val) * 1 + 1;
         } else if (val.matches("^[A-Za-z]$")) {
-            return (int) val.charAt(0);
+            return val.charAt(0);
         } else {
-            return (int) val.charAt(0) + 128;
+            return val.charAt(0) + 128;
         }
     }
 

@@ -49,11 +49,17 @@ public class CronDaily {
 
   private Date lastFetchedDate = null;
 
-  @Autowired private NvdFetchService nvdFetchService;
+  private final NvdFetchService nvdFetchService;
 
-  @Autowired private NvdImportService nvdImportService;
+  private final NvdImportService nvdImportService;
 
-  @Autowired private AdvisoryRepository advisoryRepository;
+  private final AdvisoryRepository advisoryRepository;
+
+  public CronDaily(NvdFetchService nvdFetchService, NvdImportService nvdImportService, AdvisoryRepository advisoryRepository) {
+    this.nvdFetchService = nvdFetchService;
+    this.nvdImportService = nvdImportService;
+    this.advisoryRepository = advisoryRepository;
+  }
 
   @PostConstruct
   public void init() {

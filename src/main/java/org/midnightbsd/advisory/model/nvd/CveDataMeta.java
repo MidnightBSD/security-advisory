@@ -33,6 +33,7 @@ import lombok.Data;
 /** @author Lucas Holt */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@SuppressWarnings("squid:S116") // Ignore SonarQube rule S116
 public class CveDataMeta {
 
   @JsonProperty("ID")
