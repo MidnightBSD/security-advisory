@@ -28,6 +28,8 @@ package org.midnightbsd.advisory.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.io.Serial;
 import java.io.Serializable;
 import javax.persistence.*;
 
@@ -43,7 +45,9 @@ import lombok.*;
 @Setter
 public class Product implements Serializable {
 
-  @JsonIgnore private static final long serialVersionUID = 4079808577154801658L;
+  @Serial
+  @JsonIgnore
+  private static final long serialVersionUID = 4079808577154801658L;
 
   @Id
   @SequenceGenerator(name = "product_id_seq", sequenceName = "product_id_seq", allocationSize = 1)

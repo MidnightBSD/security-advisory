@@ -32,6 +32,7 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -47,7 +48,9 @@ import java.util.Objects;
 @ToString
 public class Vendor implements Serializable {
 
-  @JsonIgnore private static final long serialVersionUID = 4504423113963008931L;
+  @Serial
+  @JsonIgnore
+  private static final long serialVersionUID = 4504423113963008931L;
 
   @Id
   @SequenceGenerator(name = "vendor_id_seq", sequenceName = "vendor_id_seq", allocationSize = 1)

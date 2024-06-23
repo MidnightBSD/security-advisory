@@ -26,6 +26,7 @@
 package org.midnightbsd.advisory.model.search;
 
 
+import java.io.Serial;
 import java.io.Serializable;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -36,6 +37,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class Instance implements Serializable, Comparable<Instance> {
+  @Serial
   private static final long serialVersionUID = -6753971942731865621L;
 
   @Getter @Setter private String vendor;

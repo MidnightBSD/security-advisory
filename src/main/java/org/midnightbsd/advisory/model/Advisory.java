@@ -46,7 +46,9 @@ import lombok.*;
 @AllArgsConstructor
 public class Advisory implements Serializable {
 
-  @JsonIgnore private static final long serialVersionUID = -2412883956384879806L;
+  @java.io.Serial
+  @JsonIgnore
+  private static final long serialVersionUID = -2412883956384879806L;
 
   @Id
   @SequenceGenerator(name = "advisory_id_seq", sequenceName = "advisory_id_seq", allocationSize = 1)

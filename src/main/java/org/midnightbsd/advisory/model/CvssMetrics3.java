@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 
 @Entity
@@ -16,7 +17,9 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CvssMetrics3 implements Serializable {
-    @JsonIgnore private static final long serialVersionUID = -2413883936383873806L;
+    @Serial
+    @JsonIgnore
+    private static final long serialVersionUID = -2413883936383873806L;
 
     @Id
     @SequenceGenerator(

@@ -28,6 +28,8 @@ package org.midnightbsd.advisory.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Set;
 import javax.persistence.*;
@@ -45,7 +47,9 @@ import lombok.*;
 @AllArgsConstructor
 public class ConfigNode implements Serializable {
 
-  @JsonIgnore private static final long serialVersionUID = 215009105807116617L;
+  @Serial
+  @JsonIgnore
+  private static final long serialVersionUID = 215009105807116617L;
 
   @Id
   @SequenceGenerator(

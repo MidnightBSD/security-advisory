@@ -5,11 +5,13 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @ToString
 @EqualsAndHashCode
 public class CvssMetric implements Serializable {
+    @Serial
     private static final long serialVersionUID = 3432313031363531585L;
 
     @Getter
