@@ -4,8 +4,6 @@
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory?ref=badge_shield)
 
-![CodeQL](https://github.com/MidnightBSD/security-advisory/workflows/CodeQL/badge.svg)
-
 This project pulls data from NIST NVD feeds and offers it
 for search or by specific vendors for use in REST clients.
 
