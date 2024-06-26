@@ -42,6 +42,19 @@ public class VersionCompareUtil {
         }
     }
 
+    /**
+     * Compares two version strings and returns an integer indicating their relative order.
+     *
+     * @param ver1 The first version string to compare.
+     * @param ver2 The second version string to compare.
+     * @return A negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+     * <p>
+     * The version strings are split into segments based on non-digit characters. Each segment is then transformed using the {@link #transform(String)} method.
+     * The transformed segments are compared one by one, from left to right. If a segment in the first version is greater than the corresponding segment in the second version,
+     * a positive integer is returned. If a segment in the first version is less than the corresponding segment in the second version, a negative integer is returned.
+     * If all segments are equal, zero is returned.
+     *
+     */
     public static int compare(String ver1, String ver2) {
         String[] a = ver1.split("(?<=\\d)(?=\\D)|(?<=\\D)(?=\\d)");
         String[] b = ver2.split("(?<=\\d)(?=\\D)|(?<=\\D)(?=\\d)");
