@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.nvd2.Root;
 import org.midnightbsd.advisory.model.nvd2.Vulnerability;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -110,7 +109,12 @@ public class CronDaily {
       } else {
         cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
       }
-      importNvd(cveDataPage);
+      try {
+        importNvd(cveDataPage);
+      } catch (IllegalArgumentException e) {
+        log.error("Failed sanity check. Page had null data?");
+        break;
+      }
       sleep(6000L);
 
       startIndex += cveDataPage.getResultsPerPage();
