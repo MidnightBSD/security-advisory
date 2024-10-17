@@ -97,7 +97,8 @@ public class NvdImportService {
   private Set<Product> processVendorAndProducts(final Cve cve) {
     final Set<Product> advProducts = new HashSet<>();
 
-    if (cve == null || cve.getConfigurations() == null) return advProducts;
+    if (cve == null || cve.getConfigurations() == null)
+      return advProducts;
 
     for (Configuration configuration : cve.getConfigurations() ) {
       for (var node: configuration.getNodes()) {

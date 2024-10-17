@@ -71,6 +71,15 @@ public class ConfigNodeCpe implements Serializable {
   @Column(name = "version_end_excluding")
   private String versionEndExcluding;
 
+  @Column(name = "version_end_including")
+  private String versionEndIncluding;
+
+  @Column(name = "version_start_excluding")
+  private String versionStartExcluding;
+
+  @Column(name = "version_start_including")
+  private String versionStartIncluding;
+
   @ManyToOne
   @JoinColumn(name = "config_node_id")
   private ConfigNode configNode;

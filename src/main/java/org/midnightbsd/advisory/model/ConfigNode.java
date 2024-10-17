@@ -66,6 +66,9 @@ public class ConfigNode implements Serializable {
   @Column(name = "operator", length = 10)
   private String operator;
 
+  @Column(name = "negate")
+  private Boolean negate;
+
   @ManyToOne
   @JoinColumn(name = "advisory_id")
   private Advisory advisory;
