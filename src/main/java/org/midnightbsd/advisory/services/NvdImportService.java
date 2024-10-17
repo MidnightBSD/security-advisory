@@ -214,6 +214,7 @@ public class NvdImportService {
                 ConfigNode configNode = new ConfigNode();
                 configNode.setAdvisory(advisory);
                 configNode.setOperator(node.getOperator());
+                configNode.setNegate(node.getNegate());
                 configNode = configNodeRepository.saveAndFlush(configNode); // save top level item
 
                 cpe(node, configNode);
@@ -235,6 +236,9 @@ public class NvdImportService {
         cpe.setMatchCriteriaId(nodeCpe.getMatchCriteriaId());
         cpe.setConfigNode(configNode);
         cpe.setVersionEndExcluding(nodeCpe.getVersionEndExcluding());
+        cpe.setVersionStartExcluding(nodeCpe.getVersionStartExcluding());
+        cpe.setVersionStartIncluding(nodeCpe.getVersionStartIncluding());
+        cpe.setVersionEndIncluding(nodeCpe.getVersionEndIncluding());
 
         configNodeCpeRepository.save(cpe);
       }
