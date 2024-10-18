@@ -137,28 +137,42 @@ public class AdvisoryService implements AppService<Advisory> {
               continue;
             }
 
+            Boolean versionInStartRange = null;
+            boolean versionInEndRange = false;
+            if (StringUtils.hasText(configNodeCpe.getVersionStartIncluding())) {
+              versionInStartRange = VersionCompareUtil.compare(configNodeCpe.getVersionStartIncluding(), version) <= 0;
+            }
+            if (StringUtils.hasText(configNodeCpe.getVersionStartExcluding())) {
+              versionInStartRange = VersionCompareUtil.compare(configNodeCpe.getVersionStartExcluding(), version) < 0;
+            }
             if (StringUtils.hasText(configNodeCpe.getVersionEndExcluding())) {
-              if (VersionCompareUtil.compare(configNodeCpe.getVersionEndExcluding(), version)
-                  >= 0) {
-                skip = true; // not a match, done processing
-                break;
-              } else {
+              versionInEndRange = VersionCompareUtil.compare(configNodeCpe.getVersionEndExcluding(), version) == 1;
+            }
+            if (StringUtils.hasText(configNodeCpe.getVersionEndIncluding())) {
+              versionInEndRange = VersionCompareUtil.compare(configNodeCpe.getVersionEndIncluding(), version) >= 0;
+            }
+
+            if (versionInEndRange) {
+              if (Boolean.TRUE.equals(versionInStartRange)) {
                 pruned.add(advisory);
                 skip = true; // done processing, found vulnerable
-                break;
               }
-            } else {
-                if ("*".equals(parsed.getVersion())) {
+              if (null == versionInStartRange) {
+                pruned.add(advisory);
+                skip = true; // done processing, found vulnerable
+              }
+            }
+
+             /*   if ("*".equals(parsed.getVersion())) {
                   pruned.add(advisory);
                   skip = true; // done
                   break;
-                } else if (VersionCompareUtil.compare(parsed.getVersion(), version) >= 0) {
+                } else */
+            if (!"*".equals(parsed.getVersion()) && VersionCompareUtil.compare(parsed.getVersion(), version) >= 0) {
                   pruned.add(advisory);
                   skip = true; // done
                   break;
                 }
-
-            }
           } catch (Exception e) {
             log.error("Unable to parse CPE23 URI: {}", configNodeCpe.getCpe23Uri(), e);
           }

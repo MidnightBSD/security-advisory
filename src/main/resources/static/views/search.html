@@ -34,11 +34,6 @@
                     <p ng-bind-html="item.description"></p>
 
                     <h4>Severity</h4>
-                    <h5>CVSS 2.0</h5>
-                    <div id="cvss2">
-                        <p>Severity: {{item.severity}}</p>
-                        <p>Problem Type: {{item.problemType}}</p>
-                    </div>
 
                     <h5>CVSS 3.x</h5>
                     <div ng-repeat="inst in item.cvssMetrics3">
@@ -46,12 +41,20 @@
                         <p>Vector: {{inst.vectorString}}</p>
                         <p>Exploitability: {{inst.exploitabilityScore}} Impact: {{inst.impactScore}}</p>
                         <p>Attack Vector: {{inst.attackVector}} Attack Complexity: {{inst.attackComplexity}}</p>
+                    </div>                    <h5>CVSS 2.0</h5>
+                    <div id="cvss2">
+                        <p>Severity: {{item.severity}}</p>
+                        <p>Problem Type: {{item.problemType}}</p>
                     </div>
+
 
                     <h4>Known Affected Software Configurations</h4>
                     <div ng-repeat="inst in item.instances">
-                        <b>{{inst.vendor}}</b> {{inst.product}} {{inst.version}}
+                        <b>{{inst.vendor.name}}</b> {{inst.product}} {{inst.version}} <span data-ng-show="inst.vulnerable != null" data-ng-cloak>vulnerable: {{inst.vulnerable}}</span> <span
+                            data-ng-show="inst.versionStartIncluding != null" data-ng-cloak>start (including) {{inst.versionStartIncluding}}</span>
+                        <span data-ng-show="inst.versionStartExcluding != null" data-ng-cloak>start (excluding) {{inst.versionStartExcluding}}</span>
                         <span data-ng-show="inst.versionEndExcluding != null" data-ng-cloak>up to (excluding) {{inst.versionEndExcluding}}</span>
+                        <span data-ng-show="inst.versionEndIncluding != null" data-ng-cloak>up to (including) {{inst.versionEndIncluding}}</span>
                     </div>
                 </div>
             </div>

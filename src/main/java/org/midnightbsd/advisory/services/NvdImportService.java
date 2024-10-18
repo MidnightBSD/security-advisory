@@ -165,8 +165,28 @@ public class NvdImportService {
       if (a == null) {
         // TODO: this is broken on the update path.
         advisory.setProducts(processVendorAndProducts(cve));
+        advisory = advisoryService.save(advisory);
+      } else {
+        var products = processVendorAndProducts(cve);
+        if (advisory.getProducts() == null || advisory.getProducts().isEmpty()) {
+          advisory.setProducts(products);
+          advisory = advisoryService.save(advisory);
+        } else {
+          for (var p : products) {
+            boolean found = false;
+            for (var p2 : advisory.getProducts()) {
+              if (p.getName().equalsIgnoreCase(p2.getName()) && p.getVersion().equalsIgnoreCase(p2.getVersion())) {
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              advisory.getProducts().add(p);
+            }
+          }
+          advisoryService.save(advisory); // add missing products
+        }
       }
-      advisory = advisoryService.save(advisory);
 
       if (a != null) {
         searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.

@@ -31,6 +31,7 @@ import java.util.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ElasticsearchException;
+import org.midnightbsd.advisory.model.ConfigNodeCpe;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.search.CvssMetric;
 import org.midnightbsd.advisory.model.search.Instance;
@@ -180,18 +181,11 @@ public class SearchService {
     final List<Instance> instances = new ArrayList<>();
     if (adv.getConfigNodes() != null) {
       for (final org.midnightbsd.advisory.model.ConfigNode node : adv.getConfigNodes()) {
-
         for (var configNodeCpe : node.getConfigNodeCpes()) {
           try {
             Cpe parsed = CpeParser.parse(configNodeCpe.getCpe23Uri());
-            final Instance inst = new Instance();
-            if (Boolean.TRUE.equals(configNodeCpe.getVulnerable())) {
-              inst.setVendor(parsed.getVendor());
-              inst.setProduct(parsed.getProduct());
-              inst.setVersion(parsed.getVersion());
-              inst.setVersionEndExcluding(configNodeCpe.getVersionEndExcluding());
-              instances.add(inst);
-            }
+            final Instance inst = getInstance(configNodeCpe, parsed);
+            instances.add(inst);
           } catch (final Exception e) {
             log.error("Error parsing CPE: {}", configNodeCpe.getCpe23Uri(), e);
           }
@@ -202,5 +196,18 @@ public class SearchService {
     nvdItem.setInstances(instances);
 
     return nvdItem;
+  }
+
+  private static Instance getInstance(ConfigNodeCpe configNodeCpe, Cpe parsed) {
+    final Instance inst = new Instance();
+    inst.setVendor(parsed.getVendor());
+    inst.setProduct(parsed.getProduct());
+    inst.setVersion(parsed.getVersion());
+    inst.setVersionEndExcluding(configNodeCpe.getVersionEndExcluding());
+    inst.setVersionEndIncluding(configNodeCpe.getVersionEndIncluding());
+    inst.setVersionStartExcluding(configNodeCpe.getVersionStartExcluding());
+    inst.setVersionStartIncluding(configNodeCpe.getVersionStartIncluding());
+    inst.setVulnerable(configNodeCpe.getVulnerable());
+    return inst;
   }
 }

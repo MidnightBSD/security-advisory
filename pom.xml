@@ -239,7 +239,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
-            <version>5.3.37</version>
+            <version>5.3.39</version>
         </dependency>
 
         <dependency>
@@ -251,7 +251,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>5.3.38</version>
+            <version>5.3.39</version>
         </dependency>
 
         <dependency>

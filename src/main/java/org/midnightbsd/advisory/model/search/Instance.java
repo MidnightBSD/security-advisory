@@ -48,6 +48,14 @@ public class Instance implements Serializable, Comparable<Instance> {
 
   @Getter @Setter private String versionEndExcluding;
 
+  @Getter @Setter private String versionEndIncluding;
+
+  @Getter @Setter private String versionStartIncluding;
+
+  @Getter @Setter private String versionStartExcluding;
+
+  @Getter @Setter private Boolean vulnerable;
+
   @Override
   public int compareTo(final Instance o) {
     return this.vendor.compareTo(o.getVendor())
