@@ -23,14 +23,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <angularjs.version>1.8.2</angularjs.version>
         <jquery.version>3.6.3</jquery.version>
-        <spring-cloud.version>2021.0.5</spring-cloud.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <spotless.version>2.30.0</spotless.version>
         <logback.version>1.2.13</logback.version>
         <log4j2.version>2.20.0</log4j2.version>
-        <tomcat.version>9.0.99</tomcat.version>
+        <tomcat.version>9.0.98</tomcat.version>
         <json-path.version>2.9.0</json-path.version>
+        <elasticsearch.version>7.17.28</elasticsearch.version>
     </properties>
 
     <profiles>
@@ -209,11 +209,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -302,19 +297,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
     <repositories>
         <repository>
