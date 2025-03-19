@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.12</version>
+        <version>3.1.12</version>
     </parent>
 
     <properties>
@@ -130,11 +130,12 @@
             <version>1.0.1.Final</version>
         </dependency>
 
+        <!--
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
         </dependency>
-
+-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
@@ -268,26 +269,22 @@
 
     <repositories>
         <repository>
-            <id>springsource-repo</id>
-            <name>SpringSource Repository</name>
-            <url>https://repo.springsource.org/release</url>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
 
-        <repository>
-            <id>spring-snnapshot</id>
-            <name>Spring Maven SNAPSHOT Repository</name>
-            <url>https://maven.springframework.org/snapshot</url>
-        </repository>
-        <repository>
-            <id>spring-milestone</id>
-            <name>Spring Maven MILESTONE Repository</name>
-            <url>https://maven.springframework.org/milestone</url>
-        </repository>
-
-        <repository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/libs-release</url>
-        </repository>
         <!-- https://github.com/spring-projects/spring-boot/issues/2961 -->
         <repository>
             <id>gemfire-repository</id>
