@@ -63,6 +63,7 @@ public class NvdFetchService {
     headers.add("apiKey", apiKey);
 
     HttpEntity<String> entity = new HttpEntity<>(headers);
+    log.info("Fetching Root from NvdFeed: {}", url);
     var page = restTemplate.exchange(url, HttpMethod.GET, entity, Root.class);
     if (page.getStatusCode().is2xxSuccessful()) {
       return page.getBody();

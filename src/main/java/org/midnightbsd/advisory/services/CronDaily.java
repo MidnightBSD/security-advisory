@@ -37,7 +37,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 /** @author Lucas Holt */
 @Slf4j
@@ -62,11 +62,9 @@ public class CronDaily {
 
   @PostConstruct
   public void init() {
-    if (lastFetchedDate == null) {
       var item = advisoryRepository.findByOrderByLastModifiedDateDesc(PageRequest.of(0, 1));
-      if (item!= null && item.hasContent()) {
-        lastFetchedDate = item.get().findFirst().get().getLastModifiedDate();
-      }
+    if (item != null && item.hasContent()) {
+      item.get().findFirst().ifPresent(advisory -> lastFetchedDate = advisory.getLastModifiedDate());
     }
   }
 
@@ -86,7 +84,7 @@ public class CronDaily {
     if (lastFetchedDate == null) {
       var item = advisoryRepository.findByOrderByLastModifiedDateDesc(PageRequest.of(0, 1));
       if (item!= null && item.hasContent()) {
-        lastFetchedDate = item.get().findFirst().get().getLastModifiedDate();
+       item.get().findFirst().ifPresent( advisory -> lastFetchedDate = advisory.getLastModifiedDate());
       }
     }
 
@@ -96,10 +94,21 @@ public class CronDaily {
     } else {
       log.info("Starting cron daily from {}", lastFetchedDate);
       cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
+      // if the date is too far in the past, nvd can return 0 results
+      while (cveDataPage.getTotalResults() == 0) {
+        Thread.sleep(7000L);
+        lastFetchedDate = maxDate(lastFetchedDate); // move it up 90 days and try again
+        cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
+
+        if (lastFetchedDate.after(maxDate(Calendar.getInstance().getTime()))) {
+          log.error("unable to pull any data after {}. Assuming the NVD is down.", lastFetchedDate);
+          break;
+        }
+      }
     }
     log.warn("Loading first fetched page. total results: {}", cveDataPage.getTotalResults());
     importNvd(cveDataPage);
-    Thread.sleep(6000L);
+    Thread.sleep(7000L);
     startIndex += cveDataPage.getResultsPerPage();
 
     while (cveDataPage.getTotalResults() > cveDataPage.getStartIndex()) {
@@ -115,7 +124,7 @@ public class CronDaily {
         log.error("Failed sanity check. Page had null data?");
         break;
       }
-      sleep(6000L);
+      sleep(7000L);
 
       startIndex += cveDataPage.getResultsPerPage();
     }

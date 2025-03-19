@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Set;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import lombok.*;
 

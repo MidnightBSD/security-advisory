@@ -31,12 +31,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /** @author Lucas Holt */
 @Configuration
-public class WebMvcConfig extends WebMvcConfigurerAdapter {
+public class WebMvcConfig implements WebMvcConfigurer {
 
   public WebMvcConfig() {
     super();
@@ -50,7 +51,6 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
    */
   @Override
   public void addResourceHandlers(ResourceHandlerRegistry registry) {
-    super.addResourceHandlers(registry);
     Integer cachePeriod = 60;
 
     registry
@@ -75,8 +75,12 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
   /** {@inheritDoc} */
   @Override
   public void configureMessageConverters(final List<HttpMessageConverter<?>> converters) {
-    super.configureMessageConverters(converters);
     converters.add(new StringHttpMessageConverter());
     converters.add(new ByteArrayHttpMessageConverter());
+  }
+
+  @Override
+  public void configurePathMatch(PathMatchConfigurer configurer) {
+    configurer.setUseTrailingSlashMatch(true);
   }
 }

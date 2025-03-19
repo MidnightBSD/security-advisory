@@ -28,7 +28,7 @@ package org.midnightbsd.advisory.ctl;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.services.ServiceException;
 import org.springframework.dao.DataIntegrityViolationException;

@@ -46,7 +46,7 @@ public class VendorController {
     this.vendorService = vendorService;
   }
 
-  @GetMapping
+  @GetMapping(value = {"", "/"})
   public ResponseEntity<Page<Vendor>> list(Pageable page) {
     return ResponseEntity.ok(vendorService.get(page));
   }

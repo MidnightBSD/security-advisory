@@ -25,20 +25,16 @@
  */
 package org.midnightbsd.advisory.services;
 
-
 import java.util.*;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.ElasticsearchException;
 import org.midnightbsd.advisory.model.ConfigNodeCpe;
-import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.search.CvssMetric;
 import org.midnightbsd.advisory.model.search.Instance;
 import org.midnightbsd.advisory.model.search.NvdItem;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.repository.search.NvdSearchRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -90,8 +86,6 @@ public class SearchService {
         pageable = PageRequest.of(i + 1, 100);
         advisories = advisoryRepository.findAll(pageable);
       }
-    } catch (final ElasticsearchException es) {
-      log.error(es.getDetailedMessage(), es);
     } catch (final Exception e) {
       log.error(e.getMessage(), e);
     }
@@ -120,8 +114,6 @@ public class SearchService {
         pageable = PageRequest.of(i + 1, 100);
         advisories = advisoryRepository.findByLastModifiedDateBetween(since, endDate, pageable);
       }
-    } catch (final ElasticsearchException es) {
-      log.error(es.getDetailedMessage(), es);
     } catch (final Exception e) {
       log.error(e.getMessage(), e);
     }
