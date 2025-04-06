@@ -4,6 +4,8 @@
 
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FMidnightBSD%2Fsecurity-advisory?ref=badge_shield)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=MidnightBSD_security-advisory&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=MidnightBSD_security-advisory)
+
 This project pulls data from NIST NVD feeds and offers it
 for search or by specific vendors for use in REST clients.
 
