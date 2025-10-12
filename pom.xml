@@ -26,7 +26,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <spotless.version>2.30.0</spotless.version>
-        <tomcat.version>10.1.44</tomcat.version>
+        <tomcat.version>10.1.46</tomcat.version>
         <logback.version>1.4.14</logback.version>
         <json-path.version>2.9.0</json-path.version>
     </properties>
