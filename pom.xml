@@ -28,7 +28,7 @@
         <spotless.version>2.30.0</spotless.version>
         <tomcat.version>10.1.48</tomcat.version>
         <logback.version>1.4.14</logback.version>
-        <json-path.version>2.9.0</json-path.version>
+        <json-path.version>2.10.0</json-path.version>
     </properties>
 
     <profiles>
