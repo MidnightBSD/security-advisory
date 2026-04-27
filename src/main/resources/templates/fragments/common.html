@@ -8,7 +8,35 @@
     <meta name="description" content="MidnightBSD Security Advisories - Find and track CVE vulnerabilities in software." />
     <meta property="og:site_name" content="MidnightBSD Security Advisories" />
     <meta http-equiv="content-language" content="en-us" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Mulish:wght@300;400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}" />
+    <style>
+        :root {
+            --link-color: #0d9488;
+            --link-hover-color: #0f766e;
+        }
+        body {
+            font-family: 'Mulish', sans-serif;
+            font-weight: 400;
+        }
+        h1, h2, h3, h4, h5, h6, .navbar-brand {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+        }
+        a {
+            color: var(--link-color);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--link-hover-color);
+            text-decoration: underline;
+        }
+        .navbar a, .navbar a:hover {
+            text-decoration: none;
+        }
+    </style>
 </head>
 
 <body>
