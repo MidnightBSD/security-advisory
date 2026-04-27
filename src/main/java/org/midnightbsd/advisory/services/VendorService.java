@@ -1,10 +1,12 @@
 package org.midnightbsd.advisory.services;
 
 import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.repository.VendorRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -16,6 +18,10 @@ public class VendorService {
 
     public VendorService(final VendorRepository vendorRepository) {
         this.repository = vendorRepository;
+    }
+
+    public List<Vendor> list() {
+        return repository.findAll(Sort.by("name"));
     }
 
     public Page<Vendor> get(final Pageable page) {

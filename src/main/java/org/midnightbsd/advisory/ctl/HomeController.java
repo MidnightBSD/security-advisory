@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2021 Lucas Holt
+ * Copyright (c) 2017-2025 Lucas Holt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,70 @@
  */
 package org.midnightbsd.advisory.ctl;
 
-
-import jakarta.servlet.http.HttpSession;
+import org.midnightbsd.advisory.model.search.NvdItem;
+import org.midnightbsd.advisory.services.AdvisoryService;
+import org.midnightbsd.advisory.services.SearchService;
+import org.midnightbsd.advisory.services.VendorService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /** @author Lucas Holt */
 @Controller
 @RequestMapping("/")
 public final class HomeController {
 
-  @GetMapping
-  public String home(Model model, HttpSession session) {
+  private static final int SEARCH_PAGE_SIZE = 10;
 
+  private final VendorService vendorService;
+  private final AdvisoryService advisoryService;
+  private final SearchService searchService;
+
+  @Autowired
+  public HomeController(
+      VendorService vendorService, AdvisoryService advisoryService, SearchService searchService) {
+    this.vendorService = vendorService;
+    this.advisoryService = advisoryService;
+    this.searchService = searchService;
+  }
+
+  @GetMapping
+  public String home(Model model) {
+    model.addAttribute("vendors", vendorService.list());
     return "index";
+  }
+
+  @GetMapping("/advisory/{vendor}")
+  public String advisory(@PathVariable("vendor") String vendor, Model model) {
+    model.addAttribute("vendor", vendor);
+    model.addAttribute("advisories", advisoryService.getByVendor(vendor));
+    return "advisory";
+  }
+
+  @GetMapping("/search")
+  public String search(
+      @RequestParam(value = "term", required = false) String term,
+      @RequestParam(value = "page", defaultValue = "0") int page,
+      Model model) {
+    model.addAttribute("term", term);
+    model.addAttribute("currentPage", page);
+    model.addAttribute("pageSize", SEARCH_PAGE_SIZE);
+    if (term != null && term.trim().length() >= 3) {
+      Page<NvdItem> results =
+          searchService.find(term.replace("'", ""), PageRequest.of(page, SEARCH_PAGE_SIZE));
+      model.addAttribute("results", results);
+    }
+    return "search";
+  }
+
+  @GetMapping("/privacy")
+  public String privacy() {
+    return "privacy";
   }
 }

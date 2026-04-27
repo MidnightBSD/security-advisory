@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en-US">
+<head th:replace="~{fragments/common :: head('Search')}"></head>
+<body>
+
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+
+<div class="container">
+    <h2>Search</h2>
+
+    <div class="row">
+        <div class="col-md-offset-1 col-md-5">
+            <form class="form-search form-inline" action="/search" method="get">
+                <div class="form-group">
+                    <input type="text" name="term" id="keyword" th:value="${term}"
+                           class="form-control input-large" placeholder="Search" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" id="btnSearch" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div th:if="${term != null and results == null}" class="row top-padding">
+        <div class="col-md-7 col-md-offset-1">
+            <div class="alert alert-warning">
+                <b>Search term must be at least 3 characters.</b>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${results != null and results.totalElements == 0}" class="row top-padding">
+        <div class="col-md-7 col-md-offset-1">
+            <div class="alert alert-warning">
+                <b>Search returned 0 results.</b>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${results != null and results.totalElements > 0}">
+        <div class="row top-padding">
+            <div class="col-md-7 col-md-offset-1">
+
+                <div th:each="item : ${results.content}">
+                    <h3 th:text="${item.cveId}">CVE-XXXX-XXXX</h3>
+                    <div>
+                        <p th:text="${item.description}">Description</p>
+
+                        <h4>Severity</h4>
+
+                        <h5>CVSS 3.x</h5>
+                        <div th:each="metric : ${item.cvssMetrics3}">
+                            <p>Source: <span th:text="${metric.source}">source</span>
+                               Base Score: <b th:text="${metric.baseScore}">0</b>
+                               Base Severity: <span th:text="${metric.baseSeverity}">N/A</span></p>
+                            <p>Vector: <span th:text="${metric.vectorString}">N/A</span></p>
+                            <p>Exploitability: <span th:text="${metric.exploitabilityScore}">N/A</span>
+                               Impact: <span th:text="${metric.impactScore}">N/A</span></p>
+                            <p>Attack Vector: <span th:text="${metric.attackVector}">N/A</span>
+                               Attack Complexity: <span th:text="${metric.attackComplexity}">N/A</span></p>
+                        </div>
+
+                        <h4>Known Affected Software Configurations</h4>
+                        <div th:each="inst : ${item.instances}">
+                            <b th:text="${inst.vendor}">vendor</b>
+                            <span th:text="${inst.product}">product</span>
+                            <span th:text="${inst.version}">version</span>
+                            <span th:if="${inst.vulnerable != null}">vulnerable: <span th:text="${inst.vulnerable}">false</span></span>
+                            <span th:if="${inst.versionStartIncluding != null}">start (including) <span th:text="${inst.versionStartIncluding}">N/A</span></span>
+                            <span th:if="${inst.versionStartExcluding != null}">start (excluding) <span th:text="${inst.versionStartExcluding}">N/A</span></span>
+                            <span th:if="${inst.versionEndExcluding != null}">up to (excluding) <span th:text="${inst.versionEndExcluding}">N/A</span></span>
+                            <span th:if="${inst.versionEndIncluding != null}">up to (including) <span th:text="${inst.versionEndIncluding}">N/A</span></span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div th:if="${results.totalPages > 1}" class="row">
+            <div class="col-md-10 col-md-offset-1">
+                <nav aria-label="Search results pagination">
+                    <ul class="pagination pagination-sm">
+                        <li th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a th:href="@{/search(term=${term},page=${currentPage - 1},size=${pageSize})}">&laquo;</a>
+                        </li>
+                        <li th:each="i : ${#numbers.sequence(0, results.totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a th:href="@{/search(term=${term},page=${i},size=${pageSize})}" th:text="${i + 1}">1</a>
+                        </li>
+                        <li th:classappend="${currentPage == results.totalPages - 1} ? 'disabled'">
+                            <a th:href="@{/search(term=${term},page=${currentPage + 1},size=${pageSize})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/common :: footer}"></th:block>
+
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(pageTitle)">
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <title th:text="${pageTitle != null ? pageTitle + ' - MidnightBSD Security Advisories' : 'MidnightBSD Security Advisories'}">MidnightBSD Security Advisories</title>
+    <meta name="description" content="MidnightBSD Security Advisories - Find and track CVE vulnerabilities in software." />
+    <meta property="og:site_name" content="MidnightBSD Security Advisories" />
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="content-language" content="en-us" />
+    <link rel="stylesheet" th:href="@{/static/styles/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/static/styles/17.css}" />
+</head>
+
+<body>
+
+<th:block th:fragment="header">
+    <header>
+        <div class="container">
+            <div id="header" class="row">
+                <div class="col-xs-12">
+                    <h1><a href="/"><img src="//www.midnightbsd.org/art/logo/MidnightBSDLogoText.png" alt="MidnightBSD" /></a></h1>
+                </div>
+            </div>
+            <nav class="navbar navbar-inverse">
+                <div class="container-fluid">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="/">Security Advisories</a>
+                    </div>
+                    <ul class="nav navbar-nav">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/search">Search</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+    </header>
+</th:block>
+
+<th:block th:fragment="footer">
+    <div class="container">
+        <footer>
+            <div id="footer" class="row">
+                <div class="col-xs-12">
+                    <p id="copyright">&#169; 2018-2026 Lucas Holt. All rights reserved.</p>
+                    <p>This product uses data from the NVD API but is not endorsed or certified by the NVD.</p>
+                    <p><a href="/privacy" title="Privacy Policy">Privacy</a> |
+                        <a href="/search" title="Search">Search</a></p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script th:src="@{/static/js/bootstrap.min.js}"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3CJ300LXPH"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-3CJ300LXPH');
+        gtag('send', 'pageview');
+    </script>
+</th:block>
+
+</body>
+</html>

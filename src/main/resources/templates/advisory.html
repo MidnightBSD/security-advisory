@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en-US">
+<head th:replace="~{fragments/common :: head(${vendor})}"></head>
+<body>
+
+<th:block th:replace="~{fragments/common :: header}"></th:block>
+
+<div class="container">
+    <h2>Advisories for <span th:text="${vendor}">Vendor</span></h2>
+
+    <div th:if="${#lists.isEmpty(advisories)}" class="alert alert-info">
+        No advisories found for this vendor.
+    </div>
+
+    <div th:each="adv : ${advisories}">
+        <h3 th:text="${adv.cveId}">CVE-XXXX-XXXX</h3>
+
+        <p th:text="${adv.description}">Description</p>
+
+        <h4>Severity</h4>
+
+        <h5>CVSS 3.x</h5>
+        <div th:each="metric : ${adv.cvssMetrics3}">
+            <p>Source: <span th:text="${metric.source}">source</span>
+               Base Score: <b th:text="${metric.baseScore}">0</b>
+               Base Severity: <span th:text="${metric.baseSeverity}">N/A</span></p>
+            <p>Vector: <span th:text="${metric.vectorString}">N/A</span></p>
+            <p>Exploitability: <span th:text="${metric.exploitabilityScore}">N/A</span>
+               Impact: <span th:text="${metric.impactScore}">N/A</span></p>
+            <p>Attack Vector: <span th:text="${metric.attackVector}">N/A</span>
+               Attack Complexity: <span th:text="${metric.attackComplexity}">N/A</span></p>
+        </div>
+
+        <div th:if="${adv.severity != null and !#strings.isEmpty(adv.severity)}">
+            <h5>CVSS 2.0</h5>
+            <p>Severity: <span th:text="${adv.severity}">N/A</span></p>
+            <p>Problem Type: <span th:text="${adv.problemType}">N/A</span></p>
+        </div>
+
+        <h4>Products affected</h4>
+        <div th:each="prod : ${adv.products}">
+            <b th:text="${prod.vendor?.name}">vendor</b>
+            <span th:text="${prod.name}">product</span>
+            <span th:text="${prod.version}">version</span>
+        </div>
+
+        <h5>Fixed MidnightBSD mport packages (if applicable)</h5>
+        <div th:each="pkg : ${adv.fixedPackages}">
+            <span th:text="${pkg.name}">name</span>
+            <span th:text="${pkg.version}">version</span>
+        </div>
+
+        <br/>
+    </div>
+</div>
+
+<th:block th:replace="~{fragments/common :: footer}"></th:block>
+
+</body>
+</html>
