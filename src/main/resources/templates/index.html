@@ -3,38 +3,56 @@
 <head th:replace="~{fragments/common :: head('Home')}"></head>
 <body>
 
+<style>
+    .vendor-columns {
+        columns: 2;
+        column-gap: 1.5rem;
+    }
+    @media (min-width: 576px) { .vendor-columns { columns: 3; } }
+    @media (min-width: 768px) { .vendor-columns { columns: 4; } }
+    @media (min-width: 992px) { .vendor-columns { columns: 5; } }
+    .vendor-columns li {
+        break-inside: avoid;
+        padding: 0.1rem 0;
+    }
+</style>
+
 <th:block th:replace="~{fragments/common :: header}"></th:block>
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-6 col-md-4">
-            <h2>Find by Vendor</h2>
-            <ul>
-                <li th:each="vendor : ${vendors}">
-                    <a th:href="@{/advisory/{name}(name=${vendor.name})}" th:text="${vendor.name}">Vendor Name</a>
-                </li>
-            </ul>
-        </div>
+<div class="container mt-4">
 
-        <div class="col-xs-6 col-md-4">
+    <!-- About + Search -->
+    <div class="row mb-4">
+        <div class="col-md-8">
             <h2>About the Advisory Site</h2>
             <p>The MidnightBSD Advisory site helps you find existing and new vulnerabilities in installed software
                 on your system.</p>
             <p>The database includes all vulnerabilities available in the NIST NVD. Other projects may use the API to
                 check their systems as well.</p>
-
+        </div>
+        <div class="col-md-4">
             <h3>Search For Vulnerabilities</h3>
-
-            <form action="/search" method="get" id="bsearch">
-                <fieldset>
-                    <p>
-                        <input type="text" name="term" id="bquery" class="form-control" placeholder="Search term..." />
-                        <button type="submit" class="btn btn-primary">Find</button>
-                    </p>
-                </fieldset>
+            <form action="/search" method="get" id="bsearch" class="d-flex gap-2">
+                <input type="text" name="term" id="bquery" class="form-control" placeholder="Search term..." />
+                <button type="submit" class="btn btn-primary">Find</button>
             </form>
         </div>
     </div>
+
+    <hr />
+
+    <!-- Vendor List -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h2>Find by Vendor</h2>
+            <ul class="list-unstyled vendor-columns">
+                <li th:each="vendor : ${vendors}">
+                    <a th:href="@{/advisory/{name}(name=${vendor.name})}" th:text="${vendor.name}">Vendor Name</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
 </div>
 
 <th:block th:replace="~{fragments/common :: footer}"></th:block>

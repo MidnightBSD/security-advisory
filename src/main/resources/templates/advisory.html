@@ -5,14 +5,14 @@
 
 <th:block th:replace="~{fragments/common :: header}"></th:block>
 
-<div class="container">
+<div class="container mt-4">
     <h2>Advisories for <span th:text="${vendor}">Vendor</span></h2>
 
     <div th:if="${#lists.isEmpty(advisories)}" class="alert alert-info">
         No advisories found for this vendor.
     </div>
 
-    <div th:each="adv : ${advisories}">
+    <div th:each="adv : ${advisories}" class="mb-4">
         <h3 th:text="${adv.cveId}">CVE-XXXX-XXXX</h3>
 
         <p th:text="${adv.description}">Description</p>
@@ -49,8 +49,6 @@
             <span th:text="${pkg.name}">name</span>
             <span th:text="${pkg.version}">version</span>
         </div>
-
-        <br/>
     </div>
 </div>
 
