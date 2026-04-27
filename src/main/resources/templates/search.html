@@ -6,13 +6,13 @@
 <th:block th:replace="~{fragments/common :: header}"></th:block>
 
 <div class="container mt-4">
-    <h2>Search</h2>
+    <h2 class="mb-3">Search</h2>
 
-    <div class="row mb-3">
+    <div class="row mb-4">
         <div class="col-md-6 offset-md-1">
             <form class="d-flex gap-2" action="/search" method="get">
                 <input type="text" name="term" id="keyword" th:value="${term}"
-                       class="form-control" placeholder="Search" />
+                       class="form-control" placeholder="Search CVEs, products, vendors..." />
                 <button type="submit" id="btnSearch" class="btn btn-primary">Search</button>
             </form>
         </div>
@@ -35,55 +35,114 @@
     </div>
 
     <div th:if="${results != null and results.totalElements > 0}">
-        <div class="row mt-3">
-            <div class="col-md-7 offset-md-1">
+        <p class="text-muted mb-3 offset-md-1"
+           th:text="|${results.totalElements} result(s) found|">N results found</p>
 
-                <div th:each="item : ${results.content}" class="mb-4">
-                    <h3 th:text="${item.cveId}">CVE-XXXX-XXXX</h3>
-                    <div>
-                        <p th:text="${item.description}">Description</p>
+        <div class="row">
+            <div class="col-md-10 offset-md-1">
 
-                        <h4>Severity</h4>
+                <div class="card mb-4 shadow-sm"
+                     th:each="item : ${results.content}"
+                     th:with="topSeverity=${item.cvssMetrics3 != null and !item.cvssMetrics3.isEmpty() ? item.cvssMetrics3[0].baseSeverity : null},
+                              severityClass=${#strings.equalsIgnoreCase(item.cvssMetrics3 != null and !item.cvssMetrics3.isEmpty() ? item.cvssMetrics3[0].baseSeverity : '', 'CRITICAL') or
+                                              #strings.equalsIgnoreCase(item.cvssMetrics3 != null and !item.cvssMetrics3.isEmpty() ? item.cvssMetrics3[0].baseSeverity : '', 'HIGH') ? 'bg-danger' :
+                                              #strings.equalsIgnoreCase(item.cvssMetrics3 != null and !item.cvssMetrics3.isEmpty() ? item.cvssMetrics3[0].baseSeverity : '', 'MEDIUM') ? 'bg-warning text-dark' :
+                                              #strings.equalsIgnoreCase(item.cvssMetrics3 != null and !item.cvssMetrics3.isEmpty() ? item.cvssMetrics3[0].baseSeverity : '', 'LOW') ? 'bg-info text-dark' :
+                                              'bg-secondary'}">
 
-                        <h5>CVSS 3.x</h5>
-                        <div th:each="metric : ${item.cvssMetrics3}">
-                            <p>Source: <span th:text="${metric.source}">source</span>
-                               Base Score: <b th:text="${metric.baseScore}">0</b>
-                               Base Severity: <span th:text="${metric.baseSeverity}">N/A</span></p>
-                            <p>Vector: <span th:text="${metric.vectorString}">N/A</span></p>
-                            <p>Exploitability: <span th:text="${metric.exploitabilityScore}">N/A</span>
-                               Impact: <span th:text="${metric.impactScore}">N/A</span></p>
-                            <p>Attack Vector: <span th:text="${metric.attackVector}">N/A</span>
-                               Attack Complexity: <span th:text="${metric.attackComplexity}">N/A</span></p>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold fs-5 font-monospace" th:text="${item.cveId}">CVE-XXXX-XXXX</span>
+                        <span th:if="${topSeverity != null and !#strings.isEmpty(topSeverity)}"
+                              class="badge"
+                              th:classappend="${severityClass}"
+                              th:text="${topSeverity}">HIGH</span>
+                    </div>
+
+                    <div class="card-body">
+                        <p class="card-text" th:text="${item.description}">Description</p>
+
+                        <!-- CVSS 3.x -->
+                        <div th:if="${item.cvssMetrics3 != null and !item.cvssMetrics3.isEmpty()}" class="mt-3">
+                            <p class="mb-1 small text-muted text-uppercase fw-semibold" style="letter-spacing:0.07em;">CVSS 3.x</p>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Score</th>
+                                        <th>Severity</th>
+                                        <th>Vector</th>
+                                        <th>Exploitability</th>
+                                        <th>Impact</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="metric : ${item.cvssMetrics3}">
+                                        <td class="text-muted small" th:text="${metric.source}">source</td>
+                                        <td><strong th:text="${metric.baseScore}">0.0</strong></td>
+                                        <td>
+                                            <span class="badge"
+                                                  th:classappend="${#strings.equalsIgnoreCase(metric.baseSeverity,'CRITICAL') or #strings.equalsIgnoreCase(metric.baseSeverity,'HIGH') ? 'bg-danger' :
+                                                                    #strings.equalsIgnoreCase(metric.baseSeverity,'MEDIUM') ? 'bg-warning text-dark' :
+                                                                    #strings.equalsIgnoreCase(metric.baseSeverity,'LOW') ? 'bg-info text-dark' :
+                                                                    'bg-secondary'}"
+                                                  th:text="${metric.baseSeverity}">HIGH</span>
+                                        </td>
+                                        <td class="font-monospace small" th:text="${metric.vectorString}">N/A</td>
+                                        <td th:text="${metric.exploitabilityScore}">N/A</td>
+                                        <td th:text="${metric.impactScore}">N/A</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
-                        <h4>Known Affected Software Configurations</h4>
-                        <div th:each="inst : ${item.instances}">
-                            <b th:text="${inst.vendor}">vendor</b>
-                            <span th:text="${inst.product}">product</span>
-                            <span th:text="${inst.version}">version</span>
-                            <span th:if="${inst.vulnerable != null}">vulnerable: <span th:text="${inst.vulnerable}">false</span></span>
-                            <span th:if="${inst.versionStartIncluding != null}">start (including) <span th:text="${inst.versionStartIncluding}">N/A</span></span>
-                            <span th:if="${inst.versionStartExcluding != null}">start (excluding) <span th:text="${inst.versionStartExcluding}">N/A</span></span>
-                            <span th:if="${inst.versionEndExcluding != null}">up to (excluding) <span th:text="${inst.versionEndExcluding}">N/A</span></span>
-                            <span th:if="${inst.versionEndIncluding != null}">up to (including) <span th:text="${inst.versionEndIncluding}">N/A</span></span>
+                        <!-- Affected Software -->
+                        <div th:if="${item.instances != null and !item.instances.isEmpty()}" class="mt-3">
+                            <p class="mb-1 small text-muted text-uppercase fw-semibold" style="letter-spacing:0.07em;">Known Affected Software</p>
+                            <table class="table table-sm table-striped table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Vendor</th>
+                                        <th>Product</th>
+                                        <th>Version</th>
+                                        <th>Range</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="inst : ${item.instances}">
+                                        <td th:text="${inst.vendor}">vendor</td>
+                                        <td th:text="${inst.product}">product</td>
+                                        <td class="font-monospace small" th:text="${inst.version}">version</td>
+                                        <td class="small text-muted">
+                                            <span th:if="${inst.versionStartIncluding != null}">&ge; <span th:text="${inst.versionStartIncluding}">N/A</span> </span>
+                                            <span th:if="${inst.versionStartExcluding != null}">&gt; <span th:text="${inst.versionStartExcluding}">N/A</span> </span>
+                                            <span th:if="${inst.versionEndIncluding != null}">&le; <span th:text="${inst.versionEndIncluding}">N/A</span> </span>
+                                            <span th:if="${inst.versionEndExcluding != null}">&lt; <span th:text="${inst.versionEndExcluding}">N/A</span></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
+
                     </div>
                 </div>
 
             </div>
         </div>
 
-        <div th:if="${results.totalPages > 1}" class="row">
+        <!-- Pagination -->
+        <div th:if="${results.totalPages > 1}" class="row mb-4">
             <div class="col-md-10 offset-md-1">
                 <nav aria-label="Search results pagination">
                     <ul class="pagination pagination-sm">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
                             <a class="page-link" th:href="@{/search(term=${term},page=${currentPage - 1},size=${pageSize})}">&laquo;</a>
                         </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, results.totalPages - 1)}"
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, results.totalPages - 1)}"
                             th:classappend="${i == currentPage} ? 'active'">
-                            <a class="page-link" th:href="@{/search(term=${term},page=${i},size=${pageSize})}" th:text="${i + 1}">1</a>
+                            <a class="page-link"
+                               th:href="@{/search(term=${term},page=${i},size=${pageSize})}"
+                               th:text="${i + 1}">1</a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage == results.totalPages - 1} ? 'disabled'">
                             <a class="page-link" th:href="@{/search(term=${term},page=${currentPage + 1},size=${pageSize})}">&raquo;</a>
@@ -92,6 +151,7 @@
                 </nav>
             </div>
         </div>
+
     </div>
 </div>
 

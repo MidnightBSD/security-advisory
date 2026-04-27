@@ -6,48 +6,109 @@
 <th:block th:replace="~{fragments/common :: header}"></th:block>
 
 <div class="container mt-4">
-    <h2>Advisories for <span th:text="${vendor}">Vendor</span></h2>
+    <h2 class="mb-4">Advisories for <span th:text="${vendor}">Vendor</span></h2>
 
     <div th:if="${#lists.isEmpty(advisories)}" class="alert alert-info">
         No advisories found for this vendor.
     </div>
 
-    <div th:each="adv : ${advisories}" class="mb-4">
-        <h3 th:text="${adv.cveId}">CVE-XXXX-XXXX</h3>
+    <div class="card mb-5 shadow-sm"
+         th:each="adv : ${advisories}"
+         th:with="severityClass=${
+             #strings.equalsIgnoreCase(adv.severity,'CRITICAL') or #strings.equalsIgnoreCase(adv.severity,'HIGH') ? 'bg-danger' :
+             #strings.equalsIgnoreCase(adv.severity,'MEDIUM') ? 'bg-warning text-dark' :
+             #strings.equalsIgnoreCase(adv.severity,'LOW') ? 'bg-info text-dark' :
+             'bg-secondary'}">
 
-        <p th:text="${adv.description}">Description</p>
-
-        <h4>Severity</h4>
-
-        <h5>CVSS 3.x</h5>
-        <div th:each="metric : ${adv.cvssMetrics3}">
-            <p>Source: <span th:text="${metric.source}">source</span>
-               Base Score: <b th:text="${metric.baseScore}">0</b>
-               Base Severity: <span th:text="${metric.baseSeverity}">N/A</span></p>
-            <p>Vector: <span th:text="${metric.vectorString}">N/A</span></p>
-            <p>Exploitability: <span th:text="${metric.exploitabilityScore}">N/A</span>
-               Impact: <span th:text="${metric.impactScore}">N/A</span></p>
-            <p>Attack Vector: <span th:text="${metric.attackVector}">N/A</span>
-               Attack Complexity: <span th:text="${metric.attackComplexity}">N/A</span></p>
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold fs-5 font-monospace" th:text="${adv.cveId}">CVE-XXXX-XXXX</span>
+            <span th:if="${adv.severity != null and !#strings.isEmpty(adv.severity)}"
+                  class="badge"
+                  th:classappend="${severityClass}"
+                  th:text="${adv.severity}">HIGH</span>
         </div>
 
-        <div th:if="${adv.severity != null and !#strings.isEmpty(adv.severity)}">
-            <h5>CVSS 2.0</h5>
-            <p>Severity: <span th:text="${adv.severity}">N/A</span></p>
-            <p>Problem Type: <span th:text="${adv.problemType}">N/A</span></p>
-        </div>
+        <div class="card-body">
+            <p class="card-text" th:text="${adv.description}">Description</p>
 
-        <h4>Products affected</h4>
-        <div th:each="prod : ${adv.products}">
-            <b th:text="${prod.vendor?.name}">vendor</b>
-            <span th:text="${prod.name}">product</span>
-            <span th:text="${prod.version}">version</span>
-        </div>
+            <!-- CVSS 3.x -->
+            <div th:if="${adv.cvssMetrics3 != null and !adv.cvssMetrics3.isEmpty()}" class="mt-3">
+                <p class="mb-1 small text-muted text-uppercase fw-semibold" style="letter-spacing:0.07em;">CVSS 3.x</p>
+                <table class="table table-sm table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Source</th>
+                            <th>Score</th>
+                            <th>Severity</th>
+                            <th>Vector</th>
+                            <th>Exploitability</th>
+                            <th>Impact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="metric : ${adv.cvssMetrics3}">
+                            <td class="text-muted small" th:text="${metric.source}">source</td>
+                            <td><strong th:text="${metric.baseScore}">0.0</strong></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${#strings.equalsIgnoreCase(metric.baseSeverity,'CRITICAL') or #strings.equalsIgnoreCase(metric.baseSeverity,'HIGH') ? 'bg-danger' :
+                                                        #strings.equalsIgnoreCase(metric.baseSeverity,'MEDIUM') ? 'bg-warning text-dark' :
+                                                        #strings.equalsIgnoreCase(metric.baseSeverity,'LOW') ? 'bg-info text-dark' :
+                                                        'bg-secondary'}"
+                                      th:text="${metric.baseSeverity}">HIGH</span>
+                            </td>
+                            <td class="font-monospace small" th:text="${metric.vectorString}">N/A</td>
+                            <td th:text="${metric.exploitabilityScore}">N/A</td>
+                            <td th:text="${metric.impactScore}">N/A</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <h5>Fixed MidnightBSD mport packages (if applicable)</h5>
-        <div th:each="pkg : ${adv.fixedPackages}">
-            <span th:text="${pkg.name}">name</span>
-            <span th:text="${pkg.version}">version</span>
+            <!-- CVSS 2.0 -->
+            <div th:if="${adv.severity != null and !#strings.isEmpty(adv.severity)}" class="mt-2">
+                <p class="mb-1 small text-muted text-uppercase fw-semibold" style="letter-spacing:0.07em;">CVSS 2.0</p>
+                <p class="mb-1">
+                    <span class="text-muted">Severity:</span>
+                    <span th:text="${adv.severity}">N/A</span>
+                </p>
+                <p class="mb-0" th:if="${adv.problemType != null and !#strings.isEmpty(adv.problemType)}">
+                    <span class="text-muted">Problem Type:</span>
+                    <span th:text="${adv.problemType}">N/A</span>
+                </p>
+            </div>
+
+            <!-- Products Affected -->
+            <div th:if="${adv.products != null and !adv.products.isEmpty()}" class="mt-3">
+                <p class="mb-1 small text-muted text-uppercase fw-semibold" style="letter-spacing:0.07em;">Products Affected</p>
+                <table class="table table-sm table-striped table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Product</th>
+                            <th>Version</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="prod : ${adv.products}">
+                            <td th:text="${prod.vendor?.name}">vendor</td>
+                            <td th:text="${prod.name}">product</td>
+                            <td class="font-monospace small" th:text="${prod.version}">version</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Fixed Packages -->
+            <div th:if="${adv.fixedPackages != null and !adv.fixedPackages.isEmpty()}" class="mt-3">
+                <p class="mb-2 small text-muted text-uppercase fw-semibold" style="letter-spacing:0.07em;">Fixed MidnightBSD Packages</p>
+                <div class="row row-cols-2 row-cols-md-4 g-2">
+                    <div th:each="pkg : ${adv.fixedPackages}" class="col">
+                        <code th:text="${pkg.name + ' ' + pkg.version}">pkg version</code>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
