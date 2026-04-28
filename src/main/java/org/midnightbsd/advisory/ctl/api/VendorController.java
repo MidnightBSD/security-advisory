@@ -25,7 +25,7 @@
  */
 package org.midnightbsd.advisory.ctl.api;
 
-import org.midnightbsd.advisory.model.Vendor;
+import org.midnightbsd.advisory.dto.VendorDto;
 import org.midnightbsd.advisory.services.VendorService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,25 +47,21 @@ public class VendorController {
   }
 
   @GetMapping(value = {"", "/"})
-  public ResponseEntity<Page<Vendor>> list(Pageable page) {
-    return ResponseEntity.ok(vendorService.get(page));
+  public ResponseEntity<Page<VendorDto>> list(Pageable page) {
+    return ResponseEntity.ok(vendorService.get(page).map(VendorDto::from));
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Vendor> get(@PathVariable("id") int id) {
-    Vendor vendor = vendorService.get(id);
-    if (vendor == null)
-      return ResponseEntity.notFound().build();
-
-    return ResponseEntity.ok(vendor);
+  public ResponseEntity<VendorDto> get(@PathVariable("id") int id) {
+    var vendor = vendorService.get(id);
+    if (vendor == null) return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(VendorDto.from(vendor));
   }
 
   @GetMapping("/name/{name}")
-  public ResponseEntity<Vendor> get(@PathVariable("name") String name) {
-    Vendor vendor = vendorService.getByName(name);
-    if (vendor == null)
-      return ResponseEntity.notFound().build();
-
-    return ResponseEntity.ok(vendor);
+  public ResponseEntity<VendorDto> get(@PathVariable("name") String name) {
+    var vendor = vendorService.getByName(name);
+    if (vendor == null) return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(VendorDto.from(vendor));
   }
 }

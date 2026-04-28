@@ -25,10 +25,9 @@
  */
 package org.midnightbsd.advisory.ctl.api;
 
-
 import java.util.Date;
 import java.util.List;
-import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.dto.AdvisoryDto;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,34 +50,46 @@ public class AdvisoryController {
   }
 
   @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<Page<Advisory>> list(Pageable page) {
-    return ResponseEntity.ok(advisoryService.get(page));
+  public ResponseEntity<Page<AdvisoryDto>> list(Pageable page) {
+    return ResponseEntity.ok(advisoryService.get(page).map(AdvisoryDto::from));
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Advisory> get(@PathVariable("id") int id) {
-    return ResponseEntity.ok(advisoryService.get(id));
+  public ResponseEntity<AdvisoryDto> get(@PathVariable("id") int id) {
+    var advisory = advisoryService.get(id);
+    if (advisory == null) return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(AdvisoryDto.from(advisory));
   }
 
   @GetMapping("/cve/{cveId}")
-  public ResponseEntity<Advisory> get(@PathVariable("cveId") String cveId) {
-    return ResponseEntity.ok(advisoryService.getByCveId(cveId));
+  public ResponseEntity<AdvisoryDto> get(@PathVariable("cveId") String cveId) {
+    var advisory = advisoryService.getByCveId(cveId);
+    if (advisory == null) return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(AdvisoryDto.from(advisory));
   }
 
   @GetMapping("product/{name}")
-  public ResponseEntity<List<Advisory>> getbyProduct(@PathVariable("name") String name) {
-    return ResponseEntity.ok(advisoryService.getByProduct(name));
+  public ResponseEntity<List<AdvisoryDto>> getbyProduct(@PathVariable("name") String name) {
+    return ResponseEntity.ok(
+        advisoryService.getByProduct(name).stream().map(AdvisoryDto::from).toList());
   }
 
   @GetMapping("vendor/{name}")
-  public ResponseEntity<List<Advisory>> getbyVendor(@PathVariable("name") String name) {
-    return ResponseEntity.ok(advisoryService.getByVendor(name));
+  public ResponseEntity<List<AdvisoryDto>> getbyVendor(@PathVariable("name") String name) {
+    return ResponseEntity.ok(
+        advisoryService.getByVendor(name).stream().map(AdvisoryDto::from).toList());
   }
 
   @GetMapping("vendor/{name}/product/{product}")
-  public ResponseEntity<List<Advisory>> getbyProduct(
-          @PathVariable("name") String name, @PathVariable("product") String product,
-          @RequestParam(required = false, name = "startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date startDate) {
-    return ResponseEntity.ok(advisoryService.getByVendorAndProduct(name, product, startDate));
+  public ResponseEntity<List<AdvisoryDto>> getbyProduct(
+      @PathVariable("name") String name,
+      @PathVariable("product") String product,
+      @RequestParam(required = false, name = "startDate")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          Date startDate) {
+    return ResponseEntity.ok(
+        advisoryService.getByVendorAndProduct(name, product, startDate).stream()
+            .map(AdvisoryDto::from)
+            .toList());
   }
 }

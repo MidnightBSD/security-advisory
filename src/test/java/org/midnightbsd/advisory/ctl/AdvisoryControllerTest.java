@@ -42,6 +42,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.ctl.api.AdvisoryController;
+import org.midnightbsd.advisory.dto.AdvisoryDto;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.mockito.InjectMocks;
@@ -91,21 +92,21 @@ class AdvisoryControllerTest {
   @Test
   void testGet() {
     when(advisoryService.get(1)).thenReturn(adv);
-    final ResponseEntity<Advisory> result = controller.get(1);
+    final ResponseEntity<AdvisoryDto> result = controller.get(1);
     assertNotNull(result);
     assertNotNull(result.getBody());
-    assertEquals("CVE-0000-0000", result.getBody().getCveId());
-    assertEquals(1, result.getBody().getId());
+    assertEquals("CVE-0000-0000", result.getBody().cveId());
+    assertEquals(1, result.getBody().id());
   }
 
   @Test
   void testGetByCve() {
     when(advisoryService.getByCveId(TEST_CVE_ID)).thenReturn(adv);
-    final ResponseEntity<Advisory> result = controller.get(TEST_CVE_ID);
+    final ResponseEntity<AdvisoryDto> result = controller.get(TEST_CVE_ID);
     assertNotNull(result);
     assertNotNull(result.getBody());
-    assertEquals(TEST_CVE_ID, result.getBody().getCveId());
-    assertEquals(1, result.getBody().getId());
+    assertEquals(TEST_CVE_ID, result.getBody().cveId());
+    assertEquals(1, result.getBody().id());
   }
 
 

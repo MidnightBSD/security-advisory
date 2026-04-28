@@ -25,8 +25,8 @@
  */
 package org.midnightbsd.advisory.ctl.api;
 
-import java.util.Optional;
-import org.midnightbsd.advisory.model.Product;
+import java.util.List;
+import org.midnightbsd.advisory.dto.ProductDto;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,20 +50,31 @@ public class ProductController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<Product>> list(final Pageable page) {
-    return ResponseEntity.ok(productRepository.findAll(page));
+  public ResponseEntity<Page<ProductDto>> list(final Pageable page) {
+    return ResponseEntity.ok(productRepository.findAll(page).map(ProductDto::from));
   }
 
-  @GetMapping("/{id}")
-  public ResponseEntity<Product> get(@PathVariable("id") final int id) {
-    final Optional<Product> product = productRepository.findById(id);
-
-    return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+  @GetMapping("/{idOrVersion}")
+  public ResponseEntity<List<ProductDto>> get(
+      @PathVariable("idOrVersion") final String idOrVersion) {
+    try {
+      int id = Integer.parseInt(idOrVersion);
+      return productRepository
+          .findById(id)
+          .map(p -> ResponseEntity.ok(List.of(ProductDto.from(p))))
+          .orElseGet(() -> ResponseEntity.notFound().build());
+    } catch (NumberFormatException e) {
+      List<ProductDto> results =
+          productRepository.findByVersion(idOrVersion).stream().map(ProductDto::from).toList();
+      return results.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(results);
+    }
   }
 
   @GetMapping("/name/{name}/version/{version}")
-  public ResponseEntity<Product> get(
+  public ResponseEntity<ProductDto> get(
       @PathVariable("name") final String name, @PathVariable("version") final String version) {
-    return ResponseEntity.ok(productRepository.findByNameAndVersion(name, version));
+    var product = productRepository.findByNameAndVersion(name, version);
+    if (product == null) return ResponseEntity.notFound().build();
+    return ResponseEntity.ok(ProductDto.from(product));
   }
 }

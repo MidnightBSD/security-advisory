@@ -36,6 +36,8 @@ import org.springframework.data.repository.query.Param;
 public interface ProductRepository extends JpaRepository<Product, Integer> {
   List<Product> findAllByOrderByVersionAsc();
 
+  List<Product> findByVersion(@Param("version") String version);
+
   List<Product> findByName(@Param("name") String name);
 
   Product findByNameAndVersion(@Param("name") String name, @Param("version") String version);

@@ -36,6 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /** @author Lucas Holt */
 @Slf4j
@@ -62,6 +63,12 @@ public class ExceptionHandlingController {
   @ExceptionHandler(IllegalArgumentException.class)
   public void badRequest(final HttpServletRequest req, final Exception ex) {
     log.error(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+  }
+
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Invalid parameter type")
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public void typeMismatch(final HttpServletRequest req, final Exception ex) {
+    log.warn(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage());
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Object Missing?")
