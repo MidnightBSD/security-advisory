@@ -111,6 +111,20 @@ class AdvisoryControllerTest {
 
 
   @Test
+  void testGetNotFound() {
+    when(advisoryService.get(999)).thenReturn(null);
+    final ResponseEntity<AdvisoryDto> result = controller.get(999);
+    assertEquals(404, result.getStatusCode().value());
+  }
+
+  @Test
+  void testGetByCveNotFound() {
+    when(advisoryService.getByCveId("CVE-9999-9999")).thenReturn(null);
+    final ResponseEntity<AdvisoryDto> result = controller.get("CVE-9999-9999");
+    assertEquals(404, result.getStatusCode().value());
+  }
+
+  @Test
   void mvcTestList() throws Exception {
     Page<Advisory> page = new PageImpl<>(Collections.singletonList(adv));
     when(advisoryService.get(any())).thenReturn(page);

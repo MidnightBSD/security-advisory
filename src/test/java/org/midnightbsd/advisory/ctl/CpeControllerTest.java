@@ -81,4 +81,14 @@ class CpeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
     }
+
+    @Test
+    void mvcTestGetCpeWithIncludeVersion() throws Exception {
+        when(advisoryService.getByVendorAndProductAndVersion(anyString(), anyString(), anyString(), ArgumentMatchers.isNull()))
+                .thenReturn(Collections.singletonList(adv));
+        mockMvc
+                .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:eric_allman:sendmail:5.58:*:*:*:*:*:*:*&includeVersion=true"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
+    }
 }
