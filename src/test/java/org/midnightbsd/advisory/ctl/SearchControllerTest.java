@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
@@ -50,7 +51,7 @@ class SearchControllerTest {
   @Test
   void mvcTestFindReturnsResults() throws Exception {
     when(searchService.find(eq("apache"), any(Pageable.class)))
-        .thenReturn(new PageImpl<>(List.of(nvdItem)));
+        .thenReturn(new PageImpl<>(List.of(nvdItem), PageRequest.of(0, 10), 1));
     mockMvc
         .perform(get("/api/search?term=apache"))
         .andExpect(status().isOk())
@@ -60,7 +61,7 @@ class SearchControllerTest {
   @Test
   void mvcTestFindReturnsEmptyPage() throws Exception {
     when(searchService.find(eq("notfound"), any(Pageable.class)))
-        .thenReturn(new PageImpl<>(List.of()));
+        .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
     mockMvc
         .perform(get("/api/search?term=notfound"))
         .andExpect(status().isOk())
@@ -70,7 +71,7 @@ class SearchControllerTest {
   @Test
   void mvcTestFindWithPagination() throws Exception {
     when(searchService.find(eq("curl"), any(Pageable.class)))
-        .thenReturn(new PageImpl<>(List.of(nvdItem)));
+        .thenReturn(new PageImpl<>(List.of(nvdItem), PageRequest.of(0, 10), 1));
     mockMvc
         .perform(get("/api/search?term=curl&page=0&size=10"))
         .andExpect(status().isOk())

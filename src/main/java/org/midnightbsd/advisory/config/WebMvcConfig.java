@@ -31,7 +31,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -82,8 +81,4 @@ public class WebMvcConfig implements WebMvcConfigurer {
     converters.add(new ByteArrayHttpMessageConverter());
   }
 
-  @Override
-  public void configurePathMatch(PathMatchConfigurer configurer) {
-    configurer.setUseTrailingSlashMatch(true);
-  }
 }

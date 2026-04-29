@@ -50,6 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -126,7 +127,7 @@ class AdvisoryControllerTest {
 
   @Test
   void mvcTestList() throws Exception {
-    Page<Advisory> page = new PageImpl<>(Collections.singletonList(adv));
+    Page<Advisory> page = new PageImpl<>(Collections.singletonList(adv), PageRequest.of(0, 10), 1);
     when(advisoryService.get(any())).thenReturn(page);
     mockMvc
             .perform(get("/api/advisory?pageSize=5&pageNo=1"))

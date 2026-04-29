@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -119,7 +120,7 @@ class ProductControllerTest {
   @Test
   void mvcTestList() throws Exception {
     when(productRepository.findAll(any(org.springframework.data.domain.Pageable.class)))
-        .thenReturn(new PageImpl<>(List.of(product)));
+        .thenReturn(new PageImpl<>(List.of(product), PageRequest.of(0, 10), 1));
     mockMvc
         .perform(get("/api/product"))
         .andExpect(status().isOk())
