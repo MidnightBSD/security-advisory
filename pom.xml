@@ -28,7 +28,7 @@
         <spotless.version>2.30.0</spotless.version>
         <tomcat.version>10.1.54</tomcat.version>
         <json-path.version>2.10.0</json-path.version>
-        <flyway.version>10.10.0</flyway.version>
+        <flyway.version>11.7.2</flyway.version>
     </properties>
 
     <profiles>
