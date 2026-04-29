@@ -29,6 +29,7 @@
         <tomcat.version>10.1.54</tomcat.version>
         <logback.version>1.4.14</logback.version>
         <json-path.version>2.10.0</json-path.version>
+        <flyway.version>10.10.0</flyway.version>
     </properties>
 
     <profiles>
@@ -66,6 +67,14 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>${flyway.version}</version>
+            <scope>runtime</scope>
         </dependency>
 
         <dependency>
