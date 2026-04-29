@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.13</version>
+        <version>3.5.3</version>
     </parent>
 
     <properties>
@@ -451,7 +451,7 @@
 
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.5.2</version>
                 <configuration>
                     <testFailureIgnore>true</testFailureIgnore>
                     <includes>
@@ -459,17 +459,10 @@
                     </includes>
                     <argLine>${argLine} -Xmx786m -Dspring.profiles.active=test</argLine>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.junit.jupiter</groupId>
-                        <artifactId>junit-jupiter-engine</artifactId>
-                        <version>5.9.2</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.5.2</version>
                 <configuration>
                     <testFailureIgnore>true</testFailureIgnore>
                     <includes>
@@ -477,9 +470,6 @@
                     </includes>
                     <argLine>${argLine} -Xmx512m -Dspring.profiles.active=it</argLine>
                 </configuration>
-                <dependencies>
-
-                </dependencies>
             </plugin>
         </plugins>
     </build>
