@@ -219,8 +219,8 @@ public class McpController {
       @RequestParam(name = "size", required = false, defaultValue = "50") final int size,
       @RequestParam(name = "maxPages", required = false, defaultValue = "50") final int maxPages) {
     final SseEmitter emitter = new SseEmitter(STREAM_TIMEOUT_MS);
-    final int pageSize = Math.max(1, Math.min(size, 200));
-    final int pageLimit = Math.max(1, Math.min(maxPages, MAX_STREAM_PAGES));
+    final int pageSize = Math.clamp(size, 1, 200);
+    final int pageLimit = Math.clamp(maxPages, 1, MAX_STREAM_PAGES);
 
     streamExecutor.execute(
         () -> {
