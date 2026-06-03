@@ -91,4 +91,9 @@ public final class HomeController {
   public String privacy() {
     return "privacy";
   }
+
+  @GetMapping("/mcp")
+  public String mcp() {
+    return "mcp";
+  }
 }
