@@ -25,25 +25,19 @@
  */
 package org.midnightbsd.advisory.services;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.dto.AdvisoryDto;
 import org.midnightbsd.advisory.dto.AdvisorySummaryDto;
-import org.midnightbsd.advisory.dto.McpScanSessionDto;
 import org.midnightbsd.advisory.dto.PackageQuery;
 import org.midnightbsd.advisory.dto.PackageVulnerability;
 import org.midnightbsd.advisory.model.Advisory;
-import org.midnightbsd.advisory.model.McpScanSession;
-import org.midnightbsd.advisory.model.McpScanStatus;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.search.NvdItem;
-import org.midnightbsd.advisory.repository.McpScanSessionRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,9 +49,9 @@ import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
 
 /**
- * Business logic backing the MCP API. Every method that builds a DTO from JPA entities does so
- * inside its own transaction, so the resulting DTOs are detached and safe to serialize from a
- * streaming worker thread (open-session-in-view is not active off the request thread).
+ * Business logic backing the MCP tool surface ({@link McpTools}). Every method that builds a DTO
+ * from JPA entities does so inside its own transaction, so the resulting DTOs are detached and safe
+ * to serialize after the transaction closes.
  *
  * @author Lucas Holt
  */
@@ -68,17 +62,14 @@ public class McpService {
   private final AdvisoryService advisoryService;
   private final SearchService searchService;
   private final ProductRepository productRepository;
-  private final McpScanSessionRepository scanSessionRepository;
 
   public McpService(
       final AdvisoryService advisoryService,
       final SearchService searchService,
-      final ProductRepository productRepository,
-      final McpScanSessionRepository scanSessionRepository) {
+      final ProductRepository productRepository) {
     this.advisoryService = advisoryService;
     this.searchService = searchService;
     this.productRepository = productRepository;
-    this.scanSessionRepository = scanSessionRepository;
   }
 
   /* ------------------------------------------------------------------ lookups */
@@ -159,84 +150,6 @@ public class McpService {
         .toList();
   }
 
-  /* --------------------------------------------------------- scan session state */
-
-  /** Create a new scan session in {@link McpScanStatus#PENDING} and return its id. */
-  @Transactional
-  public String createScanSession(final int totalItems, final String clientInfo) {
-    final McpScanSession session = new McpScanSession();
-    session.setId(UUID.randomUUID().toString());
-    session.setCreatedDate(Instant.now());
-    session.setUpdatedDate(session.getCreatedDate());
-    session.setStatus(McpScanStatus.PENDING);
-    session.setTotalItems(totalItems);
-    session.setClientInfo(truncate(clientInfo, 255));
-    scanSessionRepository.save(session);
-    return session.getId();
-  }
-
-  @Transactional
-  public void markRunning(final String sessionId) {
-    updateSession(
-        sessionId,
-        s -> {
-          s.setStatus(McpScanStatus.RUNNING);
-          s.setUpdatedDate(Instant.now());
-        });
-  }
-
-  @Transactional
-  public void recordProgress(
-      final String sessionId, final int processedItems, final int vulnerableCount) {
-    updateSession(
-        sessionId,
-        s -> {
-          s.setProcessedItems(processedItems);
-          s.setVulnerableCount(vulnerableCount);
-          s.setUpdatedDate(Instant.now());
-        });
-  }
-
-  @Transactional
-  public void completeScanSession(
-      final String sessionId, final int processedItems, final int vulnerableCount) {
-    updateSession(
-        sessionId,
-        s -> {
-          s.setStatus(McpScanStatus.COMPLETED);
-          s.setProcessedItems(processedItems);
-          s.setVulnerableCount(vulnerableCount);
-          s.setUpdatedDate(Instant.now());
-        });
-  }
-
-  @Transactional
-  public void failScanSession(final String sessionId, final String error) {
-    updateSession(
-        sessionId,
-        s -> {
-          s.setStatus(McpScanStatus.FAILED);
-          s.setError(truncate(error, 1000));
-          s.setUpdatedDate(Instant.now());
-        });
-  }
-
-  @Transactional(readOnly = true)
-  public McpScanSessionDto getScanSession(final String sessionId) {
-    return scanSessionRepository.findById(sessionId).map(McpScanSessionDto::from).orElse(null);
-  }
-
-  private void updateSession(
-      final String sessionId, final java.util.function.Consumer<McpScanSession> mutator) {
-    scanSessionRepository
-        .findById(sessionId)
-        .ifPresent(
-            s -> {
-              mutator.accept(s);
-              scanSessionRepository.save(s);
-            });
-  }
-
   /* ----------------------------------------------------------------- utilities */
 
   /**
@@ -249,12 +162,5 @@ public class McpService {
       localCpe = cpe + ":0";
     }
     return CpeParser.parse(localCpe);
-  }
-
-  private static String truncate(final String value, final int max) {
-    if (value == null) {
-      return null;
-    }
-    return value.length() <= max ? value : value.substring(0, max);
   }
 }

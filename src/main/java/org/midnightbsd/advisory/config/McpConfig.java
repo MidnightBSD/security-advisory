@@ -25,10 +25,9 @@
  */
 package org.midnightbsd.advisory.config;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.midnightbsd.advisory.services.McpTools;
+import org.springframework.ai.tool.ToolCallbackProvider;
+import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -37,23 +36,11 @@ import org.springframework.context.annotation.Configuration;
 public class McpConfig {
 
   /**
-   * Dedicated pool used to drive Server-Sent-Event streaming scans so that long running work does
-   * not occupy request handling threads. Spring shuts the bean down on context close via the
-   * inferred {@code shutdown} destroy method.
+   * Exposes the {@link McpTools} {@code @Tool}-annotated methods to the Spring AI MCP server so they
+   * are advertised and callable over the Model Context Protocol endpoint.
    */
-  @Bean(name = "mcpStreamExecutor", destroyMethod = "shutdown")
-  public ExecutorService mcpStreamExecutor() {
-    final ThreadFactory factory =
-        new ThreadFactory() {
-          private final AtomicInteger counter = new AtomicInteger(1);
-
-          @Override
-          public Thread newThread(final Runnable r) {
-            final Thread t = new Thread(r, "mcp-stream-" + counter.getAndIncrement());
-            t.setDaemon(true);
-            return t;
-          }
-        };
-    return Executors.newFixedThreadPool(4, factory);
+  @Bean
+  public ToolCallbackProvider mcpToolCallbackProvider(final McpTools mcpTools) {
+    return MethodToolCallbackProvider.builder().toolObjects(mcpTools).build();
   }
 }

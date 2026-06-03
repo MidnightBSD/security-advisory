@@ -1,5 +1,18 @@
 spring:
   profiles.default: default
+  ai:
+    mcp:
+      server:
+        enabled: true
+        protocol: STREAMABLE
+        name: security-advisory
+        version: 2.0.7
+        instructions: >-
+          MidnightBSD security advisory tools: look up a CVE, search advisories,
+          match a CPE 2.3 identifier, and check whether installed packages are
+          vulnerable.
+        streamable-http:
+          mcp-endpoint: /api/mcp
 ---
 
 spring:

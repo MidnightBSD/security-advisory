@@ -21,216 +21,196 @@
         border-radius: 4px;
         font-size: 0.85rem;
     }
-    .method {
-        font-weight: 700;
-        font-family: 'Syne', sans-serif;
-    }
-    .method-get { color: #0d9488; }
-    .method-post { color: #b45309; }
     .table td code { font-size: 0.8rem; }
     h2 { margin-top: 2rem; }
     .toc a { display: inline-block; margin-right: 1rem; }
+    .pill {
+        display: inline-block;
+        background: #0d9488;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 0.1rem 0.5rem;
+        border-radius: 999px;
+        vertical-align: middle;
+    }
 </style>
 
 <div class="container mt-4">
 
-    <h2>MCP API</h2>
+    <h2>MCP Server</h2>
     <p class="lead">
-        A set of tool-shaped HTTP endpoints designed for AI coding agents (via the
-        <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Model Context Protocol</a>)
-        to query CVEs, resolve CPE identifiers, and check whether the packages installed on an
-        operating system are affected by known vulnerabilities. Large result sets and whole-OS scans
-        can be streamed with <strong>Server-Sent Events (SSE)</strong>.
+        A native <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">Model Context
+        Protocol</a> server that lets AI coding agents look up CVEs, resolve CPE identifiers, and check
+        whether the packages installed on an operating system are affected by known vulnerabilities.
+        It speaks the MCP <strong>Streamable HTTP</strong> transport, so any MCP client can connect to a
+        single URL &mdash; no wrappers or fetch shims required.
     </p>
 
     <p class="toc">
-        <a href="#base">Base URL</a>
-        <a href="#endpoints">Endpoints</a>
-        <a href="#streaming">Streaming</a>
-        <a href="#agents">Using with AI CLIs</a>
+        <a href="#endpoint">Endpoint</a>
+        <a href="#tools">Tools</a>
+        <a href="#add">Add it to your agent</a>
         <a href="#claude">Claude</a>
         <a href="#codex">Codex</a>
-        <a href="#antigravity">Antigravity</a>
+        <a href="#generic">Other clients</a>
+        <a href="#verify">Verify</a>
     </p>
 
-    <h3 id="base">Base URL</h3>
+    <h3 id="endpoint">Endpoint</h3>
     <p>
-        All endpoints live under <code class="inline">/api/mcp</code>. On this deployment the base URL is
-        <code class="inline mcp-base">https://sec.midnightbsd.org</code>. Every response is JSON unless noted as
-        an SSE stream. The full machine-readable tool manifest is available at
-        <a class="mcp-tools-link" href="/api/mcp/tools"><code class="inline">/api/mcp/tools</code></a> &mdash;
-        point your agent there first to discover every tool and its parameters.
+        Connect your MCP client to the single endpoint below using the
+        <strong>Streamable HTTP</strong> transport (sometimes shown as <em>HTTP</em> or
+        <em>streamable-http</em>):
+    </p>
+    <pre class="code"><span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp</pre>
+    <ul>
+        <li><strong>Transport:</strong> Streamable HTTP (MCP spec 2025-03-26 and later).</li>
+        <li><strong>Auth:</strong> none &mdash; the server is public and read-only.</li>
+        <li><strong>Server name:</strong> <code class="inline">security-advisory</code>.</li>
+    </ul>
+    <p class="text-muted">
+        <small>Your client discovers the tools automatically over the protocol (an MCP
+        <code class="inline">tools/list</code> call); there is no separate manifest URL to configure.</small>
     </p>
 
-    <h3 id="endpoints">Endpoints</h3>
+    <h3 id="tools">Tools</h3>
+    <p>The server advertises these tools. Optional parameters are marked <em>(opt)</em>.</p>
     <div class="table-responsive">
         <table class="table table-striped table-bordered">
             <thead>
-            <tr><th>Tool</th><th>Method &amp; Path</th><th>Description</th></tr>
+            <tr><th>Tool</th><th>Parameters</th><th>Description</th></tr>
             </thead>
             <tbody>
             <tr>
-                <td><code>list_tools</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/tools</code></td>
-                <td>Self-describing manifest of every tool and its parameters.</td>
-            </tr>
-            <tr>
                 <td><code>get_cve</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/cve/{cveId}</code></td>
-                <td>Full detail for a single CVE (e.g. <code>CVE-2024-3094</code>). 404 if not tracked.</td>
+                <td><code>cveId</code></td>
+                <td>Full detail for a single CVE (e.g. <code>CVE-2024-3094</code>); null if not tracked.</td>
             </tr>
             <tr>
                 <td><code>search_advisories</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/search?term=&amp;page=&amp;size=</code></td>
-                <td>Paged free-text search over CVE id and description.</td>
-            </tr>
-            <tr>
-                <td><code>stream_search</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/search/stream?term=&amp;size=&amp;maxPages=</code></td>
-                <td>SSE stream of every search result.</td>
+                <td><code>term</code>, <code>page</code> <em>(opt)</em>, <code>size</code> <em>(opt)</em></td>
+                <td>Free-text search over CVE id and description; returns one page of matches.</td>
             </tr>
             <tr>
                 <td><code>match_cpe</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/cpe?cpe=&amp;includeVersion=&amp;startDate=</code></td>
+                <td><code>cpe</code>, <code>includeVersion</code> <em>(opt)</em></td>
                 <td>Match advisories from a full or partial CPE 2.3 identifier.</td>
             </tr>
             <tr>
                 <td><code>product_advisories</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/product/{name}</code></td>
-                <td>All advisories that reference a product name.</td>
+                <td><code>name</code></td>
+                <td>All advisory summaries that reference a product name.</td>
             </tr>
             <tr>
                 <td><code>check_package</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/product/{name}/version/{version}?vendor=</code></td>
-                <td>Version-aware verdict on whether one product version is vulnerable.</td>
+                <td><code>name</code>, <code>version</code> <em>(opt)</em>, <code>vendor</code> <em>(opt)</em></td>
+                <td>Version-aware verdict on whether one installed package is vulnerable.</td>
             </tr>
             <tr>
                 <td><code>check_packages</code></td>
-                <td><span class="method method-post">POST</span> <code>/api/mcp/check</code></td>
-                <td>Batch-check a JSON array of <code>{name, version, vendor?}</code> packages.</td>
-            </tr>
-            <tr>
-                <td><code>stream_check_packages</code></td>
-                <td><span class="method method-post">POST</span> <code>/api/mcp/check/stream</code></td>
-                <td>SSE stream of per-package findings for an OS manifest; progress is persisted.</td>
-            </tr>
-            <tr>
-                <td><code>scan_status</code></td>
-                <td><span class="method method-get">GET</span> <code>/api/mcp/scan/{id}</code></td>
-                <td>Poll the status/progress of a streamed package scan.</td>
+                <td><code>packages</code> &mdash; list of <code>{name, version?, vendor?}</code></td>
+                <td>Batch-check a list of installed packages for known vulnerabilities.</td>
             </tr>
             </tbody>
         </table>
     </div>
 
-    <h4>Examples</h4>
-    <pre class="code"><span class="mcp-base">https://sec.midnightbsd.org</span>
-
-# Look up a single CVE
-curl <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/cve/CVE-2024-3094
-
-# Is sendmail 5.58 vulnerable?
-curl "<span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/product/sendmail/version/5.58"
-
-# Match a (partial) CPE
-curl "<span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/cpe?cpe=cpe:2.3:a:apache:mod_dav_svn:1.14.2&amp;includeVersion=true"
-
-# Batch-check a list of installed packages
-curl -X POST <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/check \
-  -H 'Content-Type: application/json' \
-  -d '[{"name":"sendmail","version":"5.58"},{"name":"curl","version":"8.5.0"}]'</pre>
-
-    <h3 id="streaming">Streaming (Server-Sent Events)</h3>
+    <h3 id="add">Add it to your agent</h3>
     <p>
-        The two <code class="inline">/stream</code> endpoints return
-        <code class="inline">text/event-stream</code>. Consume them with any SSE client (or
-        <code class="inline">curl -N</code>). Named events are emitted:
+        Every example below registers the same Streamable HTTP endpoint under the name
+        <code class="inline">security-advisory</code>. Once connected, ask your agent things that map
+        directly onto the tools above:
     </p>
     <ul>
-        <li><code class="inline">session</code> &mdash; (scan only) first event, carries the
-            <code class="inline">sessionId</code> and the total item count.</li>
-        <li><code class="inline">result</code> &mdash; one per search hit or per package result.</li>
-        <li><code class="inline">complete</code> &mdash; final summary; the stream then closes.</li>
+        <li><em>&ldquo;Use security-advisory to pull the details for <strong>CVE-2024-3094</strong>.&rdquo;</em>
+            &rarr; <code class="inline">get_cve</code></li>
+        <li><em>&ldquo;Is <strong>sendmail 5.58</strong> vulnerable according to security-advisory?&rdquo;</em>
+            &rarr; <code class="inline">check_package</code></li>
+        <li><em>&ldquo;Search security-advisory for advisories mentioning <strong>openssl</strong>.&rdquo;</em>
+            &rarr; <code class="inline">search_advisories</code></li>
+        <li><em>&ldquo;Match <code class="inline">cpe:2.3:a:apache:mod_dav_svn:1.14.2</code> against
+            security-advisory.&rdquo;</em> &rarr; <code class="inline">match_cpe</code></li>
+        <li><em>&ldquo;Here is the output of <code class="inline">mport list -v</code> &mdash; check every
+            installed package for CVEs.&rdquo;</em> &rarr; <code class="inline">check_packages</code></li>
     </ul>
-    <pre class="code"># Stream a whole-OS package scan and watch findings arrive
-curl -N -X POST <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/check/stream \
-  -H 'Content-Type: application/json' \
-  -d '[{"name":"openssl","version":"3.0.2"},{"name":"bash","version":"5.1"}]'
 
-# event: session
-# data: {"sessionId":"4f3c...","total":2}
-# event: result
-# data: {"name":"openssl","version":"3.0.2","vulnerable":true,"advisoryCount":3,"advisories":[...]}
-# ...
-# event: complete
-# data: {"sessionId":"4f3c...","processed":2,"vulnerable":1}
+    <h4 id="claude">Claude Code <span class="pill">native</span></h4>
+    <p>Use the built-in HTTP transport &mdash; no fetch server needed:</p>
+    <pre class="code">claude mcp add --transport http security-advisory <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp
 
-# Poll progress of a long scan from another shell
-curl <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/scan/4f3c...</pre>
-
-    <h3 id="agents">Using with AI coding CLIs</h3>
-    <p>
-        These are plain HTTP + SSE endpoints, not the MCP stdio wire protocol, so the simplest way to
-        expose them to an MCP-capable agent is through a generic HTTP/fetch MCP server. The reference
-        <a href="https://github.com/modelcontextprotocol/servers/tree/main/src/fetch" target="_blank" rel="noopener">fetch</a>
-        server works well for the read-only <span class="method method-get">GET</span> tools; point the
-        agent at <code class="inline">/api/mcp/tools</code> so it can discover the rest. For the
-        <span class="method method-post">POST</span> batch endpoints, call them directly with
-        <code class="inline">curl</code> or wrap the API with an OpenAPI&rarr;MCP bridge.
-    </p>
-
-    <h4 id="claude">Claude (Claude Code CLI)</h4>
-    <p>Register a fetch MCP server, then ask Claude to use it against the manifest:</p>
-    <pre class="code"># add a generic fetch MCP server
-claude mcp add fetch -- uvx mcp-server-fetch
+# verify it connected
+claude mcp list
 
 # then, in a Claude Code session:
-#   "Using the fetch tool, GET <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/tools to
-#    discover the security-advisory tools, then check whether openssl 3.0.2 is vulnerable."</pre>
+#   "Using security-advisory, check whether sendmail 5.58 is vulnerable,
+#    and pull the full details for any CVE it reports."</pre>
     <p>
-        Equivalent project config in <code class="inline">.mcp.json</code> (committed to your repo so
-        teammates share it):
+        Or commit it to your repo as <code class="inline">.mcp.json</code> so teammates share it:
     </p>
     <pre class="code">{
   "mcpServers": {
-    "fetch": { "command": "uvx", "args": ["mcp-server-fetch"] }
-  }
-}</pre>
-
-    <h4 id="codex">Codex (OpenAI Codex CLI)</h4>
-    <p>Add the server under <code class="inline">[mcp_servers]</code> in <code class="inline">~/.codex/config.toml</code>:</p>
-    <pre class="code">[mcp_servers.fetch]
-command = "uvx"
-args = ["mcp-server-fetch"]
-
-# then prompt Codex, e.g.:
-#   "Fetch <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp/product/sendmail/version/5.58
-#    and tell me if it is vulnerable."</pre>
-
-    <h4 id="antigravity">Antigravity CLI</h4>
-    <p>
-        Antigravity reads MCP servers from its config (the same
-        <code class="inline">mcpServers</code> JSON shape used by most MCP clients). Add:
-    </p>
-    <pre class="code">{
-  "mcpServers": {
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"]
+    "security-advisory": {
+      "type": "http",
+      "url": "<span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp"
     }
   }
 }</pre>
-    <p>
-        Then ask the agent to GET <code class="inline mcp-base">https://sec.midnightbsd.org</code><code class="inline">/api/mcp/tools</code>
-        and call the security-advisory tools by URL. For automated package scanning, pipe your installed
-        package list into <code class="inline">POST /api/mcp/check</code> (or the streaming variant) as
-        shown in the examples above.
-    </p>
 
+    <h4 id="codex">Codex <span class="pill">native</span></h4>
+    <p>Codex supports streamable HTTP servers directly via <code class="inline">--url</code>:</p>
+    <pre class="code">codex mcp add security-advisory --url <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp
+
+# list configured servers
+codex mcp list
+
+# then prompt Codex, e.g.:
+#   "With security-advisory, match cpe:2.3:a:apache:mod_dav_svn:1.14.2
+#    (include the version) and summarize the advisories."</pre>
+    <p>
+        The equivalent entry in <code class="inline">~/.codex/config.toml</code>:
+    </p>
+    <pre class="code">[mcp_servers.security-advisory]
+url = "<span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp"</pre>
+
+    <h4 id="generic">Other clients (Antigravity, Claude Desktop, &hellip;)</h4>
+    <p>
+        Most MCP clients accept the standard <code class="inline">mcpServers</code> JSON shape. For an
+        HTTP/streamable server, give it a <code class="inline">url</code> (and
+        <code class="inline">type: "http"</code> where the client asks for a transport):
+    </p>
+    <pre class="code">{
+  "mcpServers": {
+    "security-advisory": {
+      "type": "http",
+      "url": "<span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp"
+    }
+  }
+}</pre>
+
+    <h3 id="verify">Verify the connection</h3>
+    <p>
+        You can exercise the endpoint by hand with <code class="inline">curl</code>. A real client
+        negotiates a session first; this <code class="inline">tools/list</code> call confirms the server
+        is up and lists the tools:
+    </p>
+    <pre class="code"># List the security-advisory tools
+curl -sN <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+
+# Call a tool directly: is sendmail 5.58 vulnerable?
+curl -sN <span class="mcp-base">https://sec.midnightbsd.org</span>/api/mcp \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call",
+       "params":{"name":"check_package",
+                 "arguments":{"name":"sendmail","version":"5.58"}}}'</pre>
     <p class="text-muted mt-4"><small>
-        Tip: <code class="inline">uvx</code> ships with <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv</a>.
-        Any MCP client with an HTTP/fetch tool can consume this API; the fetch server above is just the
-        most portable option.
+        Note: this is a real MCP server, not a plain REST API &mdash; POST JSON-RPC to
+        <code class="inline">/api/mcp</code> rather than issuing GET requests to per-tool paths. Let your
+        MCP client drive it; the <code class="inline">curl</code> above is only for a quick smoke test.
     </small></p>
 
 </div>
