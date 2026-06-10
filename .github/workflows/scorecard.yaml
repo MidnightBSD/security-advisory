@@ -1,6 +1,6 @@
 name: OpenSSF Scorecard Analysis
 on:
-  security_events:
+  security_event:
     types: [opened]
   push:
     branches: [ "main" ]
