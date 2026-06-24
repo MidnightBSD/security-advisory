@@ -44,7 +44,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @ControllerAdvice
 public class ExceptionHandlingController {
   private static final String ERR_REQUEST = "Request: ";
-  private static final String ERR_RAISED = "raised: ";
+  private static final String ERR_RAISED = " raised: ";
 
   @ResponseStatus(value = HttpStatus.CONFLICT, reason = "Data integrity violation") // 409
   @ExceptionHandler(DataIntegrityViolationException.class)
