@@ -60,8 +60,16 @@ public final class HomeController {
 
   @GetMapping
   public String home(Model model) {
-    model.addAttribute("vendors", vendorService.list());
+    model.addAttribute("vendorGroups", vendorService.groups());
     return "index";
+  }
+
+  @GetMapping("/vendors/{group}")
+  public String vendors(@PathVariable("group") String group, Model model) {
+    model.addAttribute("vendorGroups", vendorService.groups());
+    model.addAttribute("selectedGroup", group);
+    model.addAttribute("vendors", vendorService.getByGroup(group));
+    return "vendors";
   }
 
   @GetMapping("/advisory/{vendor}")

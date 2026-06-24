@@ -4,16 +4,19 @@
 <body>
 
 <style>
-    .vendor-columns {
-        columns: 2;
-        column-gap: 1.5rem;
+    .vendor-groups {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+        gap: 0.5rem;
+        max-width: 56rem;
     }
-    @media (min-width: 576px) { .vendor-columns { columns: 3; } }
-    @media (min-width: 768px) { .vendor-columns { columns: 4; } }
-    @media (min-width: 992px) { .vendor-columns { columns: 5; } }
-    .vendor-columns li {
-        break-inside: avoid;
-        padding: 0.1rem 0;
+    .vendor-group-link {
+        display: block;
+        padding: 0.5rem 0.25rem;
+        text-align: center;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        text-decoration: none;
     }
 </style>
 
@@ -45,11 +48,12 @@
     <div class="row mt-4">
         <div class="col-12">
             <h2>Find by Vendor</h2>
-            <ul class="list-unstyled vendor-columns">
-                <li th:each="vendor : ${vendors}">
-                    <a th:href="@{/advisory/{name}(name=${vendor.name})}" th:text="${vendor.name}">Vendor Name</a>
-                </li>
-            </ul>
+            <div class="vendor-groups">
+                <a class="vendor-group-link"
+                   th:each="group : ${vendorGroups}"
+                   th:href="@{/vendors/{group}(group=${group})}"
+                   th:text="${group == 'other' ? 'Symbols' : group}">A</a>
+            </div>
         </div>
     </div>
 

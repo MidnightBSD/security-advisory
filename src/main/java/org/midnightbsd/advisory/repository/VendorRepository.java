@@ -26,11 +26,24 @@
 package org.midnightbsd.advisory.repository;
 
 
+import java.util.List;
 import org.midnightbsd.advisory.model.Vendor;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 /** @author Lucas Holt */
 public interface VendorRepository extends JpaRepository<Vendor, Integer> {
   Vendor findOneByName(@Param("name") String name);
+
+  @Query(
+      value = "SELECT * FROM vendor WHERE lower(name) LIKE concat(lower(:prefix), '%') ORDER BY name",
+      nativeQuery = true)
+  List<Vendor> findByNamePrefix(@Param("prefix") String prefix);
+
+  @Query(value = "SELECT * FROM vendor WHERE name ~ '^[0-9]' ORDER BY name", nativeQuery = true)
+  List<Vendor> findByNameStartingWithDigit();
+
+  @Query(value = "SELECT * FROM vendor WHERE name !~ '^[A-Za-z0-9]' ORDER BY name", nativeQuery = true)
+  List<Vendor> findByNameStartingWithSymbol();
 }
