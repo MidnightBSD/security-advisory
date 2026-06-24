@@ -167,48 +167,65 @@ public class NvdImportService {
       } else {
         advisory.setProducts(mergeProducts(a.getProducts(), processVendorAndProducts(cve)));
         final boolean advisoryUpdate = hasAdvisoryUpdates(a, advisory);
+        final boolean metricsUpdated = refreshCvssMetrics3(cve, a);
         final boolean configurationsUpdated = refreshConfigurations(cve, a);
         advisory = advisoryService.save(advisory);
-        if (configurationsUpdated && !advisoryUpdate) {
+        if ((metricsUpdated || configurationsUpdated) && !advisoryUpdate) {
           searchIndex(advisoryService.get(advisory.getId()));
         }
         return;
       }
 
-      // TODO: make the rest of this work with updates
-        if (cve.getMetrics() != null && !CollectionUtils.isEmpty(cve.getMetrics().getCvssMetricV31())) {
-          var cvssMetrics3 = new HashSet<CvssMetrics3>();
-          for (var metric : cve.getMetrics().getCvssMetricV31()) {
-            CvssMetrics3 metrics3 = new CvssMetrics3();
-            metrics3.setSource(metric.getSource());
-            metrics3.setType(metric.getType());
-            metrics3.setExploitabilityScore(Double.toString(metric.getExploitabilityScore()));
-            metrics3.setImpactScore(Double.toString(metric.getImpactScore()));
-
-            metrics3.setAccessComplexity(metric.getCvssData().getAccessComplexity());
-            metrics3.setAccessVector(metric.getCvssData().getAccessVector());
-            metrics3.setAuthentication(metric.getCvssData().getAuthentication());
-            metrics3.setAvailabilityImpact(metric.getCvssData().getAvailabilityImpact());
-            metrics3.setConfidentialityImpact(metric.getCvssData().getConfidentialityImpact());
-            metrics3.setIntegrityImpact(metric.getCvssData().getIntegrityImpact());
-            metrics3.setAttackVector(metric.getCvssData().getAttackVector());
-            metrics3.setVersion(metric.getCvssData().getVersion());
-            metrics3.setBaseScore(Double.toString(metric.getCvssData().getBaseScore()));
-            metrics3.setBaseSeverity(metric.getCvssData().getBaseSeverity());
-            metrics3.setScope(metric.getCvssData().getScope());
-            metrics3.setVectorString(metric.getCvssData().getVectorString());
-            metrics3.setUserInteraction(metric.getCvssData().getUserInteraction());
-            metrics3.setAttackComplexity(metric.getCvssData().getAttackComplexity());
-            metrics3.setPrivilegesRequired(metrics3.getPrivilegesRequired());
-            metrics3.setAdvisory(advisory);
-            cvssMetrics3.add(metrics3);
-          }
-          cvssMetrics3Repository.saveAllAndFlush(cvssMetrics3);
-        }
+      refreshCvssMetrics3(cve, advisory);
 
       refreshConfigurations(cve, advisory);
 
       searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
+  }
+
+  private boolean refreshCvssMetrics3(final Cve cve, final Advisory advisory) {
+    if (cve.getMetrics() == null || CollectionUtils.isEmpty(cve.getMetrics().getCvssMetricV31())) {
+      return false;
+    }
+
+    if (advisory.getId() != 0) {
+      cvssMetrics3Repository.deleteByAdvisoryId(advisory.getId());
+      cvssMetrics3Repository.flush();
+    }
+
+    final Set<CvssMetrics3> cvssMetrics3 = new HashSet<>();
+    for (var metric : cve.getMetrics().getCvssMetricV31()) {
+      cvssMetrics3.add(cvssMetric(metric, advisory));
+    }
+    cvssMetrics3Repository.saveAllAndFlush(cvssMetrics3);
+    return true;
+  }
+
+  private static CvssMetrics3 cvssMetric(
+      final CvssMetricV31 metric, final Advisory advisory) {
+    final CvssMetrics3 metrics3 = new CvssMetrics3();
+    metrics3.setSource(metric.getSource());
+    metrics3.setType(metric.getType());
+    metrics3.setExploitabilityScore(Double.toString(metric.getExploitabilityScore()));
+    metrics3.setImpactScore(Double.toString(metric.getImpactScore()));
+
+    metrics3.setAccessComplexity(metric.getCvssData().getAccessComplexity());
+    metrics3.setAccessVector(metric.getCvssData().getAccessVector());
+    metrics3.setAuthentication(metric.getCvssData().getAuthentication());
+    metrics3.setAvailabilityImpact(metric.getCvssData().getAvailabilityImpact());
+    metrics3.setConfidentialityImpact(metric.getCvssData().getConfidentialityImpact());
+    metrics3.setIntegrityImpact(metric.getCvssData().getIntegrityImpact());
+    metrics3.setAttackVector(metric.getCvssData().getAttackVector());
+    metrics3.setVersion(metric.getCvssData().getVersion());
+    metrics3.setBaseScore(Double.toString(metric.getCvssData().getBaseScore()));
+    metrics3.setBaseSeverity(metric.getCvssData().getBaseSeverity());
+    metrics3.setScope(metric.getCvssData().getScope());
+    metrics3.setVectorString(metric.getCvssData().getVectorString());
+    metrics3.setUserInteraction(metric.getCvssData().getUserInteraction());
+    metrics3.setAttackComplexity(metric.getCvssData().getAttackComplexity());
+    metrics3.setPrivilegesRequired(metric.getCvssData().getPrivilegesRequired());
+    metrics3.setAdvisory(advisory);
+    return metrics3;
   }
 
   private boolean refreshConfigurations(final Cve cve, final Advisory advisory) {

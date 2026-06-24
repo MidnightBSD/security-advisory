@@ -167,7 +167,7 @@ public class SearchService {
         metrics3.setVectorString(metric.getVectorString());
         metrics3.setUserInteraction(metric.getUserInteraction());
         metrics3.setAttackComplexity(metric.getAttackComplexity());
-        metrics3.setPrivilegesRequired(metrics3.getPrivilegesRequired());
+        metrics3.setPrivilegesRequired(metric.getPrivilegesRequired());
 
         metrics.add(metrics3);
       }

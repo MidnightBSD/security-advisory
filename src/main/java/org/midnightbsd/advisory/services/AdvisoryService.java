@@ -245,13 +245,15 @@ public class AdvisoryService implements AppService<Advisory> {
         }
 
         if (advisory.getLastModifiedDate() != null
-            && advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0) {
+            && (adv.getLastModifiedDate() == null
+                || advisory.getLastModifiedDate().compareTo(adv.getLastModifiedDate()) != 0)) {
           adv.setLastModifiedDate(advisory.getLastModifiedDate());
           update = true;
         }
 
         if (advisory.getPublishedDate() != null
-            && advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0) {
+            && (adv.getPublishedDate() == null
+                || advisory.getPublishedDate().compareTo(adv.getPublishedDate()) != 0)) {
           adv.setPublishedDate(advisory.getPublishedDate());
           update = true;
         }
@@ -263,14 +265,15 @@ public class AdvisoryService implements AppService<Advisory> {
         }
 
         if (advisory.getProblemType() != null
-            && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
+            && !advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
           adv.setProblemType(advisory.getProblemType());
           update = true;
         }
 
-        if (update && advisory.getProducts() != null) {
+        if (advisory.getProducts() != null && !sameProducts(adv.getProducts(), advisory.getProducts())) {
           log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
           adv.setProducts(advisory.getProducts());
+          update = true;
         }
 
         if (update) {
@@ -328,7 +331,7 @@ public class AdvisoryService implements AppService<Advisory> {
     }
 
     if (advisory.getProblemType() != null
-        && advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
+        && !advisory.getProblemType().equalsIgnoreCase(adv.getProblemType())) {
       adv.setProblemType(advisory.getProblemType());
       update = true;
     }

@@ -51,6 +51,8 @@ class AdvisoryServiceTest {
 
   @Mock private ProductRepository productRepository;
 
+  @Mock private SearchService searchService;
+
   @InjectMocks private AdvisoryService advisoryService;
 
   Advisory adv;
@@ -221,5 +223,60 @@ class AdvisoryServiceTest {
 
     assertNotNull(items);
     assertTrue(items.size() > 0);
+  }
+
+  @Test
+  void saveUpdatesChangedProblemType() {
+    Advisory existing = new Advisory();
+    existing.setCveId("CVE-0000-0001");
+    existing.setProblemType("CWE-79");
+
+    Advisory update = new Advisory();
+    update.setCveId(existing.getCveId());
+    update.setProblemType("CWE-89");
+
+    when(advisoryRepository.findOneByCveId(existing.getCveId())).thenReturn(existing);
+    when(advisoryRepository.saveAndFlush(existing)).thenReturn(existing);
+
+    Advisory result = advisoryService.save(update);
+
+    assertSame(existing, result);
+    assertEquals("CWE-89", existing.getProblemType());
+    verify(advisoryRepository).saveAndFlush(existing);
+    verify(searchService).index(existing);
+  }
+
+  @Test
+  void batchSaveUpdatesExistingAdvisoryWhenOnlyProductsChange() {
+    Vendor vendor = new Vendor();
+    vendor.setName("vendor");
+
+    Product oldProduct = new Product();
+    oldProduct.setName("product");
+    oldProduct.setVersion("1.0");
+    oldProduct.setVendor(vendor);
+
+    Product newProduct = new Product();
+    newProduct.setName("product");
+    newProduct.setVersion("2.0");
+    newProduct.setVendor(vendor);
+
+    Advisory existing = new Advisory();
+    existing.setCveId("CVE-0000-0002");
+    existing.setProducts(new HashSet<>(Set.of(oldProduct)));
+
+    Advisory update = new Advisory();
+    update.setCveId(existing.getCveId());
+    update.setProducts(new HashSet<>(Set.of(oldProduct, newProduct)));
+
+    when(advisoryRepository.findOneByCveId(existing.getCveId())).thenReturn(existing);
+    when(advisoryRepository.save(existing)).thenReturn(existing);
+    when(advisoryRepository.saveAll(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+    advisoryService.batchSave(List.of(update));
+
+    assertEquals(2, existing.getProducts().size());
+    verify(advisoryRepository).save(existing);
+    verify(searchService).index(existing);
   }
 }

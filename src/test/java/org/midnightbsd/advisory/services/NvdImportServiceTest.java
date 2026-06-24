@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -17,11 +18,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.ConfigNode;
 import org.midnightbsd.advisory.model.ConfigNodeCpe;
+import org.midnightbsd.advisory.model.CvssMetrics3;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.model.nvd2.Configuration;
 import org.midnightbsd.advisory.model.nvd2.CpeMatch;
 import org.midnightbsd.advisory.model.nvd2.Cve;
+import org.midnightbsd.advisory.model.nvd2.CvssData;
+import org.midnightbsd.advisory.model.nvd2.CvssMetricV31;
+import org.midnightbsd.advisory.model.nvd2.Metrics;
 import org.midnightbsd.advisory.model.nvd2.Node;
 import org.midnightbsd.advisory.model.nvd2.Vulnerability;
 import org.midnightbsd.advisory.repository.ConfigNodeCpeRepository;
@@ -163,6 +168,42 @@ class NvdImportServiceTest {
     verify(searchService).index(advisory);
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  void existingAdvisoryImportReplacesCvssMetrics() throws Exception {
+    Advisory advisory = new Advisory();
+    advisory.setId(1);
+    advisory.setCveId("CVE-1999-0181");
+    advisory.setDescription("old");
+    advisory.setPublishedDate(new Date(2L));
+    advisory.setLastModifiedDate(new Date(2L));
+    advisory.setSeverity("LOW");
+    advisory.setProducts(new HashSet<>());
+
+    Vulnerability vulnerability = new Vulnerability();
+    Cve cve = new Cve();
+    cve.setId(advisory.getCveId());
+    cve.setPublished(new Date(2L));
+    cve.setLastModified(new Date(2L));
+    cve.setMetrics(metrics());
+    setField(vulnerability, "cve", cve);
+
+    when(advisoryService.getByCveId(advisory.getCveId())).thenReturn(advisory);
+    when(advisoryService.get(advisory.getId())).thenReturn(advisory);
+    when(advisoryService.save(any(Advisory.class))).thenReturn(advisory);
+
+    ArgumentCaptor<Collection<CvssMetrics3>> metricsCaptor = ArgumentCaptor.forClass(Collection.class);
+
+    nvdImportService.importVulnerability(vulnerability);
+
+    verify(cvssMetrics3Repository).deleteByAdvisoryId(advisory.getId());
+    verify(cvssMetrics3Repository).saveAllAndFlush(metricsCaptor.capture());
+    CvssMetrics3 metric = metricsCaptor.getValue().iterator().next();
+    Assertions.assertEquals("NETWORK", metric.getAttackVector());
+    Assertions.assertEquals("LOW", metric.getPrivilegesRequired());
+    verify(searchService).index(advisory);
+  }
+
   private static Configuration configuration(final String cpe23Uri) throws Exception {
     CpeMatch cpeMatch = new CpeMatch();
     setField(cpeMatch, "criteria", cpe23Uri);
@@ -176,6 +217,36 @@ class NvdImportServiceTest {
     Configuration configuration = new Configuration();
     setField(configuration, "nodes", List.of(node));
     return configuration;
+  }
+
+  private static Metrics metrics() {
+    CvssData data = new CvssData();
+    data.setAccessComplexity("LOW");
+    data.setAccessVector("NETWORK");
+    data.setAuthentication("NONE");
+    data.setAvailabilityImpact("HIGH");
+    data.setConfidentialityImpact("HIGH");
+    data.setIntegrityImpact("HIGH");
+    data.setAttackVector("NETWORK");
+    data.setVersion("3.1");
+    data.setBaseScore(9.8);
+    data.setBaseSeverity("CRITICAL");
+    data.setScope("UNCHANGED");
+    data.setVectorString("CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H");
+    data.setUserInteraction("NONE");
+    data.setAttackComplexity("LOW");
+    data.setPrivilegesRequired("LOW");
+
+    CvssMetricV31 metric = new CvssMetricV31();
+    metric.setSource("nvd@nist.gov");
+    metric.setType("Primary");
+    metric.setExploitabilityScore(3.9);
+    metric.setImpactScore(5.9);
+    metric.setCvssData(data);
+
+    Metrics metrics = new Metrics();
+    metrics.setCvssMetricV31(List.of(metric));
+    return metrics;
   }
 
   private static void setField(Object target, String fieldName, Object value) throws Exception {
