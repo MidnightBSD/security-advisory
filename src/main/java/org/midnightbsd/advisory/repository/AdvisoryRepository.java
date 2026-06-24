@@ -42,6 +42,8 @@ public interface AdvisoryRepository extends JpaRepository<Advisory, Integer> {
 
   List<Advisory> findByPublishedDateBetween(Date startDate, Date endDate);
 
+  Page<Advisory> findByPublishedDateIsNotNullOrderByPublishedDateDesc(Pageable page);
+
   List<Advisory> findByLastModifiedDateBetween(Date startDate, Date endDate);
 
   Page<Advisory> findByLastModifiedDateBetween(Date startDate, Date endDate, Pageable page);

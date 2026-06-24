@@ -45,6 +45,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public final class HomeController {
 
   private static final int SEARCH_PAGE_SIZE = 10;
+  private static final int RECENT_CVE_COUNT = 10;
 
   private final VendorService vendorService;
   private final AdvisoryService advisoryService;
@@ -60,6 +61,7 @@ public final class HomeController {
 
   @GetMapping
   public String home(Model model) {
+    model.addAttribute("recentAdvisories", advisoryService.latest(RECENT_CVE_COUNT));
     model.addAttribute("vendorGroups", vendorService.groups());
     return "index";
   }
@@ -77,6 +79,13 @@ public final class HomeController {
     model.addAttribute("vendor", vendor);
     model.addAttribute("advisories", advisoryService.getByVendor(vendor));
     return "advisory";
+  }
+
+  @GetMapping("/cve/{cveId}")
+  public String cve(@PathVariable("cveId") String cveId, Model model) {
+    model.addAttribute("advisory", advisoryService.getByCveId(cveId));
+    model.addAttribute("cveId", cveId);
+    return "cve";
   }
 
   @GetMapping("/search")

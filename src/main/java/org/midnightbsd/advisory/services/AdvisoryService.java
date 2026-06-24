@@ -212,6 +212,14 @@ public class AdvisoryService implements AppService<Advisory> {
     return repository.findAll(page);
   }
 
+  public List<Advisory> latest(final int limit) {
+    if (limit <= 0) {
+      return List.of();
+    }
+    return repository.findByPublishedDateIsNotNullOrderByPublishedDateDesc(Pageable.ofSize(limit))
+        .getContent();
+  }
+
   public Advisory get(final int id) {
     final Optional<Advisory> advisory = repository.findById(id);
     return advisory.orElse(null);

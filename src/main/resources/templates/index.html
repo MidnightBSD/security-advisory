@@ -18,6 +18,12 @@
         border-radius: 0.25rem;
         text-decoration: none;
     }
+    .recent-cve-list a {
+        text-decoration: none;
+    }
+    .recent-cve-title {
+        color: #495057;
+    }
 </style>
 
 <th:block th:replace="~{fragments/common :: header}"></th:block>
@@ -39,6 +45,27 @@
                 <input type="text" name="term" id="bquery" class="form-control" placeholder="Search term..." />
                 <button type="submit" class="btn btn-primary">Find</button>
             </form>
+        </div>
+    </div>
+
+    <hr />
+
+    <!-- Recent CVEs -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <h2>Most Recent CVEs</h2>
+            <p th:if="${#lists.isEmpty(recentAdvisories)}">No recent CVEs found.</p>
+            <div class="list-group recent-cve-list" th:if="${!#lists.isEmpty(recentAdvisories)}">
+                <a class="list-group-item list-group-item-action"
+                   th:each="adv : ${recentAdvisories}"
+                   th:href="@{/cve/{cveId}(cveId=${adv.cveId})}">
+                    <span class="fw-semibold font-monospace" th:text="${adv.cveId}">CVE-XXXX-XXXX</span>
+                    <span class="d-block recent-cve-title"
+                          th:text="${adv.description != null and #strings.length(adv.description) > 180 ? #strings.substring(adv.description, 0, 180) + '...' : adv.description}">
+                        CVE title
+                    </span>
+                </a>
+            </div>
         </div>
     </div>
 

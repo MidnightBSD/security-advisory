@@ -40,6 +40,8 @@ import org.midnightbsd.advisory.repository.VendorRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 /** @author Lucas Holt */
 @ExtendWith(MockitoExtension.class)
@@ -108,6 +110,26 @@ class AdvisoryServiceTest {
     assertEquals("Foo", adv2.getDescription());
 
     verify(advisoryRepository, times(1)).findById(1);
+  }
+
+  @Test
+  void latestReturnsPublishedAdvisoriesUsingLimit() {
+    when(advisoryRepository.findByPublishedDateIsNotNullOrderByPublishedDateDesc(any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(adv)));
+
+    List<Advisory> result = advisoryService.latest(10);
+
+    assertEquals(List.of(adv), result);
+    verify(advisoryRepository)
+        .findByPublishedDateIsNotNullOrderByPublishedDateDesc(argThat(page -> page.getPageSize() == 10));
+  }
+
+  @Test
+  void latestReturnsEmptyForInvalidLimit() {
+    List<Advisory> result = advisoryService.latest(0);
+
+    assertTrue(result.isEmpty());
+    verify(advisoryRepository, never()).findByPublishedDateIsNotNullOrderByPublishedDateDesc(any());
   }
 
   @Test
