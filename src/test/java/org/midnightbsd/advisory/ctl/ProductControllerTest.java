@@ -157,6 +157,11 @@ class ProductControllerTest {
   }
 
   @Test
+  void testGetByIdOrVersionRejectsBlank() {
+    assertEquals(400, controller.get("   ").getStatusCode().value());
+  }
+
+  @Test
   void mvcTestGetByNameAndVersion() throws Exception {
     when(productRepository.findByNameAndVersion(TEST_PRODUCT_NAME, TEST_VERSION))
         .thenReturn(product);

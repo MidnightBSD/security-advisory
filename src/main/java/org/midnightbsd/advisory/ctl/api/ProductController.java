@@ -57,15 +57,19 @@ public class ProductController {
   @GetMapping("/{idOrVersion}")
   public ResponseEntity<List<ProductDto>> get(
       @PathVariable("idOrVersion") final String idOrVersion) {
+    final String cleanedIdOrVersion = idOrVersion.trim();
+    if (cleanedIdOrVersion.isEmpty()) {
+      return ResponseEntity.badRequest().build();
+    }
     try {
-      int id = Integer.parseInt(idOrVersion);
+      int id = Integer.parseInt(cleanedIdOrVersion);
       return productRepository
           .findById(id)
           .map(p -> ResponseEntity.ok(List.of(ProductDto.from(p))))
           .orElseGet(() -> ResponseEntity.notFound().build());
     } catch (NumberFormatException e) {
       List<ProductDto> results =
-          productRepository.findByVersion(idOrVersion).stream().map(ProductDto::from).toList();
+          productRepository.findByVersion(cleanedIdOrVersion).stream().map(ProductDto::from).toList();
       return results.isEmpty() ? ResponseEntity.notFound().build() : ResponseEntity.ok(results);
     }
   }
@@ -73,7 +77,12 @@ public class ProductController {
   @GetMapping("/name/{name}/version/{version}")
   public ResponseEntity<ProductDto> get(
       @PathVariable("name") final String name, @PathVariable("version") final String version) {
-    var product = productRepository.findByNameAndVersion(name, version);
+    final String cleanedName = name.trim();
+    final String cleanedVersion = version.trim();
+    if (cleanedName.isEmpty() || cleanedVersion.isEmpty()) {
+      return ResponseEntity.badRequest().build();
+    }
+    var product = productRepository.findByNameAndVersion(cleanedName, cleanedVersion);
     if (product == null) return ResponseEntity.notFound().build();
     return ResponseEntity.ok(ProductDto.from(product));
   }

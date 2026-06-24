@@ -36,6 +36,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 
 /** @author Lucas Holt */
 @RestController
@@ -56,6 +57,7 @@ public class AdvisoryController {
 
   @GetMapping("/{id}")
   public ResponseEntity<AdvisoryDto> get(@PathVariable("id") int id) {
+    if (id < 1) return ResponseEntity.badRequest().build();
     var advisory = advisoryService.get(id);
     if (advisory == null) return ResponseEntity.notFound().build();
     return ResponseEntity.ok(AdvisoryDto.from(advisory));
@@ -63,21 +65,30 @@ public class AdvisoryController {
 
   @GetMapping("/cve/{cveId}")
   public ResponseEntity<AdvisoryDto> get(@PathVariable("cveId") String cveId) {
-    var advisory = advisoryService.getByCveId(cveId);
+    if (!StringUtils.hasText(cveId)) return ResponseEntity.badRequest().build();
+    final String cleanedCveId = cveId.trim();
+    if (cleanedCveId.isEmpty()) return ResponseEntity.badRequest().build();
+    var advisory = advisoryService.getByCveId(cleanedCveId);
     if (advisory == null) return ResponseEntity.notFound().build();
     return ResponseEntity.ok(AdvisoryDto.from(advisory));
   }
 
   @GetMapping("product/{name}")
   public ResponseEntity<List<AdvisoryDto>> getbyProduct(@PathVariable("name") String name) {
+    if (!StringUtils.hasText(name)) return ResponseEntity.badRequest().build();
+    final String cleanedName = name.trim();
+    if (cleanedName.isEmpty()) return ResponseEntity.badRequest().build();
     return ResponseEntity.ok(
-        advisoryService.getByProduct(name).stream().map(AdvisoryDto::from).toList());
+        advisoryService.getByProduct(cleanedName).stream().map(AdvisoryDto::from).toList());
   }
 
   @GetMapping("vendor/{name}")
   public ResponseEntity<List<AdvisoryDto>> getbyVendor(@PathVariable("name") String name) {
+    if (!StringUtils.hasText(name)) return ResponseEntity.badRequest().build();
+    final String cleanedName = name.trim();
+    if (cleanedName.isEmpty()) return ResponseEntity.badRequest().build();
     return ResponseEntity.ok(
-        advisoryService.getByVendor(name).stream().map(AdvisoryDto::from).toList());
+        advisoryService.getByVendor(cleanedName).stream().map(AdvisoryDto::from).toList());
   }
 
   @GetMapping("vendor/{name}/product/{product}")
@@ -87,8 +98,16 @@ public class AdvisoryController {
       @RequestParam(required = false, name = "startDate")
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           Date startDate) {
+    if (!StringUtils.hasText(name) || !StringUtils.hasText(product)) {
+      return ResponseEntity.badRequest().build();
+    }
+    final String cleanedName = name.trim();
+    final String cleanedProduct = product.trim();
+    if (cleanedName.isEmpty() || cleanedProduct.isEmpty()) {
+      return ResponseEntity.badRequest().build();
+    }
     return ResponseEntity.ok(
-        advisoryService.getByVendorAndProduct(name, product, startDate).stream()
+        advisoryService.getByVendorAndProduct(cleanedName, cleanedProduct, startDate).stream()
             .map(AdvisoryDto::from)
             .toList());
   }

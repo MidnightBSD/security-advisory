@@ -144,6 +144,11 @@ class AdvisoryControllerTest {
   }
 
   @Test
+  void mvcTestGetRejectsInvalidId() throws Exception {
+    mockMvc.perform(get("/api/advisory/0")).andExpect(status().isBadRequest());
+  }
+
+  @Test
   void mvcTestGetByProductName() throws Exception {
     when(advisoryService.getByProduct(TEST_PRODUCT_NAME))
             .thenReturn(Collections.singletonList(adv));

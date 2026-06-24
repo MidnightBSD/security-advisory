@@ -111,6 +111,11 @@ class VendorControllerTest {
   }
 
   @Test
+  void mvcTestGetByIdRejectsInvalidId() throws Exception {
+    mockMvc.perform(get("/api/vendor/0")).andExpect(status().isBadRequest());
+  }
+
+  @Test
   void mvcTestGetByName() throws Exception {
     when(vendorService.getByName(TEST_VENDOR_NAME)).thenReturn(vendor);
     mockMvc

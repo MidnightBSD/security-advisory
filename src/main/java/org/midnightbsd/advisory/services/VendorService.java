@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public class VendorService {
     }
 
     public Vendor getByName(final String name) {
-        if (StringUtils.isEmpty(name)) return null;
+        if (!StringUtils.hasText(name)) return null;
 
         var nameTrimmed = name.trim();
         return repository.findOneByName(nameTrimmed);

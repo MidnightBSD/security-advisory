@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.StringUtils;
 
 /** @author Lucas Holt */
 @RestController
@@ -53,6 +54,7 @@ public class VendorController {
 
   @GetMapping("/{id}")
   public ResponseEntity<VendorDto> get(@PathVariable("id") int id) {
+    if (id < 1) return ResponseEntity.badRequest().build();
     var vendor = vendorService.get(id);
     if (vendor == null) return ResponseEntity.notFound().build();
     return ResponseEntity.ok(VendorDto.from(vendor));
@@ -60,7 +62,10 @@ public class VendorController {
 
   @GetMapping("/name/{name}")
   public ResponseEntity<VendorDto> get(@PathVariable("name") String name) {
-    var vendor = vendorService.getByName(name);
+    if (!StringUtils.hasText(name)) return ResponseEntity.badRequest().build();
+    final String cleanedName = name.trim();
+    if (cleanedName.isEmpty()) return ResponseEntity.badRequest().build();
+    var vendor = vendorService.getByName(cleanedName);
     if (vendor == null) return ResponseEntity.notFound().build();
     return ResponseEntity.ok(VendorDto.from(vendor));
   }

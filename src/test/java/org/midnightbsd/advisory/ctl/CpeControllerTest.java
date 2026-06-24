@@ -91,4 +91,11 @@ class CpeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
     }
+
+    @Test
+    void mvcTestGetCpeRejectsMalformedInput() throws Exception {
+        mockMvc
+                .perform(get("/api/cpe/partial-match?cpe=not-a-cpe"))
+                .andExpect(status().isBadRequest());
+    }
 }

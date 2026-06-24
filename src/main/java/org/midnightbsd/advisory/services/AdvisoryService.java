@@ -77,11 +77,13 @@ public class AdvisoryService implements AppService<Advisory> {
   }
 
   public List<Advisory> getByProduct(final String productName) {
-    return repository.findByProductName(productName);
+    final String cleanedProductName = trimToNull(productName);
+    return cleanedProductName == null ? List.of() : repository.findByProductName(cleanedProductName);
   }
 
   public List<Advisory> getByVendor(final String vendorName) {
-    return repository.findByVendorName(vendorName);
+    final String cleanedVendorName = trimToNull(vendorName);
+    return cleanedVendorName == null ? List.of() : repository.findByVendorName(cleanedVendorName);
   }
 
 
@@ -118,7 +120,14 @@ public class AdvisoryService implements AppService<Advisory> {
       final String version,
       final Date startDate) {
 
-    List<Advisory> advisories = getByVendorAndProduct(vendorName, productName, startDate);
+    final String cleanedVendorName = trimToNull(vendorName);
+    final String cleanedProductName = trimToNull(productName);
+    final String cleanedVersion = trimToNull(version);
+    if (cleanedVendorName == null || cleanedProductName == null || cleanedVersion == null) {
+      return List.of();
+    }
+
+    List<Advisory> advisories = getByVendorAndProduct(cleanedVendorName, cleanedProductName, startDate);
     List<Advisory> pruned = new ArrayList<>();
     for (final Advisory advisory : advisories) {
       boolean skip = false;
@@ -131,8 +140,8 @@ public class AdvisoryService implements AppService<Advisory> {
 
             // some records have a AND + parentID relationship with OS or firmware, we are doing
             // partial match here
-            if (!parsed.getVendor().equalsIgnoreCase(vendorName)
-                || !parsed.getProduct().equalsIgnoreCase(productName)
+            if (!parsed.getVendor().equalsIgnoreCase(cleanedVendorName)
+                || !parsed.getProduct().equalsIgnoreCase(cleanedProductName)
                 || !Boolean.TRUE.equals(configNodeCpe.getVulnerable())) {
               continue;
             }
@@ -140,16 +149,16 @@ public class AdvisoryService implements AppService<Advisory> {
             Boolean versionInStartRange = null;
             boolean versionInEndRange = false;
             if (StringUtils.hasText(configNodeCpe.getVersionStartIncluding())) {
-              versionInStartRange = VersionCompareUtil.compare(configNodeCpe.getVersionStartIncluding(), version) <= 0;
+              versionInStartRange = VersionCompareUtil.compare(configNodeCpe.getVersionStartIncluding(), cleanedVersion) <= 0;
             }
             if (StringUtils.hasText(configNodeCpe.getVersionStartExcluding())) {
-              versionInStartRange = VersionCompareUtil.compare(configNodeCpe.getVersionStartExcluding(), version) < 0;
+              versionInStartRange = VersionCompareUtil.compare(configNodeCpe.getVersionStartExcluding(), cleanedVersion) < 0;
             }
             if (StringUtils.hasText(configNodeCpe.getVersionEndExcluding())) {
-              versionInEndRange = VersionCompareUtil.compare(configNodeCpe.getVersionEndExcluding(), version) == 1;
+              versionInEndRange = VersionCompareUtil.compare(configNodeCpe.getVersionEndExcluding(), cleanedVersion) == 1;
             }
             if (StringUtils.hasText(configNodeCpe.getVersionEndIncluding())) {
-              versionInEndRange = VersionCompareUtil.compare(configNodeCpe.getVersionEndIncluding(), version) >= 0;
+              versionInEndRange = VersionCompareUtil.compare(configNodeCpe.getVersionEndIncluding(), cleanedVersion) >= 0;
             }
 
             if (versionInEndRange) {
@@ -168,7 +177,7 @@ public class AdvisoryService implements AppService<Advisory> {
                   skip = true; // done
                   break;
                 } else */
-            if (!"*".equals(parsed.getVersion()) && VersionCompareUtil.compare(parsed.getVersion(), version) >= 0) {
+            if (!"*".equals(parsed.getVersion()) && VersionCompareUtil.compare(parsed.getVersion(), cleanedVersion) >= 0) {
                   pruned.add(advisory);
                   skip = true; // done
                   break;
@@ -184,8 +193,17 @@ public class AdvisoryService implements AppService<Advisory> {
   }
 
   private List<List<Product>> getProducts(final String vendorName, final String productName) {
-    final Vendor vendor = vendorRepository.findOneByName(vendorName);
-    return Lists.partition(productRepository.findByNameAndVendor(productName, vendor), 1000);
+    final String cleanedVendorName = trimToNull(vendorName);
+    final String cleanedProductName = trimToNull(productName);
+    if (cleanedVendorName == null || cleanedProductName == null) {
+      return List.of();
+    }
+
+    final Vendor vendor = vendorRepository.findOneByName(cleanedVendorName);
+    if (vendor == null) {
+      return List.of();
+    }
+    return Lists.partition(productRepository.findByNameAndVendor(cleanedProductName, vendor), 1000);
   }
 
   public Page<Advisory> get(final Pageable page) {
@@ -198,7 +216,8 @@ public class AdvisoryService implements AppService<Advisory> {
   }
 
   public Advisory getByCveId(final String cveId) {
-    return repository.findOneByCveId(cveId);
+    final String cleanedCveId = trimToNull(cveId);
+    return cleanedCveId == null ? null : repository.findOneByCveId(cleanedCveId);
   }
 
   @CacheEvict(allEntries = true)
@@ -323,5 +342,12 @@ public class AdvisoryService implements AppService<Advisory> {
     }
 
     return adv;
+  }
+
+  private static String trimToNull(final String value) {
+    if (!StringUtils.hasText(value)) {
+      return null;
+    }
+    return value.trim();
   }
 }

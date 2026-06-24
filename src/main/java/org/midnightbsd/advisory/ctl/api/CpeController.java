@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.util.StringUtils;
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
@@ -27,9 +28,18 @@ public class CpeController {
           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
           Date startDate,
       @RequestParam(required = false, name = "includeVersion", defaultValue = "false")
-          Boolean includeVersion)
-      throws CpeParsingException {
-    Cpe parsed = parse(cpe);
+          Boolean includeVersion) {
+    final String cleanedCpe = cpe.trim();
+    if (!StringUtils.hasText(cleanedCpe)) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    final Cpe parsed;
+    try {
+      parsed = parse(cleanedCpe);
+    } catch (final CpeParsingException ex) {
+      return ResponseEntity.badRequest().build();
+    }
 
     if (includeVersion == null || !includeVersion) {
       return ResponseEntity.ok(

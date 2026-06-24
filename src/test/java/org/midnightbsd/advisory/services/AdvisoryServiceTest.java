@@ -90,6 +90,13 @@ class AdvisoryServiceTest {
   }
 
   @Test
+  void testGetNameBlankReturnsNull() {
+    Advisory adv2 = advisoryService.getByCveId("   ");
+    assertNull(adv2);
+    verifyNoInteractions(advisoryRepository);
+  }
+
+  @Test
   void testGet() {
     when(advisoryRepository.findById(1)).thenReturn(Optional.of(adv));
     Advisory adv2 = advisoryService.get(1);
@@ -194,6 +201,14 @@ class AdvisoryServiceTest {
 
     assertNotNull(items);
     assertTrue(items.size() > 0);
+  }
+
+  @Test
+  void testGetByProductBlankReturnsEmptyList() {
+    List<Advisory> items = advisoryService.getByProduct("   ");
+    assertNotNull(items);
+    assertTrue(items.isEmpty());
+    verifyNoInteractions(advisoryRepository);
   }
 
   @Test

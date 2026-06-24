@@ -37,4 +37,11 @@ class VendorServiceTest {
         var result = service.getByName("Vendor");
         assertNotNull(result);
     }
+
+    @Test
+    void testGetByNameBlankReturnsNull() {
+        var result = service.getByName("   ");
+        assertNull(result);
+        verifyNoInteractions(repository);
+    }
 }
