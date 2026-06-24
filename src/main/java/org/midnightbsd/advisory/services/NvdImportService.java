@@ -189,7 +189,6 @@ public class NvdImportService {
       }
 
       if (a != null) {
-        searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
         return;
       }
 
