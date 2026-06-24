@@ -32,7 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.nvd2.Root;
 import org.midnightbsd.advisory.model.nvd2.Vulnerability;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -45,6 +44,7 @@ import jakarta.annotation.PostConstruct;
 public class CronDaily {
   private static final int DELAY_ONE_MINUTE = 1000 * 60;
   private static final int ONE_DAY = DELAY_ONE_MINUTE * 60 * 24;
+  private static final long NVD_REQUEST_DELAY = 7000L;
 
   private Date lastFetchedDate = null;
 
@@ -62,10 +62,7 @@ public class CronDaily {
 
   @PostConstruct
   public void init() {
-      var item = advisoryRepository.findByOrderByLastModifiedDateDesc(PageRequest.of(0, 1));
-    if (item != null && item.hasContent()) {
-      item.get().findFirst().ifPresent(advisory -> lastFetchedDate = advisory.getLastModifiedDate());
-    }
+    loadLastFetchedDate();
   }
 
   private Date maxDate(Date input) {
@@ -75,6 +72,21 @@ public class CronDaily {
     return c.getTime();
   }
 
+  private Date endDate(Date input) {
+    final Date maxDate = maxDate(input);
+    final Date now = Calendar.getInstance().getTime();
+    return maxDate.after(now) ? now : maxDate;
+  }
+
+  private void loadLastFetchedDate() {
+    lastFetchedDate = advisoryRepository.findLatestLastModifiedDate();
+    if (lastFetchedDate == null) {
+      log.warn("No last modified advisory date found. Next NVD import will start from the beginning.");
+    } else {
+      log.info("Loaded last NVD fetch checkpoint from advisory data: {}", lastFetchedDate);
+    }
+  }
+
   @Scheduled(fixedDelay = ONE_DAY, initialDelay = DELAY_ONE_MINUTE)
   public void daily() throws InterruptedException {
     Root cveDataPage;
@@ -82,10 +94,7 @@ public class CronDaily {
 
     log.warn("Begin import of CVE data");
     if (lastFetchedDate == null) {
-      var item = advisoryRepository.findByOrderByLastModifiedDateDesc(PageRequest.of(0, 1));
-      if (item!= null && item.hasContent()) {
-       item.get().findFirst().ifPresent( advisory -> lastFetchedDate = advisory.getLastModifiedDate());
-      }
+      loadLastFetchedDate();
     }
 
     if (lastFetchedDate == null) {
@@ -93,30 +102,30 @@ public class CronDaily {
       cveDataPage = nvdFetchService.getPage(startIndex);
     } else {
       log.info("Starting cron daily from {}", lastFetchedDate);
-      cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
-      // if the date is too far in the past, nvd can return 0 results
-      while (cveDataPage.getTotalResults() == 0) {
-        Thread.sleep(7000L);
-        lastFetchedDate = maxDate(lastFetchedDate); // move it up 90 days and try again
-        cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
-
-        if (lastFetchedDate.after(maxDate(Calendar.getInstance().getTime()))) {
-          log.error("unable to pull any data after {}. Assuming the NVD is down.", lastFetchedDate);
-          break;
-        }
+      cveDataPage = nvdFetchService.getPage(lastFetchedDate, endDate(lastFetchedDate), startIndex);
+      while (cveDataPage != null
+          && cveDataPage.getTotalResults() == 0
+          && maxDate(lastFetchedDate).before(Calendar.getInstance().getTime())) {
+        sleep(NVD_REQUEST_DELAY);
+        lastFetchedDate = maxDate(lastFetchedDate);
+        cveDataPage = nvdFetchService.getPage(lastFetchedDate, endDate(lastFetchedDate), startIndex);
+      }
+      if (cveDataPage == null || cveDataPage.getTotalResults() == 0) {
+        log.info("No NVD changes found since {}", lastFetchedDate);
+        return;
       }
     }
     log.warn("Loading first fetched page. total results: {}", cveDataPage.getTotalResults());
     importNvd(cveDataPage);
-    Thread.sleep(7000L);
+    sleep(NVD_REQUEST_DELAY);
     startIndex += cveDataPage.getResultsPerPage();
 
-    while (cveDataPage.getTotalResults() > cveDataPage.getStartIndex()) {
-      log.warn("Starting fetch at {} of total {}", cveDataPage.getStartIndex(), cveDataPage.getTotalResults());
+    while (startIndex < cveDataPage.getTotalResults()) {
+      log.warn("Starting fetch at {} of total {}", startIndex, cveDataPage.getTotalResults());
       if (lastFetchedDate == null) {
         cveDataPage = nvdFetchService.getPage(startIndex);
       } else {
-        cveDataPage = nvdFetchService.getPage(lastFetchedDate, maxDate(lastFetchedDate), startIndex);
+        cveDataPage = nvdFetchService.getPage(lastFetchedDate, endDate(lastFetchedDate), startIndex);
       }
       try {
         importNvd(cveDataPage);
@@ -124,7 +133,7 @@ public class CronDaily {
         log.error("Failed sanity check. Page had null data?");
         break;
       }
-      sleep(7000L);
+      sleep(NVD_REQUEST_DELAY);
 
       startIndex += cveDataPage.getResultsPerPage();
     }

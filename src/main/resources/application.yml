@@ -98,7 +98,7 @@ spring:
   datasource:
     hikari:
       jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
-      maximum-pool-size: 30
+      maximum-pool-size: 100
       minimum-idle: 4
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
     jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
