@@ -74,12 +74,6 @@ nvdfeed:
 search:
   nvd-item-index: nvditem
 
-logging:
-  level:
-    root: info
-    org.springframework.web: warn
-    org.hibernate: error
-
 ---
 spring:
   config:
@@ -104,8 +98,8 @@ spring:
   datasource:
     hikari:
       jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
-      maximum-pool-size: 20
-      minimum-idle: 2
+      maximum-pool-size: 30
+      minimum-idle: 4
     url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
     jdbc-url: jdbc:postgresql://security-advisory.c9or38nglwhm.us-east-1.rds.amazonaws.com/advisory?ssl=true&sslfactory=org.postgresql.ssl.NonValidatingFactory
     username: securityadv
