@@ -26,10 +26,14 @@
 package org.midnightbsd.advisory.repository;
 
 
+import java.util.Collection;
 import org.midnightbsd.advisory.model.ConfigNodeCpe;
+import org.midnightbsd.advisory.model.ConfigNode;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 /** @author Lucas Holt */
 @Repository
-public interface ConfigNodeCpeRepository extends JpaRepository<ConfigNodeCpe, Integer> {}
+public interface ConfigNodeCpeRepository extends JpaRepository<ConfigNodeCpe, Integer> {
+  void deleteByConfigNodeIn(Collection<ConfigNode> configNodes);
+}

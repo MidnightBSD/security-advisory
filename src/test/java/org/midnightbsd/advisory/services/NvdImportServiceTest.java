@@ -15,6 +15,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.model.Advisory;
+import org.midnightbsd.advisory.model.ConfigNode;
+import org.midnightbsd.advisory.model.ConfigNodeCpe;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
 import org.midnightbsd.advisory.model.nvd2.Configuration;
@@ -88,9 +90,12 @@ class NvdImportServiceTest {
     setField(vulnerability, "cve", cve);
 
     when(advisoryService.getByCveId(advisory.getCveId())).thenReturn(advisory);
+    when(advisoryService.save(any(Advisory.class))).thenReturn(advisory);
     when(vendorRepository.findOneByName("vendor")).thenReturn(vendor);
     when(productRepository.findByNameAndVersionAndVendor(eq("product"), eq("2.0"), eq(vendor)))
         .thenReturn(newProduct);
+    when(configNodeRepository.saveAndFlush(any(ConfigNode.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
 
     ArgumentCaptor<Advisory> savedAdvisory = ArgumentCaptor.forClass(Advisory.class);
 
@@ -101,12 +106,71 @@ class NvdImportServiceTest {
     Assertions.assertEquals(2, savedAdvisory.getValue().getProducts().size());
   }
 
+  @Test
+  void existingAdvisoryImportReplacesCpeMatchConfigurations() throws Exception {
+    Vendor vendor = new Vendor();
+    vendor.setName("vendor");
+
+    Product product = new Product();
+    product.setName("product");
+    product.setVersion("2.0");
+    product.setVendor(vendor);
+
+    Advisory advisory = new Advisory();
+    advisory.setId(1);
+    advisory.setCveId("CVE-1999-0181");
+    advisory.setDescription("old");
+    advisory.setPublishedDate(new Date(2L));
+    advisory.setLastModifiedDate(new Date(2L));
+    advisory.setSeverity("LOW");
+    advisory.setProducts(new HashSet<>(Set.of(product)));
+
+    ConfigNode oldNode = new ConfigNode();
+    oldNode.setId(10);
+    oldNode.setAdvisory(advisory);
+
+    Vulnerability vulnerability = new Vulnerability();
+    Cve cve = new Cve();
+    setField(cve, "id", advisory.getCveId());
+    setField(cve, "published", new Date(2L));
+    setField(cve, "lastModified", new Date(2L));
+    setField(
+        cve,
+        "configurations",
+        List.of(configuration("cpe:2.3:a:vendor:product:2.0:*:*:*:*:*:*:*")));
+    setField(vulnerability, "cve", cve);
+
+    when(advisoryService.getByCveId(advisory.getCveId())).thenReturn(advisory);
+    when(advisoryService.get(advisory.getId())).thenReturn(advisory);
+    when(advisoryService.save(any(Advisory.class))).thenReturn(advisory);
+    when(vendorRepository.findOneByName("vendor")).thenReturn(vendor);
+    when(productRepository.findByNameAndVersionAndVendor(eq("product"), eq("2.0"), eq(vendor)))
+        .thenReturn(product);
+    when(configNodeRepository.findByAdvisoryId(advisory.getId())).thenReturn(List.of(oldNode));
+    when(configNodeRepository.saveAndFlush(any(ConfigNode.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    ArgumentCaptor<ConfigNodeCpe> cpeCaptor = ArgumentCaptor.forClass(ConfigNodeCpe.class);
+
+    nvdImportService.importVulnerability(vulnerability);
+
+    verify(configNodeCpeRepository).deleteByConfigNodeIn(List.of(oldNode));
+    verify(configNodeRepository).deleteAll(List.of(oldNode));
+    verify(configNodeCpeRepository).save(cpeCaptor.capture());
+    Assertions.assertEquals(
+        "cpe:2.3:a:vendor:product:2.0:*:*:*:*:*:*:*", cpeCaptor.getValue().getCpe23Uri());
+    Assertions.assertTrue(cpeCaptor.getValue().getVulnerable());
+    verify(searchService).index(advisory);
+  }
+
   private static Configuration configuration(final String cpe23Uri) throws Exception {
     CpeMatch cpeMatch = new CpeMatch();
     setField(cpeMatch, "criteria", cpe23Uri);
     setField(cpeMatch, "vulnerable", true);
+    setField(cpeMatch, "matchCriteriaId", "11111111-1111-1111-1111-111111111111");
 
     Node node = new Node();
+    setField(node, "operator", "OR");
     setField(node, "cpeMatch", List.of(cpeMatch));
 
     Configuration configuration = new Configuration();

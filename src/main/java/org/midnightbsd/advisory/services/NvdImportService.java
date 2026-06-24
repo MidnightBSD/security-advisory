@@ -28,6 +28,7 @@ package org.midnightbsd.advisory.services;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.*;
@@ -161,15 +162,16 @@ public class NvdImportService {
       }
 
       if (a == null) {
-        // TODO: this is broken on the update path.
         advisory.setProducts(processVendorAndProducts(cve));
         advisory = advisoryService.save(advisory);
       } else {
         advisory.setProducts(mergeProducts(a.getProducts(), processVendorAndProducts(cve)));
+        final boolean advisoryUpdate = hasAdvisoryUpdates(a, advisory);
+        final boolean configurationsUpdated = refreshConfigurations(cve, a);
         advisory = advisoryService.save(advisory);
-      }
-
-      if (a != null) {
+        if (configurationsUpdated && !advisoryUpdate) {
+          searchIndex(advisoryService.get(advisory.getId()));
+        }
         return;
       }
 
@@ -204,31 +206,48 @@ public class NvdImportService {
           cvssMetrics3Repository.saveAllAndFlush(cvssMetrics3);
         }
 
-      // now save configurations
-      if (cve.getConfigurations() != null) {
-        log.info("Now save configurations for {}", advisory.getCveId());
-        for (Configuration configuration : cve.getConfigurations()) {
-          if (configuration.getNodes() != null) {
-            for (final Node node : configuration.getNodes()) {
-              if (node.getOperator() != null) {
-                ConfigNode configNode = new ConfigNode();
-                configNode.setAdvisory(advisory);
-                configNode.setOperator(node.getOperator());
-                configNode.setNegate(node.getNegate());
-                configNode = configNodeRepository.saveAndFlush(configNode); // save top level item
-
-                cpe(node, configNode);
-              }
-            }
-          }
-        }
-      }
+      refreshConfigurations(cve, advisory);
 
       searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
   }
 
+  private boolean refreshConfigurations(final Cve cve, final Advisory advisory) {
+    if (cve.getConfigurations() == null) {
+      return false;
+    }
+
+    final List<ConfigNode> existingNodes = configNodeRepository.findByAdvisoryId(advisory.getId());
+    if (existingNodes != null && !existingNodes.isEmpty()) {
+      configNodeCpeRepository.deleteByConfigNodeIn(existingNodes);
+      configNodeCpeRepository.flush();
+      configNodeRepository.deleteAll(existingNodes);
+      configNodeRepository.flush();
+    }
+
+    log.info("Now save configurations for {}", advisory.getCveId());
+    for (Configuration configuration : cve.getConfigurations()) {
+      if (configuration.getNodes() != null) {
+        for (final Node node : configuration.getNodes()) {
+          if (node.getOperator() != null) {
+            ConfigNode configNode = new ConfigNode();
+            configNode.setAdvisory(advisory);
+            configNode.setOperator(node.getOperator());
+            configNode.setNegate(node.getNegate());
+            configNode = configNodeRepository.saveAndFlush(configNode); // save top level item
+
+            cpe(node, configNode);
+          }
+        }
+      }
+    }
+    return true;
+  }
+
   private void cpe(Node node, ConfigNode configNode) {
     try {
+      if (node.getCpeMatch() == null) {
+        return;
+      }
       for (final CpeMatch nodeCpe : node.getCpeMatch()) {
         final ConfigNodeCpe cpe = new ConfigNodeCpe();
         cpe.setCpe23Uri(nodeCpe.getCriteria());
@@ -263,6 +282,35 @@ public class NvdImportService {
       }
     }
     return merged;
+  }
+
+  private static boolean hasAdvisoryUpdates(final Advisory existingAdvisory, final Advisory advisory) {
+    return different(advisory.getDescription(), existingAdvisory.getDescription())
+        || different(advisory.getLastModifiedDate(), existingAdvisory.getLastModifiedDate())
+        || different(advisory.getPublishedDate(), existingAdvisory.getPublishedDate())
+        || different(advisory.getSeverity(), existingAdvisory.getSeverity())
+        || different(advisory.getProblemType(), existingAdvisory.getProblemType())
+        || !sameProducts(existingAdvisory.getProducts(), advisory.getProducts());
+  }
+
+  private static boolean sameProducts(final Set<Product> left, final Set<Product> right) {
+    if (left == null || left.isEmpty()) {
+      return right == null || right.isEmpty();
+    }
+    if (right == null || left.size() != right.size()) {
+      return false;
+    }
+    return left.stream()
+        .allMatch(
+            leftProduct ->
+                right.stream().anyMatch(rightProduct -> sameProduct(leftProduct, rightProduct)));
+  }
+
+  private static boolean different(final Object left, final Object right) {
+    if (left == null) {
+      return false;
+    }
+    return !left.equals(right);
   }
 
   private static boolean sameProduct(final Product left, final Product right) {
