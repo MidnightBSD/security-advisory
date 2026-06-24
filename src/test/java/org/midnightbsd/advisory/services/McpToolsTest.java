@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
@@ -64,6 +65,12 @@ class McpToolsTest {
   }
 
   @Test
+  void getCveReturnsNullForBlankInput() {
+    assertNull(tools.getCve("   "));
+    verifyNoInteractions(mcpService);
+  }
+
+  @Test
   void searchAppliesDefaultPagingWhenUnspecified() {
     final Page<NvdItem> page = new PageImpl<>(List.of(new NvdItem()));
     final ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
@@ -85,10 +92,22 @@ class McpToolsTest {
   }
 
   @Test
+  void searchReturnsEmptyForBlankInput() {
+    assertTrue(tools.searchAdvisories("   ", null, null).isEmpty());
+    verifyNoInteractions(mcpService);
+  }
+
+  @Test
   void matchCpeWrapsParsingErrorAsIllegalArgument() throws Exception {
     when(mcpService.cpeMatch(eq("bogus"), eq(false), any()))
         .thenThrow(new us.springett.parsers.cpe.exceptions.CpeParsingException("bad"));
     assertThrows(IllegalArgumentException.class, () -> tools.matchCpe("bogus", false));
+  }
+
+  @Test
+  void matchCpeRejectsBlankInput() {
+    assertThrows(IllegalArgumentException.class, () -> tools.matchCpe("   ", false));
+    verifyNoInteractions(mcpService);
   }
 
   @Test
@@ -108,6 +127,26 @@ class McpToolsTest {
   }
 
   @Test
+  void checkPackageTrimsArguments() {
+    when(mcpService.checkPackage(any(PackageQuery.class)))
+        .thenAnswer(i -> PackageVulnerability.of(i.getArgument(0), List.of()));
+
+    tools.checkPackage("  sendmail  ", " 5.58 ", "  nist  ");
+
+    final ArgumentCaptor<PackageQuery> query = ArgumentCaptor.forClass(PackageQuery.class);
+    verify(mcpService).checkPackage(query.capture());
+    assertEquals("sendmail", query.getValue().name());
+    assertEquals("5.58", query.getValue().version());
+    assertEquals("nist", query.getValue().vendor());
+  }
+
+  @Test
+  void checkPackageRejectsBlankName() {
+    assertThrows(IllegalArgumentException.class, () -> tools.checkPackage("   ", "1", "v"));
+    verifyNoInteractions(mcpService);
+  }
+
+  @Test
   void checkPackagesReturnsEmptyForEmptyInput() {
     assertTrue(tools.checkPackages(List.of()).isEmpty());
   }
@@ -124,5 +163,13 @@ class McpToolsTest {
     assertEquals(2, results.size());
     verify(mcpService).checkPackage(q1);
     verify(mcpService).checkPackage(q2);
+  }
+
+  @Test
+  void checkPackagesRejectsBlankNames() {
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> tools.checkPackages(List.of(new PackageQuery("   ", "1", "v"))));
+    verifyNoInteractions(mcpService);
   }
 }

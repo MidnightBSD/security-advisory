@@ -36,6 +36,7 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
 
 /**
@@ -61,7 +62,8 @@ public class McpTools {
   @Tool(name = "get_cve", description = "Fetch full detail for a single CVE id, or null if untracked.")
   public AdvisoryDto getCve(
       @ToolParam(description = "CVE identifier, e.g. CVE-2021-44228") final String cveId) {
-    return mcpService.getCve(cveId);
+    final String cleanedCveId = trimToNull(cveId);
+    return cleanedCveId == null ? null : mcpService.getCve(cleanedCveId);
   }
 
   @Tool(
@@ -74,9 +76,13 @@ public class McpTools {
           final Integer page,
       @ToolParam(required = false, description = "Results per page, 1-200 (default 25)")
           final Integer size) {
+    final String cleanedTerm = trimToNull(term);
+    if (cleanedTerm == null) {
+      return List.of();
+    }
     final int pageNo = page == null ? 0 : Math.max(0, page);
     final int pageSize = size == null ? DEFAULT_SEARCH_SIZE : Math.clamp(size, 1, 200);
-    return mcpService.search(term, PageRequest.of(pageNo, pageSize)).getContent();
+    return mcpService.search(cleanedTerm, PageRequest.of(pageNo, pageSize)).getContent();
   }
 
   @Tool(
@@ -88,8 +94,12 @@ public class McpTools {
               required = false,
               description = "Evaluate the version range too when true (default false)")
           final Boolean includeVersion) {
+    final String cleanedCpe = trimToNull(cpe);
+    if (cleanedCpe == null) {
+      throw new IllegalArgumentException("invalid cpe: value is blank");
+    }
     try {
-      return mcpService.cpeMatch(cpe, Boolean.TRUE.equals(includeVersion), null);
+      return mcpService.cpeMatch(cleanedCpe, Boolean.TRUE.equals(includeVersion), null);
     } catch (final CpeParsingException e) {
       throw new IllegalArgumentException("invalid cpe: " + e.getMessage(), e);
     }
@@ -100,7 +110,8 @@ public class McpTools {
       description = "List advisory summaries that reference a product by name.")
   public List<AdvisorySummaryDto> productAdvisories(
       @ToolParam(description = "Product name, e.g. openssl") final String name) {
-    return mcpService.productSummaries(name);
+    final String cleanedName = trimToNull(name);
+    return cleanedName == null ? List.of() : mcpService.productSummaries(cleanedName);
   }
 
   @Tool(
@@ -112,7 +123,12 @@ public class McpTools {
       @ToolParam(description = "Product name, e.g. openssl") final String name,
       @ToolParam(required = false, description = "Installed version, e.g. 3.0.1") final String version,
       @ToolParam(required = false, description = "Vendor name, e.g. openssl") final String vendor) {
-    return mcpService.checkPackage(new PackageQuery(name, version, vendor));
+    final String cleanedName = trimToNull(name);
+    if (cleanedName == null) {
+      throw new IllegalArgumentException("package name must not be blank");
+    }
+    return mcpService.checkPackage(
+        new PackageQuery(cleanedName, trimToNull(version), trimToNull(vendor)));
   }
 
   @Tool(
@@ -124,7 +140,23 @@ public class McpTools {
     if (packages == null || packages.isEmpty()) {
       return List.of();
     }
-    return packages.stream().map(mcpService::checkPackage).toList();
+    return packages.stream()
+        .map(
+            query -> {
+              final String cleanedName = trimToNull(query.name());
+              if (cleanedName == null) {
+                throw new IllegalArgumentException("package name must not be blank");
+              }
+              return mcpService.checkPackage(
+                  new PackageQuery(cleanedName, trimToNull(query.version()), trimToNull(query.vendor())));
+            })
+        .toList();
+  }
+
+  private static String trimToNull(final String value) {
+    if (!StringUtils.hasText(value)) {
+      return null;
+    }
+    return value.trim();
   }
 }
-
