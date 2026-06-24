@@ -30,7 +30,9 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.model.Advisory;
@@ -331,9 +333,10 @@ public class AdvisoryService implements AppService<Advisory> {
       update = true;
     }
 
-    if (update && advisory.getProducts() != null) {
+    if (advisory.getProducts() != null && !sameProducts(adv.getProducts(), advisory.getProducts())) {
       log.info("{} contains {} products", adv.getCveId(), advisory.getProducts().size());
       adv.setProducts(advisory.getProducts());
+      update = true;
     }
 
     if (update) {
@@ -349,5 +352,28 @@ public class AdvisoryService implements AppService<Advisory> {
       return null;
     }
     return value.trim();
+  }
+
+  private static boolean sameProducts(final Set<Product> left, final Set<Product> right) {
+    if (left == null || left.isEmpty()) {
+      return right == null || right.isEmpty();
+    }
+    if (right == null || left.size() != right.size()) {
+      return false;
+    }
+    return left.stream()
+        .allMatch(
+            leftProduct ->
+                right.stream().anyMatch(rightProduct -> sameProduct(leftProduct, rightProduct)));
+  }
+
+  private static boolean sameProduct(final Product left, final Product right) {
+    return Objects.equals(left.getName(), right.getName())
+        && Objects.equals(left.getVersion(), right.getVersion())
+        && Objects.equals(vendorName(left), vendorName(right));
+  }
+
+  private static String vendorName(final Product product) {
+    return product.getVendor() == null ? null : product.getVendor().getName();
   }
 }

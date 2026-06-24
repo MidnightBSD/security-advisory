@@ -132,10 +132,8 @@ public class NvdImportService {
       var a = advisoryService.getByCveId(vulnerability.getCve().getId());
       if (a !=null) {
         log.warn("Advisory {} already exists", vulnerability.getCve().getId());
-        advisory = a;
-      } else {
-        advisory.setCveId(vulnerability.getCve().getId());
       }
+      advisory.setCveId(vulnerability.getCve().getId());
 
       log.info("Processing {}", advisory.getCveId());
 
@@ -167,25 +165,8 @@ public class NvdImportService {
         advisory.setProducts(processVendorAndProducts(cve));
         advisory = advisoryService.save(advisory);
       } else {
-        var products = processVendorAndProducts(cve);
-        if (advisory.getProducts() == null || advisory.getProducts().isEmpty()) {
-          advisory.setProducts(products);
-          advisory = advisoryService.save(advisory);
-        } else {
-          for (var p : products) {
-            boolean found = false;
-            for (var p2 : advisory.getProducts()) {
-              if (p.getName().equalsIgnoreCase(p2.getName()) && p.getVersion().equalsIgnoreCase(p2.getVersion())) {
-                found = true;
-                break;
-              }
-            }
-            if (!found) {
-              advisory.getProducts().add(p);
-            }
-          }
-          advisoryService.save(advisory); // add missing products
-        }
+        advisory.setProducts(mergeProducts(a.getProducts(), processVendorAndProducts(cve)));
+        advisory = advisoryService.save(advisory);
       }
 
       if (a != null) {
@@ -265,6 +246,43 @@ public class NvdImportService {
     } catch (Exception e) {
       log.error("Unable to save CPE: {}", node.getCpeMatch(), e);
     }
+  }
+
+  private Set<Product> mergeProducts(
+      final Set<Product> existingProducts, final Set<Product> newProducts) {
+    final Set<Product> merged = new HashSet<>();
+    if (existingProducts != null) {
+      merged.addAll(existingProducts);
+    }
+    if (newProducts == null) {
+      return merged;
+    }
+    for (final Product product : newProducts) {
+      if (merged.stream().noneMatch(existingProduct -> sameProduct(existingProduct, product))) {
+        merged.add(product);
+      }
+    }
+    return merged;
+  }
+
+  private static boolean sameProduct(final Product left, final Product right) {
+    return equalsIgnoreCase(left.getName(), right.getName())
+        && equalsIgnoreCase(left.getVersion(), right.getVersion())
+        && sameVendor(left.getVendor(), right.getVendor());
+  }
+
+  private static boolean sameVendor(final Vendor left, final Vendor right) {
+    if (left == null || right == null) {
+      return left == right;
+    }
+    return equalsIgnoreCase(left.getName(), right.getName());
+  }
+
+  private static boolean equalsIgnoreCase(final String left, final String right) {
+    if (left == null || right == null) {
+      return left == right;
+    }
+    return left.equalsIgnoreCase(right);
   }
 
   private void searchIndex(Advisory advisory) {
