@@ -57,30 +57,30 @@ public class ExceptionHandlingController {
       reason = "Unable to process request") // 500
   @ExceptionHandler(Exception.class)
   public void handleError(final HttpServletRequest req, final Exception ex) {
-    log.error(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+    log.error(ERR_REQUEST + "{}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 
   @ExceptionHandler(AsyncRequestNotUsableException.class)
   public void clientAbort(final HttpServletRequest req, final Exception ex) {
-    log.debug(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+    log.debug(ERR_REQUEST + "{}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Malformed request")
   @ExceptionHandler(IllegalArgumentException.class)
   public void badRequest(final HttpServletRequest req, final Exception ex) {
-    log.error(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+    log.error(ERR_REQUEST + "{}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Invalid parameter type")
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
   public void typeMismatch(final HttpServletRequest req, final Exception ex) {
-    log.warn(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage());
+    log.warn(ERR_REQUEST + "{}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage());
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Object Missing?")
   @ExceptionHandler(NullPointerException.class)
   public void nullPointerOnRequest(final HttpServletRequest req, final Exception ex) {
-    log.error(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+    log.error(ERR_REQUEST + "{}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 
   @ResponseStatus(
@@ -89,18 +89,18 @@ public class ExceptionHandlingController {
   @ExceptionHandler(ServiceException.class)
   public void handleServiceError(final HttpServletRequest req, final Exception ex) {
     log.error(
-        "Service layer error. Request: " + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+        "Service layer error. Request: {}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 
   @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "JSON Parse Error") // 500
   @ExceptionHandler(JsonParseException.class)
   public void jsonParseError(final HttpServletRequest req, final Exception ex) {
-    log.error("Jackson error. Request: " + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+    log.error("Jackson error. Request: {}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 
   @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "JSON Mapping Error") // 500
   @ExceptionHandler(JsonMappingException.class)
   public void jsonMapError(final HttpServletRequest req, final Exception ex) {
-    log.error("Jackson error. Request: " + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+    log.error("Jackson error. Request: {}" + ERR_RAISED + "{}", req.getRequestURL(), ex.getMessage(), ex);
   }
 }
