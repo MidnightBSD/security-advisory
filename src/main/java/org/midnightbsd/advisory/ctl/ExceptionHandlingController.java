@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.services.ServiceException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -57,6 +58,11 @@ public class ExceptionHandlingController {
   @ExceptionHandler(Exception.class)
   public void handleError(final HttpServletRequest req, final Exception ex) {
     log.error(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
+  }
+
+  @ExceptionHandler(AsyncRequestNotUsableException.class)
+  public void clientAbort(final HttpServletRequest req, final Exception ex) {
+    log.debug(ERR_REQUEST + req.getRequestURL() + ERR_RAISED + ex.getMessage(), ex);
   }
 
   @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Malformed request")
