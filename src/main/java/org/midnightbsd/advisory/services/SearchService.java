@@ -42,6 +42,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thymeleaf.util.StringUtils;
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeParser;
 
@@ -60,8 +61,11 @@ public class SearchService {
   }
 
   public Page<NvdItem> find(String term, Pageable page) {
+    if (StringUtils.isEmpty(term)) return Page.empty();
+
+    var cleanedTerm = term.trim();
     return nvdSearchRepository.findByCveIdContainsOrDescriptionContainsAllIgnoreCase(
-        term, term, page);
+            cleanedTerm, cleanedTerm, page);
   }
 
   @CacheEvict(value = "search", allEntries = true)
