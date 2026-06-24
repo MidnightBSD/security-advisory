@@ -54,7 +54,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     registry
         .addResourceHandler("/robots.txt")
-        .addResourceLocations("classpath:/static/robots.txt")
+        .addResourceLocations("classpath:/static/")
         .setCachePeriod(cachePeriod);
 
     registry
