@@ -33,6 +33,7 @@ import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.midnightbsd.advisory.dto.AdvisoryDto;
 import org.midnightbsd.advisory.model.*;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
@@ -213,6 +214,31 @@ class AdvisoryServiceTest {
 
     assertNotNull(items);
     assertTrue(items.size() > 0);
+  }
+
+  @Test
+  void cpeMatchDtosCachesRepeatedVendorProductLookups() {
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    var product = new Product();
+    product.setName("product");
+    product.setVendor(vendor);
+
+    when(vendorRepository.findOneByName("vendor")).thenReturn(vendor);
+    when(productRepository.findByNameAndVendor("product", vendor)).thenReturn(List.of(product));
+    when(advisoryRepository.findByProductsIn(anyList())).thenReturn(List.of(adv));
+
+    List<AdvisoryDto> first =
+        advisoryService.cpeMatchDtos("vendor", "product", "1.0", null, false);
+    List<AdvisoryDto> second =
+        advisoryService.cpeMatchDtos("vendor", "product", "1.0", null, false);
+
+    assertEquals(1, first.size());
+    assertEquals("CVE-0000-0000", first.get(0).cveId());
+    assertEquals(first, second);
+    verify(vendorRepository, times(1)).findOneByName("vendor");
+    verify(productRepository, times(1)).findByNameAndVendor("product", vendor);
+    verify(advisoryRepository, times(1)).findByProductsIn(anyList());
   }
 
   @Test

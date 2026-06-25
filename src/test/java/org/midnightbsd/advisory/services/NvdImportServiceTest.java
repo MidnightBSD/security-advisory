@@ -2,7 +2,6 @@ package org.midnightbsd.advisory.services;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +58,7 @@ class NvdImportServiceTest {
   @InjectMocks private NvdImportService nvdImportService;
 
   @Test
-  void existingAdvisoryImportMergesNewProductsAndIndexesOnlyThroughAdvisoryServiceSave()
+  void existingAdvisoryImportMergesNewProductsAndIndexesAfterSaveTransaction()
       throws Exception {
     Vendor vendor = new Vendor();
     vendor.setName("vendor");
@@ -95,7 +94,8 @@ class NvdImportServiceTest {
     setField(vulnerability, "cve", cve);
 
     when(advisoryService.getByCveId(advisory.getCveId())).thenReturn(advisory);
-    when(advisoryService.save(any(Advisory.class))).thenReturn(advisory);
+    when(advisoryService.saveWithoutIndex(any(Advisory.class))).thenReturn(advisory);
+    when(advisoryService.get(advisory.getId())).thenReturn(advisory);
     when(vendorRepository.findOneByName("vendor")).thenReturn(vendor);
     when(productRepository.findByNameAndVersionAndVendor(eq("product"), eq("2.0"), eq(vendor)))
         .thenReturn(newProduct);
@@ -106,8 +106,8 @@ class NvdImportServiceTest {
 
     nvdImportService.importVulnerability(vulnerability);
 
-    verify(advisoryService).save(savedAdvisory.capture());
-    verify(searchService, never()).index(any());
+    verify(advisoryService).saveWithoutIndex(savedAdvisory.capture());
+    verify(searchService).index(advisory);
     Assertions.assertEquals(2, savedAdvisory.getValue().getProducts().size());
   }
 
@@ -147,7 +147,7 @@ class NvdImportServiceTest {
 
     when(advisoryService.getByCveId(advisory.getCveId())).thenReturn(advisory);
     when(advisoryService.get(advisory.getId())).thenReturn(advisory);
-    when(advisoryService.save(any(Advisory.class))).thenReturn(advisory);
+    when(advisoryService.saveWithoutIndex(any(Advisory.class))).thenReturn(advisory);
     when(vendorRepository.findOneByName("vendor")).thenReturn(vendor);
     when(productRepository.findByNameAndVersionAndVendor(eq("product"), eq("2.0"), eq(vendor)))
         .thenReturn(product);
@@ -190,7 +190,7 @@ class NvdImportServiceTest {
 
     when(advisoryService.getByCveId(advisory.getCveId())).thenReturn(advisory);
     when(advisoryService.get(advisory.getId())).thenReturn(advisory);
-    when(advisoryService.save(any(Advisory.class))).thenReturn(advisory);
+    when(advisoryService.saveWithoutIndex(any(Advisory.class))).thenReturn(advisory);
 
     ArgumentCaptor<Collection<CvssMetrics3>> metricsCaptor = ArgumentCaptor.forClass(Collection.class);
 

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.ctl.api.CpeController;
+import org.midnightbsd.advisory.dto.AdvisoryDto;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.mockito.ArgumentMatchers;
@@ -14,10 +15,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -54,8 +56,8 @@ class CpeControllerTest {
     // MidnightBSD cpe identifiers used to not include the other field at the end of the identifier.
     @Test
     void mvcTestGetCpe2() throws Exception {
-        when(advisoryService.getByVendorAndProduct(anyString(), anyString(), ArgumentMatchers.isNull()))
-                .thenReturn(Collections.singletonList(adv));
+        when(advisoryService.cpeMatchDtos(anyString(), anyString(), anyString(), ArgumentMatchers.isNull(), anyBoolean()))
+                .thenReturn(List.of(AdvisoryDto.from(adv)));
         mockMvc
                 .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:apache:mod_dav_svn:1.14.3:*:*:*:*:midnightbsd3:x64"))
                 .andExpect(status().isOk())
@@ -64,8 +66,8 @@ class CpeControllerTest {
 
     @Test
     void mvcTestGetCpe() throws Exception {
-    when(advisoryService.getByVendorAndProduct(anyString(), anyString(), ArgumentMatchers.isNull()))
-        .thenReturn(Collections.singletonList(adv));
+    when(advisoryService.cpeMatchDtos(anyString(), anyString(), anyString(), ArgumentMatchers.isNull(), anyBoolean()))
+        .thenReturn(List.of(AdvisoryDto.from(adv)));
         mockMvc
                 .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:eric_allman:sendmail:5.58:*:*:*:*:*:*:*"))
                 .andExpect(status().isOk())
@@ -74,8 +76,8 @@ class CpeControllerTest {
 
     @Test
     void mvcTestGetByCpeWithDate() throws Exception {
-        when(advisoryService.getByVendorAndProduct(anyString(), anyString(), any(Date.class)))
-                .thenReturn(Collections.singletonList(adv));
+        when(advisoryService.cpeMatchDtos(anyString(), anyString(), anyString(), any(Date.class), anyBoolean()))
+                .thenReturn(List.of(AdvisoryDto.from(adv)));
         mockMvc
                 .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:eric_allman:sendmail:5.58:*:*:*:*:*:*:*&startDate=2006-02-28"))
                 .andExpect(status().isOk())
@@ -84,8 +86,8 @@ class CpeControllerTest {
 
     @Test
     void mvcTestGetCpeWithIncludeVersion() throws Exception {
-        when(advisoryService.getByVendorAndProductAndVersion(anyString(), anyString(), anyString(), ArgumentMatchers.isNull()))
-                .thenReturn(Collections.singletonList(adv));
+        when(advisoryService.cpeMatchDtos(anyString(), anyString(), anyString(), ArgumentMatchers.isNull(), anyBoolean()))
+                .thenReturn(List.of(AdvisoryDto.from(adv)));
         mockMvc
                 .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:eric_allman:sendmail:5.58:*:*:*:*:*:*:*&includeVersion=true"))
                 .andExpect(status().isOk())

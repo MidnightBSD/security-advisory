@@ -36,8 +36,9 @@ import org.midnightbsd.advisory.model.nvd2.*;
 import org.midnightbsd.advisory.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeParser;
@@ -61,6 +62,9 @@ public class NvdImportService {
   @Autowired private CvssMetrics3Repository cvssMetrics3Repository;
 
   @Autowired private SearchService searchService;
+
+  @Autowired(required = false)
+  private PlatformTransactionManager transactionManager;
 
   private String getProblemType(final Cve cve) {
     final StringBuilder sb = new StringBuilder();
@@ -125,8 +129,22 @@ public class NvdImportService {
     return advProducts;
   }
 
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
   public void importVulnerability(final Vulnerability vulnerability) {
+    final ImportResult importResult;
+    if (transactionManager == null) {
+      importResult = importVulnerabilityTransaction(vulnerability);
+    } else {
+      final TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+      transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+      importResult = transactionTemplate.execute(status -> importVulnerabilityTransaction(vulnerability));
+    }
+
+    if (importResult != null && importResult.indexAfterCommit()) {
+      searchIndex(advisoryService.get(importResult.advisoryId()));
+    }
+  }
+
+  private ImportResult importVulnerabilityTransaction(final Vulnerability vulnerability) {
       final Cve cve = vulnerability.getCve();
       Advisory advisory = new Advisory();
 
@@ -163,24 +181,25 @@ public class NvdImportService {
 
       if (a == null) {
         advisory.setProducts(processVendorAndProducts(cve));
-        advisory = advisoryService.save(advisory);
+        advisory = advisoryService.saveWithoutIndex(advisory);
       } else {
         advisory.setProducts(mergeProducts(a.getProducts(), processVendorAndProducts(cve)));
         final boolean advisoryUpdate = hasAdvisoryUpdates(a, advisory);
         final boolean metricsUpdated = refreshCvssMetrics3(cve, a);
         final boolean configurationsUpdated = refreshConfigurations(cve, a);
-        advisory = advisoryService.save(advisory);
-        if ((metricsUpdated || configurationsUpdated) && !advisoryUpdate) {
-          searchIndex(advisoryService.get(advisory.getId()));
+        advisory = advisoryService.saveWithoutIndex(advisory);
+        if (advisoryUpdate || metricsUpdated || configurationsUpdated) {
+          return ImportResult.index(advisory.getId());
         }
-        return;
+        return ImportResult.none();
       }
 
       refreshCvssMetrics3(cve, advisory);
 
       refreshConfigurations(cve, advisory);
 
-      searchIndex(advisoryService.get(advisory.getId())); // we fetch it again to pick up configurations.
+      // Fetch and index after this write transaction commits so the DB connection is released first.
+      return ImportResult.index(advisory.getId());
   }
 
   private boolean refreshCvssMetrics3(final Cve cve, final Advisory advisory) {
@@ -351,11 +370,25 @@ public class NvdImportService {
   }
 
   private void searchIndex(Advisory advisory) {
+    if (advisory == null) {
+      return;
+    }
     try {
       log.info("Attempt to ES index CVE ID: {}", advisory.getCveId());
       searchService.index(advisory);
     } catch (Exception e) {
       log.error("Issue indexing advisory {}", advisory.getCveId(), e);
+    }
+  }
+
+  private record ImportResult(Integer advisoryId, boolean indexAfterCommit) {
+
+    private static ImportResult index(final int advisoryId) {
+      return new ImportResult(advisoryId, true);
+    }
+
+    private static ImportResult none() {
+      return new ImportResult(null, false);
     }
   }
 }

@@ -41,21 +41,14 @@ public class CpeController {
       return ResponseEntity.badRequest().build();
     }
 
-    if (includeVersion == null || !includeVersion) {
-      return ResponseEntity.ok(
-          advisoryService.getByVendorAndProduct(parsed.getVendor(), parsed.getProduct(), startDate)
-              .stream()
-              .map(AdvisoryDto::from)
-              .toList());
-    }
-
     return ResponseEntity.ok(
         advisoryService
-            .getByVendorAndProductAndVersion(
-                parsed.getVendor(), parsed.getProduct(), parsed.getVersion(), startDate)
-            .stream()
-            .map(AdvisoryDto::from)
-            .toList());
+            .cpeMatchDtos(
+                parsed.getVendor(),
+                parsed.getProduct(),
+                parsed.getVersion(),
+                startDate,
+                Boolean.TRUE.equals(includeVersion)));
   }
 
   Cpe parse(String cpe) throws CpeParsingException {

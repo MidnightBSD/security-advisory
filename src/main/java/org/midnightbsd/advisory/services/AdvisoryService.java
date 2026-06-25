@@ -27,14 +27,18 @@ package org.midnightbsd.advisory.services;
 
 
 import com.google.common.collect.Lists;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import lombok.extern.slf4j.Slf4j;
+import org.midnightbsd.advisory.dto.AdvisoryDto;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
@@ -59,6 +63,12 @@ import us.springett.parsers.cpe.CpeParser;
 @Service
 public class AdvisoryService implements AppService<Advisory> {
 
+  private static final Duration CPE_MATCH_CACHE_TTL = Duration.ofMinutes(10);
+
+  private static final int CPE_MATCH_CACHE_MAX_ENTRIES = 256;
+
+  private static final int CPE_MATCH_CACHE_MAX_ADVISORIES = 250;
+
   private final AdvisoryRepository repository;
 
   private final SearchService searchService;
@@ -66,6 +76,9 @@ public class AdvisoryService implements AppService<Advisory> {
   private final VendorRepository vendorRepository;
 
   private final ProductRepository productRepository;
+
+  private final ConcurrentMap<CpeMatchCacheKey, CpeMatchCacheEntry> cpeMatchCache =
+      new ConcurrentHashMap<>();
 
   public AdvisoryService(final AdvisoryRepository repository, VendorRepository vendorRepository, ProductRepository productRepository, final SearchService searchService) {
     this.repository = repository;
@@ -115,7 +128,7 @@ public class AdvisoryService implements AppService<Advisory> {
    * @param startDate
    * @return
    */
-  @Transactional
+  @Transactional(readOnly = true)
   public List<Advisory> getByVendorAndProductAndVersion(
       final String vendorName,
       final String productName,
@@ -194,6 +207,38 @@ public class AdvisoryService implements AppService<Advisory> {
     return pruned;
   }
 
+  public List<AdvisoryDto> cpeMatchDtos(
+      final String vendorName,
+      final String productName,
+      final String version,
+      final Date startDate,
+      final boolean includeVersion) {
+    final CpeMatchCacheKey cacheKey =
+        CpeMatchCacheKey.from(vendorName, productName, version, startDate, includeVersion);
+    final long now = System.currentTimeMillis();
+    final CpeMatchCacheEntry cached = cpeMatchCache.get(cacheKey);
+    if (cached != null && cached.expiresAtMillis() > now) {
+      return cached.advisories();
+    }
+
+    final List<AdvisoryDto> advisories =
+        (includeVersion
+                ? getByVendorAndProductAndVersion(vendorName, productName, version, startDate)
+                : getByVendorAndProduct(vendorName, productName, startDate))
+            .stream()
+            .map(AdvisoryDto::from)
+            .toList();
+
+    if (advisories.size() <= CPE_MATCH_CACHE_MAX_ADVISORIES) {
+      cleanCpeMatchCache(now);
+      cpeMatchCache.put(
+          cacheKey,
+          new CpeMatchCacheEntry(
+              List.copyOf(advisories), now + CPE_MATCH_CACHE_TTL.toMillis()));
+    }
+    return advisories;
+  }
+
   private List<List<Product>> getProducts(final String vendorName, final String productName) {
     final String cleanedVendorName = trimToNull(vendorName);
     final String cleanedProductName = trimToNull(productName);
@@ -233,6 +278,7 @@ public class AdvisoryService implements AppService<Advisory> {
   @CacheEvict(allEntries = true)
   @Transactional
   public void batchSave(final List<Advisory> advisories) {
+    cpeMatchCache.clear();
     log.info("Advisory batch save of {}", advisories.size());
 
     final List<Advisory> createList = new ArrayList<>();
@@ -302,6 +348,17 @@ public class AdvisoryService implements AppService<Advisory> {
   @CacheEvict(allEntries = true)
   @Transactional
   public Advisory save(final Advisory advisory) {
+    return save(advisory, true);
+  }
+
+  @CacheEvict(allEntries = true)
+  @Transactional
+  public Advisory saveWithoutIndex(final Advisory advisory) {
+    return save(advisory, false);
+  }
+
+  private Advisory save(final Advisory advisory, final boolean index) {
+    cpeMatchCache.clear();
     Advisory adv = repository.findOneByCveId(advisory.getCveId());
     if (adv == null) {
       log.info("Adding {}", advisory.getCveId());
@@ -352,7 +409,9 @@ public class AdvisoryService implements AppService<Advisory> {
 
     if (update) {
       adv = repository.saveAndFlush(adv);
-      searchService.index(adv);
+      if (index) {
+        searchService.index(adv);
+      }
     }
 
     return adv;
@@ -387,4 +446,42 @@ public class AdvisoryService implements AppService<Advisory> {
   private static String vendorName(final Product product) {
     return product.getVendor() == null ? null : product.getVendor().getName();
   }
+
+  private void cleanCpeMatchCache(final long now) {
+    if (cpeMatchCache.size() < CPE_MATCH_CACHE_MAX_ENTRIES) {
+      return;
+    }
+    cpeMatchCache.entrySet().removeIf(entry -> entry.getValue().expiresAtMillis() <= now);
+    if (cpeMatchCache.size() >= CPE_MATCH_CACHE_MAX_ENTRIES) {
+      cpeMatchCache.clear();
+    }
+  }
+
+  private record CpeMatchCacheKey(
+      String vendorName,
+      String productName,
+      String version,
+      Long startDateMillis,
+      boolean includeVersion) {
+
+    private static CpeMatchCacheKey from(
+        final String vendorName,
+        final String productName,
+        final String version,
+        final Date startDate,
+        final boolean includeVersion) {
+      return new CpeMatchCacheKey(
+          normalize(vendorName),
+          normalize(productName),
+          normalize(version),
+          startDate == null ? null : startDate.getTime(),
+          includeVersion);
+    }
+
+    private static String normalize(final String value) {
+      return StringUtils.hasText(value) ? value.trim() : null;
+    }
+  }
+
+  private record CpeMatchCacheEntry(List<AdvisoryDto> advisories, long expiresAtMillis) {}
 }

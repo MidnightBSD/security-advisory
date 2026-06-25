@@ -95,13 +95,8 @@ public class McpService {
       final String cpe, final boolean includeVersion, final Date startDate)
       throws CpeParsingException {
     final Cpe parsed = parseCpe(cpe);
-    final List<Advisory> advisories =
-        includeVersion
-            ? advisoryService.getByVendorAndProductAndVersion(
-                parsed.getVendor(), parsed.getProduct(), parsed.getVersion(), startDate)
-            : advisoryService.getByVendorAndProduct(
-                parsed.getVendor(), parsed.getProduct(), startDate);
-    return advisories.stream().map(AdvisoryDto::from).toList();
+    return advisoryService.cpeMatchDtos(
+        parsed.getVendor(), parsed.getProduct(), parsed.getVersion(), startDate, includeVersion);
   }
 
   /** All advisories that reference a product by name, as lightweight summaries. */
