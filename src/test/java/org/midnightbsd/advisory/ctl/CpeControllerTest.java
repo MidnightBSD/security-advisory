@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.ctl.api.CpeController;
 import org.midnightbsd.advisory.dto.AdvisoryDto;
+import org.midnightbsd.advisory.dto.CpeRangeAdvisoryDto;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.mockito.ArgumentMatchers;
@@ -90,6 +91,18 @@ class CpeControllerTest {
                 .thenReturn(List.of(AdvisoryDto.from(adv)));
         mockMvc
                 .perform(get("/api/cpe/partial-match?cpe=cpe:2.3:a:eric_allman:sendmail:5.58:*:*:*:*:*:*:*&includeVersion=true"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
+    }
+
+    @Test
+    void mvcTestGetCpeRanges() throws Exception {
+        when(advisoryService.cpeRangeDtos(anyString(), anyString(), ArgumentMatchers.isNull()))
+                .thenReturn(List.of(new CpeRangeAdvisoryDto(
+                        1, TEST_CVE_ID, "TEST ARCH", null, null, "HIGH", null, List.of())));
+
+        mockMvc
+                .perform(get("/api/cpe/ranges?cpe=cpe:2.3:a:eric_allman:sendmail:5.58:*:*:*:*:*:*:*"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("application/json;charset=UTF-8"));
     }
