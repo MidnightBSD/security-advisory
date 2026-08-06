@@ -242,6 +242,7 @@ public class AdvisoryService implements AppService<Advisory> {
     return advisories;
   }
 
+  @Transactional(readOnly = true)
   public List<CpeRangeAdvisoryDto> cpeRangeDtos(
       final String vendorName, final String productName, final Date startDate) {
     return getByVendorAndProduct(vendorName, productName, startDate).stream()
