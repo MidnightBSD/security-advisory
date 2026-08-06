@@ -294,12 +294,15 @@ public class AdvisoryService implements AppService<Advisory> {
 
   private boolean matchesProduct(
       final String criteria, final String vendorName, final String productName) {
+    if (!StringUtils.hasText(criteria)) {
+      return false;
+    }
     try {
       final Cpe parsed = CpeParser.parse(criteria);
       return parsed.getVendor().equalsIgnoreCase(vendorName)
           && parsed.getProduct().equalsIgnoreCase(productName);
     } catch (Exception ex) {
-      log.warn("Unable to parse CPE23 URI while building range response: {}", criteria);
+      log.warn("Unable to parse CPE23 URI while building range response: {}", criteria, ex);
       return false;
     }
   }
