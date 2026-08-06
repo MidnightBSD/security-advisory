@@ -3,6 +3,7 @@ package org.midnightbsd.advisory.ctl.api;
 import java.util.Date;
 import java.util.List;
 import org.midnightbsd.advisory.dto.AdvisoryDto;
+import org.midnightbsd.advisory.dto.CpeRangeAdvisoryDto;
 import org.midnightbsd.advisory.services.AdvisoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -49,6 +50,28 @@ public class CpeController {
                 parsed.getVersion(),
                 startDate,
                 Boolean.TRUE.equals(includeVersion)));
+  }
+
+  @GetMapping("ranges")
+  public ResponseEntity<List<CpeRangeAdvisoryDto>> ranges(
+      @RequestParam(name = "cpe") String cpe,
+      @RequestParam(required = false, name = "startDate")
+          @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+          Date startDate) {
+    final String cleanedCpe = cpe.trim();
+    if (!StringUtils.hasText(cleanedCpe)) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    final Cpe parsed;
+    try {
+      parsed = parse(cleanedCpe);
+    } catch (final CpeParsingException ex) {
+      return ResponseEntity.badRequest().build();
+    }
+
+    return ResponseEntity.ok(
+        advisoryService.cpeRangeDtos(parsed.getVendor(), parsed.getProduct(), startDate));
   }
 
   Cpe parse(String cpe) throws CpeParsingException {

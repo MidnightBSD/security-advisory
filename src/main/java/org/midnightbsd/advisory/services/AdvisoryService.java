@@ -39,6 +39,9 @@ import java.util.concurrent.ConcurrentMap;
 
 import lombok.extern.slf4j.Slf4j;
 import org.midnightbsd.advisory.dto.AdvisoryDto;
+import org.midnightbsd.advisory.dto.CpeConfigurationDto;
+import org.midnightbsd.advisory.dto.CpeRangeAdvisoryDto;
+import org.midnightbsd.advisory.dto.CpeRangeDto;
 import org.midnightbsd.advisory.model.Advisory;
 import org.midnightbsd.advisory.model.Product;
 import org.midnightbsd.advisory.model.Vendor;
@@ -237,6 +240,71 @@ public class AdvisoryService implements AppService<Advisory> {
               List.copyOf(advisories), now + CPE_MATCH_CACHE_TTL.toMillis()));
     }
     return advisories;
+  }
+
+  @Transactional(readOnly = true)
+  public List<CpeRangeAdvisoryDto> cpeRangeDtos(
+      final String vendorName, final String productName, final Date startDate) {
+    return getByVendorAndProduct(vendorName, productName, startDate).stream()
+        .map(advisory -> cpeRangeDto(advisory, vendorName, productName))
+        .filter(Objects::nonNull)
+        .toList();
+  }
+
+  private CpeRangeAdvisoryDto cpeRangeDto(
+      final Advisory advisory, final String vendorName, final String productName) {
+    if (advisory.getConfigNodes() == null) {
+      return null;
+    }
+
+    final boolean hasMatchingProduct =
+        advisory.getConfigNodes().stream()
+            .filter(node -> node.getConfigNodeCpes() != null)
+            .flatMap(node -> node.getConfigNodeCpes().stream())
+            .anyMatch(cpe -> matchesProduct(cpe.getCpe23Uri(), vendorName, productName));
+    if (!hasMatchingProduct) {
+      return null;
+    }
+
+    final List<CpeConfigurationDto> configurations =
+        advisory.getConfigNodes().stream()
+            .sorted(java.util.Comparator.comparingInt(node -> node.getId()))
+            .map(
+                node ->
+                    new CpeConfigurationDto(
+                        node.getId(),
+                        node.getParentId(),
+                        node.getOperator(),
+                        node.getNegate(),
+                        node.getConfigNodeCpes() == null
+                            ? List.of()
+                            : node.getConfigNodeCpes().stream()
+                                .map(CpeRangeDto::from)
+                                .sorted(
+                                    java.util.Comparator.comparing(
+                                        CpeRangeDto::criteria,
+                                        java.util.Comparator.nullsLast(String::compareTo)))
+                                .toList()))
+            .toList();
+
+    return configurations.isEmpty()
+        ? null
+        : CpeRangeAdvisoryDto.from(advisory, configurations);
+  }
+
+  private boolean matchesProduct(
+      final String criteria, final String vendorName, final String productName) {
+    if (!StringUtils.hasText(criteria)) {
+      return false;
+    }
+    try {
+      final Cpe parsed = CpeParser.parse(criteria);
+      return parsed.getVendor().equalsIgnoreCase(vendorName)
+          && parsed.getProduct().equalsIgnoreCase(productName);
+    } catch (Exception ex) {
+      log.warn("Unable to parse CPE23 URI while building range response: {}", criteria, ex);
+      return false;
+    }
   }
 
   private List<List<Product>> getProducts(final String vendorName, final String productName) {

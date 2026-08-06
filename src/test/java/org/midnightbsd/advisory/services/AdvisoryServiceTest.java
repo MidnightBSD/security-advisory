@@ -34,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.midnightbsd.advisory.dto.AdvisoryDto;
+import org.midnightbsd.advisory.dto.CpeRangeAdvisoryDto;
 import org.midnightbsd.advisory.model.*;
 import org.midnightbsd.advisory.repository.AdvisoryRepository;
 import org.midnightbsd.advisory.repository.ProductRepository;
@@ -239,6 +240,43 @@ class AdvisoryServiceTest {
     verify(vendorRepository, times(1)).findOneByName("vendor");
     verify(productRepository, times(1)).findByNameAndVendor("product", vendor);
     verify(advisoryRepository, times(1)).findByProductsIn(anyList());
+  }
+
+  @Test
+  void cpeRangeDtosPreservesNvdRangeConstraints() {
+    var vendor = new Vendor();
+    vendor.setName("vendor");
+    var product = new Product();
+    product.setName("product");
+    product.setVendor(vendor);
+    ConfigNodeCpe cpe = adv.getConfigNodes().iterator().next().getConfigNodeCpes().iterator().next();
+    cpe.setVersionStartIncluding("1.0");
+    cpe.setVersionEndExcluding("2.0");
+    ConfigNode matchingNode = adv.getConfigNodes().iterator().next();
+    matchingNode.setParentId(2);
+    ConfigNode parentNode = new ConfigNode();
+    parentNode.setId(2);
+    parentNode.setOperator("AND");
+    parentNode.setConfigNodeCpes(Collections.emptySet());
+    adv.setConfigNodes(new HashSet<>(Set.of(matchingNode, parentNode)));
+
+    when(vendorRepository.findOneByName("vendor")).thenReturn(vendor);
+    when(productRepository.findByNameAndVendor("product", vendor)).thenReturn(List.of(product));
+    when(advisoryRepository.findByProductsIn(anyList())).thenReturn(List.of(adv));
+
+    List<CpeRangeAdvisoryDto> results =
+        advisoryService.cpeRangeDtos("vendor", "product", null);
+
+    assertEquals(1, results.size());
+    assertEquals("CVE-0000-0000", results.get(0).cveId());
+    assertEquals("OR", results.get(0).configurations().get(0).operator());
+    assertEquals(
+        "1.0", results.get(0).configurations().get(0).matches().get(0).versionStartIncluding());
+    assertEquals(
+        "2.0", results.get(0).configurations().get(0).matches().get(0).versionEndExcluding());
+    assertEquals(2, results.get(0).configurations().size());
+    assertEquals("AND", results.get(0).configurations().get(1).operator());
+    assertTrue(results.get(0).configurations().get(1).matches().isEmpty());
   }
 
   @Test
